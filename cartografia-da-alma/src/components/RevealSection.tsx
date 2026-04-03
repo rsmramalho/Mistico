@@ -28,7 +28,7 @@ export function RevealSection({ title, subtitle, delay = 0, children }: RevealSe
           </p>
         )}
         <h2 style={{
-          fontFamily: 'var(--serif)', fontSize: 'clamp(24px, 3.5vw, 36px)',
+          fontFamily: 'var(--serif)', fontSize: '34px',
           fontWeight: 300, color: 'var(--white)', lineHeight: 1.15,
         }}>
           {title}

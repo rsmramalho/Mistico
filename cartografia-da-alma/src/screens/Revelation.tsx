@@ -105,14 +105,14 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
             cartografia da alma
           </p>
           <h1 style={{
-            fontFamily: 'var(--serif)', fontSize: 'clamp(38px, 5.5vw, 64px)',
-            fontWeight: 300, lineHeight: 1.05, color: 'var(--white)', marginBottom: '14px',
+            fontFamily: 'var(--serif)', fontSize: 'clamp(52px, 7vw, 88px)',
+            fontWeight: 300, lineHeight: 1.05, color: 'var(--white)', marginBottom: '18px',
           }}>
             {soulMap.birthData.name}
           </h1>
           <p style={{
-            fontFamily: 'var(--serif)', fontSize: '18px', fontWeight: 300,
-            fontStyle: 'italic', color: 'var(--white-dim)',
+            fontFamily: 'var(--sans)', fontSize: '10px', fontWeight: 200,
+            letterSpacing: '0.35em', color: 'var(--gold)', textTransform: 'uppercase',
           }}>
             {SIGN_NAMES_PT[sunSign]} · {ELEMENT_NAMES[element]}
             {isPalm ? ' · via palma' : ascendant ? ` · ascendente ${SIGN_NAMES_PT[ascendant.sign]}` : ''}
@@ -164,22 +164,20 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
             </div>
           </div>
 
-          {/* Shadow — floating text, no card */}
-          <div style={{ borderTop: '1px solid var(--gold-line)', paddingTop: '28px' }}>
-            <p style={{ ...labelStyle, marginBottom: '20px' }}>a sombra</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-              <div>
-                <p style={{ fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200, letterSpacing: '0.3em', color: '#c94c4c', textTransform: 'uppercase', marginBottom: '6px', opacity: 0.7 }}>
-                  inflada — excesso
-                </p>
-                <p style={{ color: 'var(--white-dim)' }}>{archetype.shadow.inflated}</p>
-              </div>
-              <div>
-                <p style={{ fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200, letterSpacing: '0.3em', color: '#4c8bc9', textTransform: 'uppercase', marginBottom: '6px', opacity: 0.7 }}>
-                  deflacionada — falta
-                </p>
-                <p style={{ color: 'var(--white-dim)' }}>{archetype.shadow.deflated}</p>
-              </div>
+          {/* Shadow — border-left blocks */}
+          <p style={{ ...labelStyle, marginBottom: '20px', marginTop: '36px' }}>a sombra</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ borderLeft: '1px solid var(--gold-line)', paddingLeft: '16px' }}>
+              <p style={{ fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200, letterSpacing: '0.3em', color: '#c94c4c', textTransform: 'uppercase', marginBottom: '6px', opacity: 0.7 }}>
+                inflada — excesso
+              </p>
+              <p style={{ color: 'var(--white-dim)' }}>{archetype.shadow.inflated}</p>
+            </div>
+            <div style={{ borderLeft: '1px solid var(--gold-line)', paddingLeft: '16px' }}>
+              <p style={{ fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200, letterSpacing: '0.3em', color: '#4c8bc9', textTransform: 'uppercase', marginBottom: '6px', opacity: 0.7 }}>
+                deflacionada — falta
+              </p>
+              <p style={{ color: 'var(--white-dim)' }}>{archetype.shadow.deflated}</p>
             </div>
           </div>
         </RevealSection>
