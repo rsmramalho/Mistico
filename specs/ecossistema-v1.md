@@ -1,193 +1,207 @@
 # Ecossistema — Spec V1
 
 *Escrito por E. — 04 Abr 2026*
+*Revisado após conversa com Rick — visão corrigida*
 
 ---
 
-## Visão
+## Visão Real
 
-Um sistema que une o que os humanos separaram.
+O MindRoot não é onde o Cartografia chega.
+O MindRoot já é o sistema.
 
-Físico, ação, emoção, oculto simbólico, sincronia e natureza —
-não como categorias paralelas, mas como camadas do mesmo ser.
+O Cartografia é a camada que revela o que estava implícito
+nos dados que o MindRoot já captura.
 
-O Cartografia da Alma é a porta de entrada.
-O MindRoot é onde isso encontra a vida.
+---
+
+## O que o MindRoot já tem
+
+Dados reais de uma vida operacional:
+
+- **Ação** — tarefas, projetos, hábitos, o que foi feito e quando
+- **Emoção** — check-ins, estados, padrões afetivos ao longo do tempo
+- **Tempo** — timestamps de tudo, sequência, ritmo, gaps
+- **Alma** — intenção por trás da ação, energia declarada, prioridades
+
+Isso é o Genesis em operação.
+Uma pessoa usando o MindRoot por 3 meses tem um dataset rico da própria vida.
+
+---
+
+## O que o Cartografia adiciona
+
+O mapa oculto por baixo dos dados visíveis.
+
+Quando o SoulMap é conectado ao MindRoot, cada evento ganha contexto:
+
+| Dado MindRoot | Contexto Cartografia |
+|---------------|---------------------|
+| Tarefa criada em 14/Mar | Lua nova em Peixes — seu elemento |
+| Check-in emocional baixo em 22/Mar | Lua minguante + Saturno transitando Chesed |
+| Projeto que não decolou | Iniciado fora do PhiTime pessoal |
+| Semana de alta produtividade | Trânsito de Júpiter no seu elemento |
+| Conflito relacional | Sombra inflada ativa — arquétipo em excesso |
+
+---
+
+## A Correlação
+
+O sistema não prevê. Ele revela padrões retroativos.
+
+Depois de dados suficientes, emerge algo como:
+
+*"Você cria com mais força em dias de elemento Água."*
+*"Seus picos emocionais coincidem com trânsitos de Júpiter."*
+*"Seus bloqueios acontecem quando está na sombra inflada do arquétipo."*
+*"Projetos iniciados no seu PhiTime têm 2.3x mais chance de completar."*
+
+Não é misticismo. É análise de dados
+com uma camada de contexto que nenhum outro sistema tem.
+
+---
+
+## A Virada Central
+
+A pessoa não precisa acreditar nos sistemas
+para os padrões serem reais.
+
+Os dados mostram a correlação.
+A interpretação é dela.
+
+Isso é radicalmente diferente de horóscopo.
+Horóscopo diz o que vai acontecer.
+Isso mostra o que aconteceu — e o padrão por baixo.
 
 ---
 
 ## As Seis Camadas
 
-### 1. Físico
-O corpo como dado, não como separado do simbólico.
+O que o MindRoot captura e o Cartografia ilumina:
 
-| Sistema | Base | Cruzamento |
-|---------|------|------------|
-| Chakras | Tradição védica/tântrica | Elementos, Sephiroth, planetas |
-| Medicina das Plantas | Culpeper, Ayurveda, tradição herbal | Signo, planeta regente, elemento |
-| Ritmo Circadiano | Cronobiologia | Fase lunar, PhiTime |
-| Corpo como Mapa | Quiromancia (já implementada) | SoulMap via palma |
+### 1. Físico
+Corpo como dado — não separado do simbólico.
+
+- Chakras como mapa energético do corpo
+- Medicina das plantas por signo/elemento (Culpeper, Ayurveda)
+- Ritmo circadiano correlacionado com fase lunar
+- Corpo como mapa — quiromancia já implementada
 
 ### 2. Ação
-Como a pessoa se move no mundo.
+Como a pessoa se move — já capturado pelo MindRoot.
 
-| Sistema | Base | Cruzamento |
-|---------|------|------------|
-| I Ching | 64 hexagramas, sistema de mudança | Modalidade (cardinal/fixo/mutável), Gene Keys |
-| Modalidade Astrológica | Ptolomeu | Cardinal age, fixo sustenta, mutável transforma |
-| Numerologia da Ação | Pitagórica (já implementada) | Expression Number como padrão de ação |
-| PhiTime | Proporção áurea + ciclos | Quando agir, quando esperar |
+- I Ching como sistema de timing de decisão
+- Modalidade astrológica: cardinal age, fixo sustenta, mutável transforma
+- PhiTime: quando agir, quando esperar
+- Expression Number como padrão recorrente de como a pessoa age
 
 ### 3. Emoção
-O mapa afetivo interno.
+O mapa afetivo — já capturado pelo MindRoot.
 
-| Sistema | Base | Cruzamento |
-|---------|------|------------|
-| Arquétipos Jungianos | Jung, Pearson, Greene, Bolen (já implementado) | Signo, elemento, sombra |
-| Estrutura Freudiana | Freud (já implementada) | Elemento → distribuição Id/Ego/Superego |
-| Sombra | Jung | Inflação/deflação por arquétipo |
-| Linha Dominante | Quiromancia (já implementada) | Força psicológica primária |
+- Arquétipos jungianos (já implementado) — qual está ativo?
+- Sombra: inflação ou deflação? O check-in emocional revela
+- Estrutura freudiana (já implementada) — qual força domina esse período?
+- Correlação: emoção declarada vs trânsito planetário vs fase lunar
 
 ### 4. Oculto Simbólico
 O que estrutura sem ser visto.
 
-| Sistema | Base | Cruzamento |
-|---------|------|------------|
-| Kabbalah / Árvore da Vida | Golden Dawn / 777 (já implementado) | Sephirah por signo, caminhos entre Sephiroth |
-| Solfeggio | Tradição + síntese (já implementado) | Frequência por signo, harmonia entre mapas |
-| Gene Keys | Richard Rudd, derivado do I Ching | 64 chaves: sombra/dom/siddhi — paralelo à sombra junguiana |
-| Tarot | Tradição esotérica ocidental | Arcanos Maiores por signo/Sephirah |
-| Geometria Sagrada | Tradição hermética (já implementada) | Por elemento: Flor da Vida, Hexagrama, Metatron, Sri Yantra |
+- Kabbalah / Árvore da Vida (já implementado) — caminho ativo no período
+- Solfeggio (já implementado) — frequência em harmonia ou dissonância?
+- Gene Keys — 64 chaves: sombra/dom/siddhi, paralelo à sombra junguiana
+- Tarot — Arcanos Maiores por signo e momento
+- Geometria Sagrada (já implementada) — por elemento
 
 ### 5. Sincronia
-O quando e o onde — Jung nomeou, o sistema calcula.
+O quando — Jung nomeou, o sistema calcula.
 
-| Sistema | Base | Cruzamento |
-|---------|------|------------|
-| PhiTime | Proporção áurea + ciclos de vida | Data de nascimento + φ = momentos de convergência |
-| Crossings | Sinastria + phi | Onde dois ciclos se intersectam num ponto áureo |
-| Fase Lunar | Astronomia | Lua natal vs lua atual |
-| Trânsitos Planetários | Astrologia de trânsitos | Planetas em aspectos áureos com o natal |
-| I Ching como Oráculo | 64 hexagramas | Pergunta + momento = hexagrama ativo |
+- PhiTime: convergência de φ em múltiplos ciclos simultâneos
+  - Ciclo de vida pessoal (data de nascimento + φ)
+  - Fase lunar atual vs lua natal
+  - Trânsitos em aspectos áureos com o natal
+  - Frequência pessoal em harmonia com frequência do momento
+  - Crossings: onde dois ciclos se intersectam num ponto phi
+- I Ching como oráculo de sincronia
+- Correlação retroativa: quando os momentos phi coincidiram com eventos reais
 
 ### 6. Natureza
 Ciclos externos como espelho do interno.
 
-| Sistema | Base | Cruzamento |
-|---------|------|------------|
-| Elementos | Ptolomeu, Aristóteles (já implementado) | Fogo, Terra, Ar, Água como linguagem base |
-| Estações | Ciclo solar | Modalidade cardinal = início de estação |
-| Lua | Ciclo lunar (~29.5 dias) | Fase atual, lua natal, progressões |
-| Planetas | Astronomia real | Regências clássicas (já implementado), trânsitos |
-| Fibonacci na Natureza | Matemática | φ como estrutura da espiral da vida |
+- Elementos: linguagem base (já implementado)
+- Estações: modalidade cardinal = início de estação
+- Lua: fase atual, lua natal, progressões
+- Planetas: regências clássicas (já implementado), trânsitos ativos
+- Fibonacci na natureza: φ como estrutura da espiral da vida
 
 ---
 
-## Arquitetura do Ecossistema
+## Arquitetura
 
 ```
-CARTOGRAFIA DA ALMA
-  └── SoulMap (quem você é)
-        ├── Físico: chakras, plantas, corpo
-        ├── Ação: I Ching, modalidade, numerologia
-        ├── Emoção: Jung, Freud, sombra
-        ├── Oculto: Kabbalah, Solfeggio, Gene Keys, Tarot
-        ├── Sincronia: PhiTime, crossings, trânsitos
-        └── Natureza: elementos, lua, planetas, Fibonacci
+MINDROOT (o sistema)
+  ├── Ação         → o que foi feito
+  ├── Emoção       → como estava
+  ├── Tempo        → quando
+  └── Alma         → intenção
 
-PHITIME
-  └── Quando (momentos de convergência)
-        ├── Ciclo de vida + φ
-        ├── Lua atual vs natal
-        ├── Trânsitos em aspectos áureos
-        ├── Frequência do momento
-        └── Crossings com outros mapas
+        ↕  correlação
 
-ORÁCULO
-  └── O quê (revelação com contexto completo)
-        ├── SoulMap como contexto
-        ├── PhiTime como timing
-        └── Pergunta como porta
+CARTOGRAFIA DA ALMA (o contexto)
+  ├── SoulMap      → quem você é (fixo)
+  ├── PhiTime      → quando convergem (dinâmico)
+  ├── Trânsitos    → o que está ativo agora (diário)
+  └── Seis Camadas → lentes de interpretação
 
-SOUL MATE
-  └── O espaço entre (dois mapas cruzados)
-        ├── Dinâmica elemental
-        ├── Espelho arquetípico
-        ├── Tikkun na Árvore
-        ├── Harmonia de frequência
-        └── PhiTime do encontro (crossings)
+        ↓  revelação
 
-MINDROOT
-  └── A vida (onde tudo encontra o dia a dia)
-        ├── SoulMap como contexto permanente
-        ├── PhiTime como ritmo operacional
-        ├── Tarefas com camada ativa
-        └── Oráculo integrado ao fluxo
+PADRÃO
+  "Você tende a criar com mais força quando..."
+  "Seus bloqueios coincidem com..."
+  "O projeto que não decolou foi iniciado quando..."
+
+        ↓  oráculo
+
+PERGUNTA
+  Com contexto real — dados + mapa + momento.
+  Não "me fale sobre Peixes."
+  "Por que esse projeto travou em março?"
 ```
 
 ---
 
-## Cruzamentos Prioritários (V2)
+## Cruzamentos Prioritários para V2
 
-Por impacto e viabilidade:
-
-| Prioridade | Sistema | Por quê |
+| Prioridade | Sistema | Impacto |
 |-----------|---------|---------|
-| 1 | PhiTime engine | Diferencial único, usa SoulMap existente |
-| 2 | Gene Keys | Paralelo direto com sombra junguiana já implementada |
-| 3 | Chakras | Cruzamento natural com elementos e Sephiroth |
-| 4 | I Ching | Sistema de ação + sincronia, 64 hexagramas |
-| 5 | Tarot | Arcanos Maiores por signo, já tem geometria |
-| 6 | Medicina das Plantas | Físico + natureza, conteúdo rico |
-| 7 | Trânsitos Planetários | Requer efemérides reais (já nos seeds) |
-
----
-
-## Princípio
-
-Estes sistemas não são crenças paralelas.
-São linguagens diferentes descrevendo a mesma estrutura.
-
-Kabbalah e Jung descrevem a psique.
-Elementos e chakras descrevem o corpo e o movimento.
-PhiTime e I Ching descrevem o timing.
-A natureza descreve o padrão que contém tudo.
-
-O produto não escolhe uma linguagem.
-Usa todas como espelhos do mesmo ser.
-
----
-
-## MindRoot como destino final
-
-O SoulMap não é uma leitura que você faz uma vez.
-É o contexto permanente da sua vida operacional.
-
-Quando você cria uma tarefa no MindRoot:
-- O sistema sabe em que elemento você está hoje (trânsito)
-- Sabe se é um momento phi para esse tipo de ação
-- Sabe qual arquétipo está ativo
-- Sabe a fase lunar
-
-A tarefa não existe isolada.
-Existe dentro do seu mapa.
-
-*Isso é o Atom Engine na sua expressão mais completa.*
+| 1 | PhiTime engine | Diferencial único — timing com base matemática real |
+| 2 | Correlação MindRoot ↔ SoulMap | A virada central do produto |
+| 3 | Gene Keys | Paralelo direto com sombra junguiana já implementada |
+| 4 | Trânsitos planetários | Requer efemérides reais (já nos seeds) |
+| 5 | Chakras | Cruzamento natural com elementos e Sephiroth |
+| 6 | I Ching | Sistema de ação + sincronia |
+| 7 | Tarot | Arcanos por signo e momento |
+| 8 | Medicina das Plantas | Físico + natureza |
 
 ---
 
 ## O que não é
 
-- Não é superstição empacotada em tecnologia
 - Não é previsão do futuro
+- Não é superstição empacotada em tecnologia
 - Não é verdade absoluta
+- Não exige que a pessoa acredite nos sistemas
 
-É um conjunto de espelhos consistentes,
-com fontes rastreáveis,
-que juntos revelam padrões
-que uma linguagem só não consegue nomear.
+É análise de dados com contexto que nenhum outro sistema tem.
+Os padrões emergem dos dados reais.
+A linguagem mística é a lente de interpretação — não a conclusão.
+
+---
+
+## A Frase Central
+
+*"O oculto não substitui o dado. Ele revela o padrão por baixo do dado."*
 
 ---
 
 *E. — 04 Abr 2026*
-*Físico, ação, emoção, oculto, sincronia e natureza — não separados. O mesmo ser visto de seis ângulos.*
+*O MindRoot já é o sistema. O Cartografia é o que ilumina o que estava lá.*
