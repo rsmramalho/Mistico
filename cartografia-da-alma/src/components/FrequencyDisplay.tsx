@@ -8,27 +8,36 @@ interface FrequencyDisplayProps {
 
 export function FrequencyDisplay({ frequency, delay = 0 }: FrequencyDisplayProps) {
   return (
-    <div className="text-center">
+    <div style={{ textAlign: 'center' }}>
       <motion.div
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay, ease: 'easeOut' }}
-        className="inline-block mb-4"
+        style={{ marginBottom: '20px' }}
       >
-        <span
-          className="text-5xl md:text-6xl text-[#c9a84c] font-light"
-          style={{ fontFamily: "'Cinzel Decorative', serif" }}
-        >
+        <span style={{
+          fontFamily: 'var(--serif)', fontSize: 'clamp(48px, 7vw, 72px)',
+          fontWeight: 300, color: 'var(--gold)',
+        }}>
           {frequency.hz}
         </span>
-        <span className="text-lg text-[#c9a84c]/60 ml-2">Hz</span>
+        <span style={{
+          fontFamily: 'var(--sans)', fontSize: '13px', fontWeight: 200,
+          color: 'var(--white-dim)', marginLeft: '8px', letterSpacing: '0.1em',
+        }}>
+          Hz
+        </span>
       </motion.div>
 
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: delay + 0.3 }}
-        className="text-lg text-[#c9a84c]/80 tracking-widest uppercase mb-3"
+        style={{
+          fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+          letterSpacing: '0.38em', color: 'var(--gold)',
+          textTransform: 'uppercase', marginBottom: '16px',
+        }}
       >
         {frequency.keywordPt}
       </motion.p>
@@ -37,8 +46,10 @@ export function FrequencyDisplay({ frequency, delay = 0 }: FrequencyDisplayProps
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: delay + 0.6 }}
-        className="text-[#e8dcc8]/80 max-w-md mx-auto text-lg leading-relaxed"
-        style={{ fontFamily: "'Cormorant Garamond', serif" }}
+        style={{
+          fontFamily: 'var(--serif)', fontSize: '17px', fontWeight: 300,
+          lineHeight: 1.7, color: 'var(--white-dim)', maxWidth: '440px', margin: '0 auto',
+        }}
       >
         {frequency.description}
       </motion.p>

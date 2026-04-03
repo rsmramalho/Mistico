@@ -6,52 +6,47 @@ interface PsycheBarProps {
   delay?: number;
 }
 
-const COLORS = {
-  id: '#c94c4c',
-  ego: '#c9a84c',
-  superego: '#4c8bc9',
-};
-
-const LABELS = {
-  id: 'Id',
-  ego: 'Ego',
-  superego: 'Superego',
-};
+const SEGMENTS = [
+  { key: 'id' as const, color: '#c94c4c', label: 'id' },
+  { key: 'ego' as const, color: '#c9a84c', label: 'ego' },
+  { key: 'superego' as const, color: '#4c8bc9', label: 'superego' },
+];
 
 export function PsycheBar({ psyche, delay = 0 }: PsycheBarProps) {
-  const segments = [
-    { key: 'id' as const, value: psyche.id, color: COLORS.id, label: LABELS.id },
-    { key: 'ego' as const, value: psyche.ego, color: COLORS.ego, label: LABELS.ego },
-    { key: 'superego' as const, value: psyche.superego, color: COLORS.superego, label: LABELS.superego },
-  ];
+  const values = { id: psyche.id, ego: psyche.ego, superego: psyche.superego };
 
   return (
     <div>
-      {/* Bar */}
-      <div className="h-8 md:h-10 rounded-full overflow-hidden flex bg-white/5 mb-4">
-        {segments.map((seg) => (
+      {/* Bar — thin, no rounded corners */}
+      <div style={{
+        height: '3px', display: 'flex', overflow: 'hidden',
+        background: 'var(--white-ghost)', marginBottom: '18px',
+      }}>
+        {SEGMENTS.map((seg) => (
           <motion.div
             key={seg.key}
             initial={{ width: 0 }}
-            animate={{ width: `${seg.value}%` }}
+            animate={{ width: `${values[seg.key]}%` }}
             transition={{ duration: 1.5, delay: delay + 0.2, ease: 'easeOut' }}
-            className="h-full flex items-center justify-center text-xs font-medium"
-            style={{ backgroundColor: seg.color + '40', color: seg.color }}
-          >
-            {seg.value}%
-          </motion.div>
+            style={{ height: '100%', backgroundColor: seg.color }}
+          />
         ))}
       </div>
 
       {/* Legend */}
-      <div className="flex gap-6 text-sm">
-        {segments.map((seg) => (
-          <div key={seg.key} className="flex items-center gap-2">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: seg.color }}
-            />
-            <span className="text-[#e8dcc8]/70">{seg.label}</span>
+      <div style={{ display: 'flex', gap: '24px' }}>
+        {SEGMENTS.map((seg) => (
+          <div key={seg.key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              width: '6px', height: '6px', borderRadius: '50%',
+              backgroundColor: seg.color,
+            }} />
+            <span style={{
+              fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+              letterSpacing: '0.2em', color: 'var(--white-dim)', textTransform: 'uppercase',
+            }}>
+              {seg.label} {values[seg.key]}%
+            </span>
           </div>
         ))}
       </div>
