@@ -1,8 +1,8 @@
 # Cartografia da Alma — Roadmap de Produto
 
 Data: 04 Abr 2026
-Versão atual: visual.2 (redesign em andamento)
-Status: engine completo · visual em polimento · pré-deploy
+Versão atual: visual.4 + oráculo
+Status: engine completo · visual polido · oráculo live · deployed
 
 ---
 
@@ -23,6 +23,10 @@ Claude Code no terminal do VS Code para sessões de implementação longa.
 | data.1 | 03 Abr | Supabase schema (atom_items, share_links, RLS) + data layer (readings.ts) |
 | visual.1 | 03 Abr | Geometrias sagradas: CosmosBackground, FlowerOfLife, Hexagram, Metatron, SriYantra, TreeOfLife |
 | visual.2 | 04 Abr | Redesign Gateway + Entry + CSS base (Cormorant Garant, Jost, cursor dourado, variáveis) |
+| visual.3 | 04 Abr | Loading ritual: 6 sistemas surgem sequencialmente (7s), soulMap como prop |
+| visual.4 | 04 Abr | Revelation: nome 88px, signo em Jost uppercase, sombra com border-left, RevealSection 34px |
+| feature.oracle | 04 Abr | Oráculo: 3 perguntas com contexto SoulMap, claude-sonnet-4-6, OracleSection |
+| deploy.1 | 04 Abr | Vercel live: cartografia-da-alma.vercel.app + Supabase conectado |
 
 ---
 
@@ -31,24 +35,24 @@ Claude Code no terminal do VS Code para sessões de implementação longa.
 | Milestone | Versões | Status |
 |-----------|---------|--------|
 | M1 — Engine | engine.1–2 + data.1 | ✅ Completo |
-| M2 — Visual | visual.1–? | 🔄 Em andamento |
-| M3 — Deploy | deploy.1 | ⏳ Pendente |
+| M2 — Visual | visual.1–4 | ✅ Completo |
+| M3 — Deploy | deploy.1 | ✅ Completo |
 | M4 — Monetização | pay.1 | ⏳ Pendente |
 | v1.0 — Lançamento | — | ⏳ Pendente |
 
 ---
 
-## Números atuais (visual.2)
+## Números atuais (visual.4 + oráculo)
 
 | Métrica | Valor |
 |---------|-------|
-| Engine modules | 9 |
+| Engine modules | 10 (+ oracle.ts) |
 | Screens | 5 (Entry, PalmEntry, Loading, Revelation, SoulMateRevelation) |
 | Geometrias | 6 |
 | Hooks | 2 |
-| Components | 3 |
-| Build | ✅ 0 erros TS, ~390KB JS |
-| Deploy | ❌ não configurado |
+| Components | 4 (+ OracleSection) |
+| Build | ✅ 0 erros TS, ~398KB JS, ~11KB CSS |
+| Deploy | ✅ cartografia-da-alma.vercel.app |
 
 ---
 
@@ -59,37 +63,23 @@ Claude Code no terminal do VS Code para sessões de implementação longa.
 - Entry: campos sem borda arredondada, tipografia Cormorant Garant, labels discretos
 - CSS: variáveis globais, cursor dourado animado, Jost como sans
 
-### visual.3 — Revelation (próximo)
-**Problema identificado:**
-- Cinzel Decorative no nome, título e todos os botões
-- Cards com `rounded-lg bg-white/5` na sombra e no "Encontrar outra alma"
-- Botões com `whileHover={{ scale }}` — feel de e-commerce
-- Seções sem espaço para respirar — densidade uniforme, sem ritmo
+### visual.3 ✅ — Loading ritual
+- 6 sistemas surgem sequencialmente a cada ~1s (signo, sephirah, arquétipo, frequência, número, elemento)
+- soulMap como prop, TreeOfLife ao fundo opacity 0.12, 7s total
+- "cartografando sua alma" em italic dimmed após os 6
 
-**O que vai mudar:**
-- Nome do usuário em Cormorant Garant, grande, com peso
-- Seções com espaçamento generoso e linha dourada fina como separador
-- Sombra: sem card — texto flutuante com cor atenuada
-- Botões: mesmo padrão do Entry — texto underline, sem borda arredondada
-- "Encontrar outra alma" — campo sem `rounded-lg`, integrado ao fluxo
-- Geometria sagrada com mais espaço e opacidade calibrada
+### visual.4 ✅ — Revelation + RevealSection
+- Nome: clamp(52px,7vw,88px), weight 300
+- Signo · Elemento: Jost 10px uppercase gold
+- Sombra: border-left blocks (não cards)
+- RevealSection: título 34px serif
+- Botões: underline, sem rounded, sem scale
 
-### visual.4 — Loading
-- Verificar estado atual
-- Ritual de 3s — transição com peso, não spinner
-
-### visual.5 — PalmEntry
-- Verificar estado atual
-- Diagrama interativo da mão com SVG (sem emoji, sem placeholder)
-
-### visual.6 — SoulMateRevelation
-- Verificar estado atual
-- Mesma linguagem visual das outras telas
-
-### visual.7 — QA visual completo
-- Fluxo completo: Gateway → Entry → Loading → Revelation → SoulMate
-- Mobile (375px) e desktop (1440px)
-- Verificar CosmosBackground em todos os estados
+### feature: oráculo ✅
+- oracle.ts: buildSystemPrompt + askOracle (claude-sonnet-4-6, 600 tokens)
+- OracleSection: 3 perguntas, contador ●○○, loading pulsante, encerramento
+- Contexto: SoulMap completo no system prompt
+- Wired no final de Revelation.tsx
 
 ---
 
@@ -98,7 +88,7 @@ Claude Code no terminal do VS Code para sessões de implementação longa.
 ### deploy.1
 - Vercel — configurar projeto
 - Domínio: cartografia.com.br ou cartografiadaalma.com (verificar disponibilidade)
-- Variáveis de ambiente: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+- Variáveis de ambiente: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_ANTHROPIC_API_KEY
 - Supabase: aplicar migration 001_atom_items.sql em produção
 - Preview deploy por branch
 
@@ -172,5 +162,5 @@ Claude Code no terminal do VS Code para sessões de implementação longa.
 
 ---
 
-*Roadmap atualizado em 04 Abr 2026 — E.*
+*Roadmap atualizado em 04 Abr 2026 — E. + Claude Code*
 *Soul Mate não é compatibilidade. É o mapa do espaço entre duas almas.*
