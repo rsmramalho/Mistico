@@ -7,6 +7,7 @@
 ·  (1)  FUNDAÇÃO
 —  (1)  DADOS
 △  (2)  VISUAL
+◇  (3)  PALMA
 □  (3)  EXPERIÊNCIA
 ⬠  (5)  INTEGRAÇÃO
 ```
@@ -31,7 +32,7 @@ output:   research-mapeamentos.md, spec-cartografia-v1.md, roadmap-cartografia-v
 - [x] Spec Genesis v5.0.1
 - [x] Roadmap PHI
 
-**Decisões registradas:** D1–D7 no research. D8 pendente (Rick).
+**Decisões registradas:** D1–D8 no research (D8 decidido por Rick, 04 Abr 2026). D9–D12 adicionadas para Fase PALMA.
 
 ---
 
@@ -81,6 +82,26 @@ depends:  DADOS
 - [ ] `FrequencyDisplay.tsx` — display de frequência
 
 **Estética:** Cosmos escuro (#04040a), dourado (#c9a84c), Cinzel + Cormorant Garamond.
+
+---
+
+## ◇ (3) PALMA — Leitura de Mão
+
+```
+protocol: ESTRUTURA → INTERFACE
+status:   🔄 em progresso
+output:   src/engine/palm.ts, src/types/palm.ts, src/components/PalmDiagram.tsx, src/screens/PalmEntry.tsx
+depends:  VISUAL + DADOS
+```
+
+**Entregas:**
+- [ ] `engine/palm.ts` — resolveMountToSign(), getDominantLineExpression(), getPalmSoulMap()
+- [ ] `types/palm.ts` — PalmData, Mount, HandShape, PalmLine enums
+- [ ] `PalmDiagram.tsx` — diagrama interativo da mão com montes selecionáveis (touch)
+- [ ] `PalmEntry.tsx` — UI de seleção: forma da mão + monte dominante + linha dominante
+- [ ] Adaptação de `Revelation.tsx` — modo palm: sem ascendente, com "Linha Dominante"
+
+**Nota:** Research completo em `research-mapeamentos.md` (seção 7 — Quiromancia). Decisões D9–D12.
 
 ---
 
@@ -142,6 +163,7 @@ status: documentados, não implementados
 - Modo exploração (todas as sephiroth)
 - Carta natal completa
 - Auth + persistência de mapas
+- Soul Mate via shared palm readings
 
 ---
 

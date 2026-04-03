@@ -23,6 +23,20 @@ export type ArchetypeName =
 
 export type PlanetaryExpression = 'diurnal' | 'nocturnal' | 'sole';
 
+// ── Palm types ──
+
+export type HandShape = 'fire' | 'earth' | 'air' | 'water';
+export type MountName = 'jupiter' | 'saturn' | 'apollo' | 'mercury' | 'venus' | 'mars' | 'moon';
+export type LineName = 'heart' | 'head' | 'life' | 'fate';
+export type ReadingSource = 'birth' | 'palm';
+
+export interface PalmData {
+  handShape: HandShape;
+  dominantMount: MountName;
+  dominantLine: LineName;
+  name: string;
+}
+
 // ── Input ──
 
 export interface BirthData {
@@ -104,6 +118,15 @@ export interface SoulMap {
   // Input
   birthData: BirthData;
 
+  // Source
+  source: ReadingSource;
+
+  // Palm-specific (only when source === 'palm')
+  palmData?: PalmData;
+  dominantLine?: LineName;
+  sephirahExpressionCanonic?: PlanetaryExpression;
+  sephirahExpressionPalmDerived?: 'diurnal' | 'nocturnal';
+
   // Astrologia
   sunSign: Sign;
   element: Element;
@@ -124,6 +147,46 @@ export interface SoulMap {
 
   // Numerologia
   numerology: NumerologyResult;
+}
+
+// ── Soul Mate ──
+
+export interface ElementDynamic {
+  name: string;        // "Caldeirão", "Forja", etc.
+  namePt: string;      // Same in this case (already PT)
+  nature: string;      // "Tensão transformadora", etc.
+  description: string;
+}
+
+export interface ArchetypeMirror {
+  projectionAtoB: string;
+  projectionBtoA: string;
+  integration: string;
+}
+
+export interface TikkunPath {
+  distance: number;
+  sephirahA: SephirahName;
+  sephirahB: SephirahName;
+  meaning: string;
+}
+
+export interface FrequencyHarmony {
+  hzA: number;
+  hzB: number;
+  interval: string;
+  description: string;
+}
+
+export interface SoulMateReading {
+  readingA: SoulMap;
+  readingB: SoulMap;
+  elementDynamic: ElementDynamic;
+  mirror: ArchetypeMirror;
+  tikkun: TikkunPath;
+  frequencyHarmony: FrequencyHarmony;
+  combinedPsyche: PsycheDistribution;
+  meetingNumber: NumerologyResult;
 }
 
 // ── Sign metadata ──

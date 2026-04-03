@@ -4,9 +4,10 @@ import type { BirthData } from '../types/soul-map';
 
 interface EntryProps {
   onSubmit: (data: BirthData) => void;
+  onBack?: () => void;
 }
 
-export function Entry({ onSubmit }: EntryProps) {
+export function Entry({ onSubmit, onBack }: EntryProps) {
   const [name, setName] = useState('');
   const [dateStr, setDateStr] = useState('');
   const [time, setTime] = useState('');
@@ -150,6 +151,19 @@ export function Entry({ onSubmit }: EntryProps) {
         >
           Seus dados permanecem apenas no seu navegador
         </motion.p>
+
+        {onBack && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 1.4 }}
+            onClick={onBack}
+            className="block mx-auto mt-4 text-[#c9a84c]/30 hover:text-[#c9a84c]/60 text-xs tracking-wider uppercase transition-colors cursor-pointer"
+            style={{ fontFamily: "'Cinzel Decorative', serif" }}
+          >
+            &#8592; Voltar
+          </motion.button>
+        )}
       </div>
     </motion.div>
   );

@@ -28,6 +28,7 @@ export function getSoulMap(birthData: BirthData): SoulMap {
 
   return {
     birthData,
+    source: 'birth' as const,
     sunSign,
     element,
     modality,
@@ -47,3 +48,5 @@ export { getArchetype } from './jung';
 export { getFrequency } from './solfeggio';
 export { getNumerology, getExpressionNumber } from './numerology';
 export { getPsycheDistribution } from './freud';
+export { getHandElement, getSignFromMount, getPalmExpression, getPalmSoulMap } from './palm';
+export { getSoulMateReading } from './soul-mate';

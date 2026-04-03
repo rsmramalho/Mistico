@@ -372,16 +372,104 @@ Usar aproximação. Label como "Rising Sign (approximate)". Armazenar hora e cid
 **Decisão:** Algoritmo de 2h com sunrise às 06:00. Label como "aproximado".
 **Razão:** Sem geocoding, cálculo real é impossível. Prático para V1.
 
-### DÚVIDA PARA RICK
+### D8: Tipo do AtomItem — DECIDIDO (Rick, 04 Abr 2026)
 
-**D8: Tipo do AtomItem**
-O mapa da alma é um AtomItem. `reading` não é um dos 23 types do Genesis. Duas opções:
-- **Opção A:** `type: spec` — reutiliza type existente, body JSONB com campos do mapa
-- **Opção B:** `type: reading` — extensão do Genesis (requer justificativa)
+**Decisão:** `type: reading` — extensão do Genesis v5.0.1.
 
-**Recomendação do GUARDIÃO:** Para V1 standalone (sem Supabase), esta decisão é acadêmica. Quando Supabase entrar (V2), Rick decide. Documentado no WRAP.
+**Justificativa formal:** O app produz leituras, não specs. `spec` é container técnico para documentação de projeto. Uma cartografia da alma é um artefato interpretativo com identidade própria — tem nome, tem autor (o sujeito do reading), tem ciclo de vida (criação, compartilhamento, eventual expiração). Merece type próprio no Genesis.
+
+**Implicação:** `reading` passa a ser o 24º type do Genesis. Body JSONB contém o SoulMap completo (BirthData + todos os resultados do engine). Title segue padrão "Cartografia de {nome}".
+
+### D9: Seleção Interativa de Monte (04 Abr 2026)
+**Decisão:** Seleção guiada via diagrama touch interativo. Sem foto da mão. Sem IA de imagem.
+**Razão:** Simplicidade, acessibilidade, sem dependência de câmera/modelo. O usuário toca o monte dominante no diagrama.
+
+### D10: Resolução Monte→Signo via Triplicidades (04 Abr 2026)
+**Decisão:** O elemento da mão (forma) resolve o par planetário via triplicidades de Ptolomeu (*Tetrabiblos* I.18). Fogo/Ar→ativo, Terra/Água→receptivo. A linha dominante resolve a expressão (diurna/noturna), não o signo.
+**Razão:** Método historicamente fundamentado. Mantém consistência com o sistema Golden Dawn / 777.
+
+### D11: Campo `source` no SoulMap (04 Abr 2026)
+**Decisão:** SoulMap recebe campo `source: 'birth' | 'palm'` para distinguir a origem dos dados.
+**Razão:** Permite UI adaptada e revelações distintas conforme o método de entrada.
+
+### D12: Sem Ascendente via Palma (04 Abr 2026)
+**Decisão:** Leitura de palma não gera ascendente. O conceito é substituído por "Linha Dominante" na revelação.
+**Razão:** Ascendente depende de hora/local de nascimento. Quiromancia não fornece esses dados. A linha dominante cumpre papel análogo (uma segunda camada de personalidade).
 
 ---
 
-*Research compilado em 03 Abr 2026 — GUARDIÃO / Claude Code*
+## 7. QUIROMANCIA (PALM READING)
+
+### Arquitetura: Monte → Planeta → Sephirah
+
+A quiromancia clássica associa os 7 montes da palma aos mesmos 7 planetas clássicos usados pela Golden Dawn / 777. O sistema se encaixa diretamente na arquitetura Kabbalística já definida.
+
+| Monte | Planeta | Sephirah | # |
+|-------|---------|----------|---|
+| Monte de Júpiter (abaixo do indicador) | Júpiter | **Chesed** | 4 |
+| Monte de Saturno (abaixo do médio) | Saturno | **Binah** | 3 |
+| Monte do Sol/Apolo (abaixo do anelar) | Sol | **Tiphareth** | 6 |
+| Monte de Mercúrio (abaixo do mínimo) | Mercúrio | **Hod** | 8 |
+| Monte de Vênus (base do polegar) | Vênus | **Netzach** | 7 |
+| Monte de Marte (centro/lateral) | Marte | **Geburah** | 5 |
+| Monte da Lua (lateral oposta) | Lua | **Yesod** | 9 |
+
+### Forma da Mão → Elemento
+
+Classificação por proporção palma × dedos:
+
+| Palma | Dedos | Elemento | Qualidade |
+|-------|-------|----------|-----------|
+| Retangular | Curtos | **Fogo** | Ação intuitiva, energia |
+| Quadrada | Curtos | **Terra** | Praticidade, materialidade |
+| Quadrada | Longos | **Ar** | Comunicação, intelecto |
+| Retangular | Longos | **Água** | Emoção, intuição profunda |
+
+### As 4 Linhas Principais
+
+| Linha | Domínio Psicológico |
+|-------|---------------------|
+| **Coração** (Heart) | Vida emocional, afetos, relações |
+| **Cabeça** (Head) | Intelecto, estilo cognitivo, tomada de decisão |
+| **Vida** (Life) | Vitalidade, força vital, caminho de vida |
+| **Destino** (Fate) | Direção, propósito, carreira |
+
+### Resolução Monte → Signo via Triplicidades Elementais
+
+Problema: cada monte/planeta rege 2 signos (exceto Sol→Leão e Lua→Câncer). A resolução usa as **triplicidades elementais de Ptolomeu** (*Tetrabiblos* I.18):
+
+- **Fogo e Ar → ativo** (triplicidade diurna)
+- **Terra e Água → receptivo** (triplicidade noturna)
+
+O elemento da mão (forma da mão) determina se o planeta se resolve no signo ativo ou receptivo:
+
+| Planeta | Ativo (Fogo/Ar) | Receptivo (Terra/Água) |
+|---------|------------------|------------------------|
+| Júpiter | **Sagitário** | **Peixes** |
+| Saturno | **Aquário** | **Capricórnio** |
+| Mercúrio | **Gêmeos** | **Virgem** |
+| Vênus | **Libra** | **Touro** |
+| Marte | **Áries** | **Escorpião** |
+| Sol | **Leão** (único) | **Leão** (único) |
+| Lua | **Câncer** (único) | **Câncer** (único) |
+
+### Linha Dominante → Expressão da Sephirah
+
+A linha dominante (mais longa, mais profunda) determina a expressão da Sephirah, usando a mesma lógica diurna/noturna do sistema natal:
+
+| Linhas Dominantes | Expressão |
+|-------------------|-----------|
+| **Destino** ou **Cabeça** | Diurna (intelecto, direção, yang) |
+| **Coração** ou **Vida** | Noturna (emoção, vitalidade, yin) |
+
+**Nota:** Para Sol (Leão) e Lua (Câncer), que possuem expressão canônica "sole" (signo único), a linha dominante substitui o conceito de expressão canônica na revelação.
+
+### Fontes
+- Aleister Crowley, *777 and Other Qabalistic Writings* — Correspondências planetárias
+- *Sefer ha-Zohar* — Montes da mão como selos planetários
+- Ptolomeu, *Tetrabiblos* I.18 — Triplicidades elementais e classificação ativo/receptivo
+
+---
+
+*Research compilado em 03–04 Abr 2026 — GUARDIÃO / Claude Code*
 *Todas as sínteses interpretativas estão documentadas como tal.*

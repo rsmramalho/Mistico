@@ -130,6 +130,8 @@ Algoritmo de 2h com sunrise às 06:00. Label como "aproximado".
 ## Tipo Central
 
 ```typescript
+// --- Input Types (two possible sources) ---
+
 interface BirthData {
   name: string;
   date: Date;
@@ -140,13 +142,25 @@ interface BirthData {
   timezoneOffset?: number; // V2: tz resolution
 }
 
+interface PalmData {
+  name: string;
+  handShape: 'fire' | 'earth' | 'air' | 'water';
+  dominantMount: 'jupiter' | 'saturn' | 'sun' | 'mercury' | 'venus' | 'mars' | 'moon';
+  dominantLine: 'heart' | 'head' | 'life' | 'fate';
+}
+
+// --- Output Type ---
+
 interface SoulMap {
+  source: 'birth' | 'palm';
   sunSign: Sign;
-  ascendant?: Sign;
-  ascendantMethod: 'approximate' | 'ephemeris';
+  ascendant?: Sign;                  // only for source: 'birth'
+  ascendantMethod?: 'approximate' | 'ephemeris'; // only for source: 'birth'
+  dominantLine?: 'heart' | 'head' | 'life' | 'fate'; // only for source: 'palm'
   element: Element;
   sephirah: Sephirah;
-  sephirahExpression: 'diurnal' | 'nocturnal';
+  sephirahExpression: 'diurnal' | 'nocturnal' | 'sole';
+  sephirahExpressionPalmDerived?: 'diurnal' | 'nocturnal'; // only for palm where canonic is 'sole'
   archetype: Archetype;
   shadow: { inflated: string; deflated: string };
   psyche: { id: number; ego: number; superego: number };
@@ -162,13 +176,9 @@ interface SoulMap {
 
 ---
 
-## Decisão Pendente — Rick
-
-**Tipo do AtomItem para o mapa da alma:**
-- Opção A: `type: spec` (reutiliza type existente)
-- Opção B: `type: reading` (extensão do Genesis)
-
-Decisão adiada — V1 é standalone sem Supabase. Documentado no WRAP.
+### Decisões Tomadas (Rick, 04 Abr 2026)
+**D8:** `type: reading` — extensão Genesis v5.0.1. Leituras têm identidade própria, não são specs.
+**D9–D12:** Documentados em research-mapeamentos.md.
 
 ---
 

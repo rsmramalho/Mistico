@@ -1,26 +1,28 @@
-# WRAP — Cartografia da Alma — 03 Abr 2026
+# WRAP — Cartografia da Alma — 03–04 Abr 2026
 
 ---
 
 ## CREATED
 
 ### Documentação
-- `research-mapeamentos.md` — research completo das 6 áreas filosóficas com decisões D1–D7
+- `research-mapeamentos.md` — research completo das 7 áreas filosóficas com decisões D1–D12
+- `research-palm-reading.md` — research quiromancia (Fase 3.5) — montes, linhas, triplicidades
 - `spec-cartografia-v1.md` — spec Genesis v5.0.1 (AtomItem envelope, visão, stack, tipos)
 - `roadmap-cartografia-v1.md` — PHI roadmap 5 fases (Fundação→Dados→Visual→Experiência→Integração)
 
 ### Engine (TypeScript puro, sem UI)
-- `src/types/soul-map.ts` — BirthData, SoulMap, Sign, Element, Sephirah, Archetype, etc.
+- `src/types/soul-map.ts` — BirthData, PalmData, SoulMap, Sign, Element, HandShape, MountName, LineName, etc.
 - `src/engine/astrology.ts` — getSunSign(), getApproximateAscendant(), getElement(), getModality()
 - `src/engine/kabbalah.ts` — getSephirah() com todas as 12 correspondências Golden Dawn/777
 - `src/engine/jung.ts` — getArchetype() com 12 arquétipos + sombras (inflação/deflação)
 - `src/engine/solfeggio.ts` — getFrequency() com 12 frequências únicas por signo
 - `src/engine/numerology.ts` — getExpressionNumber(), getNumerology() com números mestres
 - `src/engine/freud.ts` — getPsycheDistribution() por elemento
-- `src/engine/index.ts` — getSoulMap() aggregator
+- `src/engine/palm.ts` — getHandElement(), getSignFromMount(), getPalmExpression(), getPalmSoulMap()
+- `src/engine/index.ts` — getSoulMap() + getPalmSoulMap() aggregators
 
 ### Hooks
-- `src/hooks/useSoulMap.ts` — gerenciamento de estado (screen flow + SoulMap)
+- `src/hooks/useSoulMap.ts` — gerenciamento de estado (gateway + dual entry + screen flow)
 - `src/hooks/useGeometry.ts` — hook de animação Canvas com requestAnimationFrame
 
 ### Geometrias (Canvas animado)
@@ -37,15 +39,16 @@
 - `src/components/FrequencyDisplay.tsx` — display de frequência Solfeggio
 
 ### Screens
-- `src/screens/Entry.tsx` — formulário de entrada (nome + data + hora + cidade)
+- `src/screens/Entry.tsx` — formulário de entrada nascimento (nome + data + hora + cidade)
+- `src/screens/PalmEntry.tsx` — entrada palma: 3 passos (forma da mão → monte dominante → linha + nome) com SVG interativo
 - `src/screens/Loading.tsx` — ritual de transição com Árvore da Vida
-- `src/screens/Revelation.tsx` — resultado completo com 6 seções em fade sequencial
+- `src/screens/Revelation.tsx` — resultado adaptativo: ascendente (nascimento) ou linha dominante (palma), expressão sole override
 
 ### Integração
-- `src/App.tsx` — roteamento Entry → Loading → Revelation com AnimatePresence
+- `src/App.tsx` — Gateway (Nascimento | Palma) → Entry/PalmEntry → Loading → Revelation
 - `index.html` — HTML5, lang pt-BR
 - `vite.config.ts` — React + Tailwind
-- Build limpo: 0 erros TypeScript, 0 warnings, ~360KB JS + ~18KB CSS (gzip: ~115KB + ~4KB)
+- Build limpo: 0 erros TypeScript, 0 warnings, ~375KB JS + ~20KB CSS (gzip: ~118KB + ~4.5KB)
 
 ---
 
@@ -80,6 +83,46 @@ Cosmos escuro (#04040a), dourado (#c9a84c), Cinzel Decorative + Cormorant Garamo
 
 ---
 
+## FASE 2 — DADOS (ROOT) — 04 Abr 2026
+
+### Schema Supabase (Genesis v5.0.1)
+- `supabase/migrations/001_atom_items.sql` — atom_items (type reading) + share_links + RLS
+- `src/types/database.ts` — AtomItemRow, ShareLinkRow, AtomItemInsert, Database types
+- `src/lib/supabase.ts` — client config via env vars
+- `src/lib/readings.ts` — data layer: saveReading, getReading, getReadingByToken, listReadings, createShareLink, getShareLink, revokeShareLink
+
+### Decisões de dados
+- **D8:** `type: reading` (extensão Genesis — 24º type)
+- **Visibilidade:** RLS ativo. Readings privados por default. Share por link com token único.
+- **Soul Mate:** Via share links — cada pessoa compartilha seu link, app cruza dois readings. Sem schema inter-usuário.
+- **Auth:** Opcional. Readings podem ser criados sem user_id (anônimos).
+- **Token:** 12 chars URL-safe, gerado com crypto.getRandomValues
+
+---
+
+## FASE 4 — SOUL MATE — 04 Abr 2026
+
+### Engine (soul-mate.ts)
+- `getElementDynamic()` — 10 dinâmicas elementais (Caldeirão, Forja, Jardim, etc.)
+- `getArchetypeMirror()` — projeção sombra→desejo entre dois arquétipos
+- `getTikkun()` — distância entre Sephiroth na Árvore da Vida
+- `getFrequencyHarmony()` — classificação intervalar (Uníssono, Oitava, Quinta, etc.)
+- `getCombinedPsyche()` — distribuição Freudiana combinada
+- `getMeetingNumber()` — Número do Encontro (soma pitagórica)
+- `getSoulMateReading()` — aggregator
+
+### UI
+- `src/screens/SoulMateRevelation.tsx` — 6 seções: Dinâmica Elemental, Espelho, Tikkun, Harmonia, Psique Combinada, Número do Encontro
+- Input "Encontrar outra alma" no Revelation — cola link ou token do segundo reading
+- Resolução `?meet=tokenA,tokenB` na URL para acesso programático
+
+### Decisões
+- **D13:** Dois caminhos de entrada — URL dupla + botão na revelação
+- **D14:** Projeção simplificada — sombra→desejo como detector, não 144 pares
+- **D15:** Distância na Árvore — proxy numérico (|a-b|), documentado como simplificação
+
+---
+
 ## SEEDS (V2)
 
 - **Geocoding real** — converter cidade em lat/lng para ascendente preciso
@@ -95,47 +138,64 @@ Cosmos escuro (#04040a), dourado (#c9a84c), Cinzel Decorative + Cormorant Garamo
 
 ---
 
-## DÚVIDAS PARA RICK
+## DECISÕES RICK (04 Abr 2026)
 
-### 1. Tipo do AtomItem (D8 — pendente)
-O mapa da alma será um AtomItem quando Supabase entrar. `reading` não é um dos 23 types do Genesis.
-- **Opção A:** `type: spec` com body JSONB estruturado
-- **Opção B:** `type: reading` como extensão (requer justificativa formal)
+### D8: Tipo do AtomItem — `reading`
+Extensão do Genesis v5.0.1. `spec` é container técnico; o app produz leituras com identidade própria. `reading` é o 24º type do Genesis. Body JSONB = SoulMap completo.
 
-Para V1 standalone sem banco, decisão adiada. Rick decide antes de V2.
+### D9: Entrada da palma — seleção interativa guiada
+Diagrama touch da mão. Sem foto, sem câmera, sem IA de visão computacional.
 
-### 2. Solfeggio — Mapeamento Original
-O mapeamento signo→frequência é síntese interpretativa original (não existe mapeamento canônico). As 3 frequências complementares (210, 369, 432 Hz) são de tradições adjacentes. Rick valida?
+### D10: Resolução monte→signo — triplicidades de Ptolomeu
+Elemento da mão (forma) resolve pares planetários via triplicidades ativo/receptivo (Tetrabiblos I.18). Linha dominante resolve expressão diurna/noturna, não signo.
 
-### 3. Tom do conteúdo
-Os textos estão em português (pt-BR). Algumas tradições (Sephiroth, arquétipos) mantêm nomes em inglês/hebraico. Rick prefere traduzir tudo ou manter os nomes originais?
+### D11: Campo `source` no SoulMap
+`source: 'birth' | 'palm'` distingue a porta de entrada em todo o sistema.
+
+### D12: Sem ascendente via palma
+Substituído por "Linha Dominante" na revelação. Linha dominante = força psicológica primária.
+
+### D13: Entrada Soul Mate — dois caminhos
+URL `?meet=tokenA,tokenB` para acesso programático. Botão "Encontrar outra alma" na revelação para o caso humano.
+
+### D14: Projeção arquetípica — simplificação
+Sombra inflada de A → desejo central de B como detector. Não 144 pares explícitos. Elegante e escalável.
+
+### D15: Distância na Árvore — proxy numérico
+|sephirahA.number - sephirahB.number|, cap 3+. Simplificação documentada — Árvore real tem caminhos não-lineares.
+
+### Dúvidas pendentes
+- Solfeggio: mapeamento signo→frequência é síntese interpretativa original. Rick valida?
+- Tom: textos em pt-BR, nomes tradicionais em inglês/hebraico. Traduzir tudo?
 
 ---
 
 ## AUDIT
 
 ```
-research:   ✅ completo — 6 áreas documentadas com fontes
-spec:       ✅ validada — Genesis v5.0.1 compliant
-roadmap:    ✅ completo — PHI 5 fases
-build:      ✅ 100% dos entregáveis V1
-  ├─ engine:     7/7 módulos
+research:   ✅ completo — 7 áreas + quiromancia + soul mate (3 documents)
+spec:       ✅ validada — Genesis v5.0.1 compliant, PalmData + SoulMateReading
+roadmap:    ✅ completo — PHI 7 fases (+ Fase 3.5 Palma + Fase 4 Soul Mate)
+supabase:   ✅ schema + data layer + RLS + wiring UI
+build:      ✅ 100% — Fases 1–4 completas
+  ├─ engine:     9/9 módulos (+ palm.ts + soul-mate.ts)
   ├─ geometries: 6/6 (cosmos + 4 elementos + árvore)
   ├─ components: 3/3
-  ├─ screens:    3/3
-  ├─ hooks:      2/2
-  ├─ types:      1/1
-  └─ integration: App.tsx + build limpo
+  ├─ screens:    5/5 (Entry + PalmEntry + Loading + Revelation + SoulMateRevelation)
+  ├─ hooks:      2/2 (useSoulMap com gateway, dual entry, share, meet)
+  ├─ types:      2/2 (soul-map.ts + database.ts)
+  ├─ lib:        2/2 (supabase.ts opcional + readings.ts)
+  └─ integration: App.tsx gateway + 7 screens + build limpo ~390KB
 ```
 
 ### Execução
-- **Ordem:** GUARDIÃO → ROOT → ESTRUTURA → INTERFACE → TEIA ✅
-- **Research antes de código:** ✅ (6 pesquisas completas antes de qualquer engine)
+- **Ordem:** GUARDIÃO → ROOT → ESTRUTURA → INTERFACE → TEIA ✅ (em ambas as fases)
+- **Research antes de código:** ✅ (7 pesquisas completas antes de qualquer engine)
 - **Nenhum mapeamento inventado:** ✅ (todos documentados com fontes e notas de interpretação)
-- **Decisões de peso documentadas:** ✅ (D1–D7 no research, D8 pendente Rick)
+- **Decisões de peso documentadas:** ✅ (D1–D15 no research, todas decididas por Rick)
 - **Build funcional:** ✅ (tsc + vite build sem erros)
 
 ---
 
-*Wrap escrito em 03 Abr 2026 — Claude Code (Opus 4.6)*
-*Execução autônoma completa. Rick, bom dia.*
+*Wrap atualizado em 04 Abr 2026 — Claude Code (Opus 4.6)*
+*Fases 1–4 completas. Soul Mate não é compatibilidade. É o mapa do espaço entre duas almas.*

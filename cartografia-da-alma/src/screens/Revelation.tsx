@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import type { SoulMap, Element } from '../types/soul-map';
+import type { SoulMap, Element, LineName } from '../types/soul-map';
 import { RevealSection } from '../components/RevealSection';
 import { PsycheBar } from '../components/PsycheBar';
 import { FrequencyDisplay } from '../components/FrequencyDisplay';
@@ -12,6 +13,11 @@ import { TreeOfLife } from '../geometry/TreeOfLife';
 interface RevelationProps {
   soulMap: SoulMap;
   onReset: () => void;
+  canShare?: boolean;
+  shareUrl?: string | null;
+  isSharing?: boolean;
+  onShare?: () => void;
+  onMeet?: (otherToken: string) => void;
 }
 
 const ELEMENT_NAMES: Record<Element, string> = {
@@ -27,6 +33,17 @@ const SIGN_NAMES_PT: Record<string, string> = {
   Sagittarius: 'Sagitário', Capricorn: 'Capricórnio', Aquarius: 'Aquário', Pisces: 'Peixes',
 };
 
+const LINE_NAMES_PT: Record<string, string> = {
+  heart: 'Coração', head: 'Cabeça', life: 'Vida', fate: 'Destino',
+};
+
+const DOMINANT_LINE_DESCRIPTIONS: Record<LineName, string> = {
+  heart: 'A linha do Coração é a mais marcada na sua palma — sua vida emocional e afetiva é o centro gravitacional da sua experiência. Relações, empatia e conexão guiam suas decisões mais do que razão ou ambição.',
+  head: 'A linha da Cabeça domina sua palma — o intelecto é seu instrumento primário. Análise, comunicação e pensamento estratégico são as forças que movem seu caminho.',
+  life: 'A linha da Vida é a mais profunda na sua palma — vitalidade e resiliência definem sua trajetória. Há uma força vital intensa que sustenta tudo o que você constrói.',
+  fate: 'A linha do Destino corta sua palma com clareza — existe um senso de propósito forte, uma direção que vai além de escolhas conscientes. Vocação e missão são forças ativas na sua vida.',
+};
+
 function ElementGeometry({ element }: { element: Element }) {
   switch (element) {
     case 'air': return <FlowerOfLife />;
@@ -36,8 +53,11 @@ function ElementGeometry({ element }: { element: Element }) {
   }
 }
 
-export function Revelation({ soulMap, onReset }: RevelationProps) {
+export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, onShare, onMeet }: RevelationProps) {
+  const [meetInput, setMeetInput] = useState('');
   const { sunSign, element, ascendant, sephirah, archetype, psyche, frequency, numerology } = soulMap;
+  const isPalm = soulMap.source === 'palm';
+  const hasSection5 = isPalm ? !!soulMap.dominantLine : !!ascendant;
 
   return (
     <motion.div
@@ -68,7 +88,9 @@ export function Revelation({ soulMap, onReset }: RevelationProps) {
             style={{ fontFamily: "'Cormorant Garamond', serif" }}
           >
             {SIGN_NAMES_PT[sunSign]} · {ELEMENT_NAMES[element]}
-            {ascendant && ` · Ascendente ${SIGN_NAMES_PT[ascendant.sign]}`}
+            {soulMap.source === 'palm'
+              ? ' · Via Palma'
+              : ascendant ? ` · Ascendente ${SIGN_NAMES_PT[ascendant.sign]}` : ''}
           </p>
         </motion.div>
 
@@ -100,6 +122,12 @@ export function Revelation({ soulMap, onReset }: RevelationProps) {
               sephirah.expression === 'nocturnal' ? 'noturna' : 'singular'
             }
           </p>
+          {soulMap.sephirahExpressionPalmDerived && (
+            <p className="text-[#c9a84c]/30 text-xs mt-2 italic">
+              Expressão canônica: singular · Expressão via palma:{' '}
+              {soulMap.sephirahExpressionPalmDerived === 'diurnal' ? 'diurna' : 'noturna'}
+            </p>
+          )}
         </RevealSection>
 
         {/* Section 2: Archetype + Shadow */}
@@ -164,8 +192,18 @@ export function Revelation({ soulMap, onReset }: RevelationProps) {
           </div>
         </RevealSection>
 
-        {/* Section 5: Ascendant */}
-        {ascendant && (
+        {/* Section 5: Ascendant or Dominant Line */}
+        {soulMap.source === 'palm' && soulMap.dominantLine ? (
+          <RevealSection
+            title={LINE_NAMES_PT[soulMap.dominantLine]}
+            subtitle="Linha Dominante"
+            delay={2.5}
+          >
+            <p className="text-lg text-[#e8dcc8]/70">
+              {DOMINANT_LINE_DESCRIPTIONS[soulMap.dominantLine]}
+            </p>
+          </RevealSection>
+        ) : ascendant ? (
           <RevealSection
             title={`Ascendente em ${SIGN_NAMES_PT[ascendant.sign]}`}
             subtitle="Signo Ascendente (aproximado)"
@@ -183,43 +221,125 @@ export function Revelation({ soulMap, onReset }: RevelationProps) {
               uma versão futura utilizará efemérides reais e coordenadas geográficas.
             </p>
           </RevealSection>
-        )}
+        ) : null}
 
         {/* Section 6: Psyche */}
         <RevealSection
           title="Estrutura Psíquica"
           subtitle="Id · Ego · Superego"
-          delay={ascendant ? 3.0 : 2.5}
+          delay={hasSection5 ? 3.0 : 2.5}
         >
           <p className="text-lg mb-6">{psyche.signature}</p>
-          <PsycheBar psyche={psyche} delay={ascendant ? 3.2 : 2.7} />
+          <PsycheBar psyche={psyche} delay={hasSection5 ? 3.2 : 2.7} />
         </RevealSection>
 
         {/* Footer */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: ascendant ? 3.5 : 3.0 }}
+          transition={{ duration: 1, delay: hasSection5 ? 3.5 : 3.0 }}
           className="text-center mt-16 pt-8 border-t border-[#c9a84c]/10"
         >
           <p
             className="text-[#e8dcc8]/30 text-sm mb-6"
             style={{ fontFamily: "'Cormorant Garamond', serif" }}
           >
-            Os mapeamentos desta cartografia unem tradições — Astrologia, Kabbalah, Jung, Freud,
-            Solfeggio e Numerologia — como espelhos, não verdades absolutas.
-            A sombra é tão importante quanto a luz.
+            {isPalm
+              ? 'Os mapeamentos desta cartografia unem tradições — Quiromancia, Kabbalah, Jung, Freud, Solfeggio e Numerologia — como espelhos, não verdades absolutas.'
+              : 'Os mapeamentos desta cartografia unem tradições — Astrologia, Kabbalah, Jung, Freud, Solfeggio e Numerologia — como espelhos, não verdades absolutas. A sombra é tão importante quanto a luz.'
+            }
           </p>
 
-          <motion.button
-            onClick={onReset}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="px-8 py-3 bg-white/5 border border-[#c9a84c]/20 rounded-lg text-[#c9a84c]/60 hover:text-[#c9a84c] hover:border-[#c9a84c]/40 transition-all text-sm tracking-wider uppercase cursor-pointer"
-            style={{ fontFamily: "'Cinzel Decorative', serif" }}
-          >
-            Nova Cartografia
-          </motion.button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            {canShare && onShare && (
+              shareUrl ? (
+                <button
+                  onClick={() => navigator.clipboard.writeText(shareUrl)}
+                  className="px-8 py-3 bg-[#c9a84c]/10 border border-[#c9a84c]/30 rounded-lg text-[#c9a84c]/80 hover:text-[#c9a84c] hover:border-[#c9a84c]/50 transition-all text-sm tracking-wider uppercase cursor-pointer"
+                  style={{ fontFamily: "'Cinzel Decorative', serif" }}
+                >
+                  Copiar Link
+                </button>
+              ) : (
+                <motion.button
+                  onClick={onShare}
+                  disabled={isSharing}
+                  whileHover={!isSharing ? { scale: 1.02 } : {}}
+                  whileTap={!isSharing ? { scale: 0.98 } : {}}
+                  className={`px-8 py-3 border rounded-lg text-sm tracking-wider uppercase transition-all ${
+                    isSharing
+                      ? 'bg-white/5 border-white/10 text-white/20 cursor-wait'
+                      : 'bg-[#c9a84c]/10 border-[#c9a84c]/30 text-[#c9a84c]/80 hover:text-[#c9a84c] hover:border-[#c9a84c]/50 cursor-pointer'
+                  }`}
+                  style={{ fontFamily: "'Cinzel Decorative', serif" }}
+                >
+                  {isSharing ? 'Gerando...' : 'Compartilhar'}
+                </motion.button>
+              )
+            )}
+
+            <motion.button
+              onClick={onReset}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-8 py-3 bg-white/5 border border-[#c9a84c]/20 rounded-lg text-[#c9a84c]/60 hover:text-[#c9a84c] hover:border-[#c9a84c]/40 transition-all text-sm tracking-wider uppercase cursor-pointer"
+              style={{ fontFamily: "'Cinzel Decorative', serif" }}
+            >
+              Nova Cartografia
+            </motion.button>
+          </div>
+
+          {onMeet && (
+            <div className="mt-8 pt-6 border-t border-[#c9a84c]/10">
+              <p
+                className="text-[#c9a84c]/40 text-sm tracking-widest uppercase mb-4"
+                style={{ fontFamily: "'Cinzel Decorative', serif" }}
+              >
+                Encontrar outra alma
+              </p>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!meetInput.trim()) return;
+                  let token = meetInput.trim();
+                  // Extract token from URL if a full URL was pasted
+                  try {
+                    const url = new URL(token);
+                    const urlToken = url.searchParams.get('token');
+                    if (urlToken) token = urlToken;
+                  } catch {
+                    // Not a URL — use raw text as token
+                  }
+                  onMeet(token);
+                }}
+                className="flex flex-col sm:flex-row items-center gap-3"
+              >
+                <input
+                  type="text"
+                  value={meetInput}
+                  onChange={(e) => setMeetInput(e.target.value)}
+                  placeholder="Cole o link ou token"
+                  className="flex-1 w-full sm:w-auto px-4 py-2 bg-white/5 border border-[#c9a84c]/15 rounded-lg text-[#e8dcc8]/80 placeholder-[#e8dcc8]/20 text-sm focus:outline-none focus:border-[#c9a84c]/40 transition-all"
+                  style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                />
+                <motion.button
+                  type="submit"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-6 py-2 bg-[#c9a84c]/10 border border-[#c9a84c]/20 rounded-lg text-[#c9a84c]/60 hover:text-[#c9a84c] hover:border-[#c9a84c]/40 transition-all text-sm tracking-wider uppercase cursor-pointer"
+                  style={{ fontFamily: "'Cinzel Decorative', serif" }}
+                >
+                  Encontrar
+                </motion.button>
+              </form>
+            </div>
+          )}
+
+          {shareUrl && (
+            <p className="text-[#c9a84c]/30 text-xs mt-4 break-all">
+              {shareUrl}
+            </p>
+          )}
         </motion.div>
       </div>
     </motion.div>
