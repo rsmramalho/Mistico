@@ -66,27 +66,23 @@ export function useSoulMap() {
   }, []);
 
   const generate = useCallback((birthData: BirthData) => {
-    setScreen('loading');
     setShareUrl(null);
     setReadingId(null);
-    setTimeout(() => {
-      const map = getSoulMap(birthData);
-      setSoulMap(map);
-      setScreen('revelation');
-      persistReading(map);
-    }, 3000);
+    const map = getSoulMap(birthData);
+    setSoulMap(map);
+    setScreen('loading');
+    persistReading(map);
+    setTimeout(() => setScreen('revelation'), 7000);
   }, [persistReading]);
 
   const generateFromPalm = useCallback((palmData: PalmData) => {
-    setScreen('loading');
     setShareUrl(null);
     setReadingId(null);
-    setTimeout(() => {
-      const map = getPalmSoulMap(palmData);
-      setSoulMap(map);
-      setScreen('revelation');
-      persistReading(map);
-    }, 3000);
+    const map = getPalmSoulMap(palmData);
+    setSoulMap(map);
+    setScreen('loading');
+    persistReading(map);
+    setTimeout(() => setScreen('revelation'), 7000);
   }, [persistReading]);
 
   // ── Share ──

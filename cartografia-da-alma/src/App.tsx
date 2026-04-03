@@ -182,7 +182,7 @@ export default function App() {
           {screen === 'gateway' && <Gateway key="gateway" onBirth={goToEntry} onPalm={goToPalmEntry} />}
           {screen === 'entry' && <Entry key="entry" onSubmit={generate} onBack={reset} />}
           {screen === 'palmEntry' && <PalmEntry key="palmEntry" onSubmit={generateFromPalm} onBack={reset} />}
-          {screen === 'loading' && <Loading key="loading" />}
+          {screen === 'loading' && <Loading key="loading" soulMap={soulMap} />}
           {screen === 'revelation' && soulMap && (
             <Revelation key="revelation" soulMap={soulMap} onReset={reset} canShare={canShare} shareUrl={shareUrl} isSharing={isSharing} onShare={share} onMeet={meetAnotherSoul} />
           )}
