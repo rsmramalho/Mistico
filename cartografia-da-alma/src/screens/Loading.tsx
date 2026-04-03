@@ -7,28 +7,41 @@ export function Loading() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.8 }}
-      className="min-h-screen flex flex-col items-center justify-center px-4"
+      transition={{ duration: 1 }}
+      style={{
+        minHeight: '100vh', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', padding: '24px',
+      }}
     >
-      <div className="w-64 h-80 md:w-80 md:h-96 mb-8">
-        <TreeOfLife />
-      </div>
-
+      {/* Tree of Life — larger, more presence */}
       <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1.5, ease: 'easeOut' }}
+        style={{ width: 'min(320px, 70vw)', height: 'min(400px, 55vh)', marginBottom: '48px' }}
+      >
+        <TreeOfLife />
+      </motion.div>
+
+      {/* Ritual text — breathing pulse */}
+      <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 0.5 }}
-        className="text-center"
+        transition={{ duration: 1.2, delay: 0.6 }}
+        style={{ textAlign: 'center' }}
       >
-        <motion.p
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          className="text-[#c9a84c]/70 text-lg tracking-widest uppercase"
-          style={{ fontFamily: "'Cinzel Decorative', serif" }}
+        <motion.span
+          animate={{ opacity: [0.25, 0.7, 0.25] }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          style={{
+            fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+            letterSpacing: '0.4em', color: 'var(--gold)',
+            textTransform: 'uppercase',
+          }}
         >
-          Consultando os mapas...
-        </motion.p>
-      </motion.div>
+          consultando os mapas
+        </motion.span>
+      </motion.p>
     </motion.div>
   );
 }
