@@ -1,6 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Jost:wght@200;300;400&display=swap');
 
 @import "tailwindcss";
+
+:root {
+  --serif: 'Cormorant Garant', Georgia, serif;
+  --sans: 'Jost', system-ui, sans-serif;
+  --gold: #c9a84c;
+  --gold-dim: rgba(201,168,76,0.14);
+  --gold-line: rgba(201,168,76,0.22);
+  --white: rgba(232,228,218,0.92);
+  --white-dim: rgba(232,228,218,0.42);
+  --white-ghost: rgba(232,228,218,0.10);
+}
 
 html {
   background-color: #04040a;
@@ -9,36 +20,39 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  cursor: none;
 }
 
-#root {
-  min-height: 100svh;
+* { cursor: none !important; }
+
+.cursor {
+  position: fixed;
+  width: 7px; height: 7px;
+  background: var(--gold);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width .2s, height .2s, background .2s;
+  mix-blend-mode: screen;
+}
+.cursor.open {
+  width: 26px; height: 26px;
+  background: transparent;
+  border: 1px solid var(--gold);
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
+#root { min-height: 100svh; }
 
-::-webkit-scrollbar-track {
-  background: #04040a;
-}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #04040a; }
+::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); }
+::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.4); }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(201, 168, 76, 0.2);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(201, 168, 76, 0.4);
-}
-
-/* Date/time input styling for dark theme */
 input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="time"]::-webkit-calendar-picker-indicator {
   filter: invert(0.7) sepia(0.5) saturate(3) hue-rotate(10deg);
-  cursor: pointer;
 }
