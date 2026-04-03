@@ -21,10 +21,7 @@ interface RevelationProps {
 }
 
 const ELEMENT_NAMES: Record<Element, string> = {
-  fire: 'Fogo',
-  earth: 'Terra',
-  air: 'Ar',
-  water: 'Água',
+  fire: 'Fogo', earth: 'Terra', air: 'Ar', water: 'Água',
 };
 
 const SIGN_NAMES_PT: Record<string, string> = {
@@ -44,6 +41,32 @@ const DOMINANT_LINE_DESCRIPTIONS: Record<LineName, string> = {
   fate: 'A linha do Destino corta sua palma com clareza — existe um senso de propósito forte, uma direção que vai além de escolhas conscientes. Vocação e missão são forças ativas na sua vida.',
 };
 
+const fade = (delay = 0) => ({
+  initial: { opacity: 0, y: 14 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 1, delay },
+});
+
+const labelStyle: React.CSSProperties = {
+  fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+  letterSpacing: '0.38em', color: 'var(--gold)', textTransform: 'uppercase',
+};
+
+const btnStyle: React.CSSProperties = {
+  background: 'transparent', border: 'none',
+  borderBottom: '1px solid var(--gold)',
+  fontFamily: 'var(--sans)', fontSize: '10px', fontWeight: 300,
+  letterSpacing: '0.32em', color: 'var(--gold)',
+  textTransform: 'uppercase', padding: '0 0 6px',
+  transition: 'color 0.3s, letter-spacing 0.3s',
+};
+
+const btnHover = (e: React.MouseEvent, enter: boolean) => {
+  const el = e.target as HTMLElement;
+  el.style.color = enter ? 'var(--white)' : 'var(--gold)';
+  el.style.letterSpacing = enter ? '0.42em' : '0.32em';
+};
+
 function ElementGeometry({ element }: { element: Element }) {
   switch (element) {
     case 'air': return <FlowerOfLife />;
@@ -59,288 +82,259 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
   const isPalm = soulMap.source === 'palm';
   const hasSection5 = isPalm ? !!soulMap.dominantLine : !!ascendant;
 
+  const fieldStyle: React.CSSProperties = {
+    flex: 1, width: '100%', background: 'transparent', border: 'none',
+    borderBottom: '1px solid rgba(201,168,76,0.2)',
+    color: 'var(--white)', fontFamily: 'var(--serif)', fontSize: '17px',
+    fontWeight: 300, padding: '0 0 10px', outline: 'none',
+    caretColor: 'var(--gold)', transition: 'border-color 0.4s',
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
-      className="min-h-screen px-4 py-12 md:py-20"
+      style={{ minHeight: '100vh', padding: '80px 24px 64px' }}
     >
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2 }}
-          className="text-center mb-16"
-        >
-          <p className="text-[#c9a84c]/40 text-sm tracking-widest uppercase mb-4">
-            Cartografia da Alma
+      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+
+        {/* ── Header ── */}
+        <motion.div {...fade(0.2)} style={{ textAlign: 'center', marginBottom: '80px' }}>
+          <p style={{ ...labelStyle, marginBottom: '18px' }}>
+            cartografia da alma
           </p>
-          <h1
-            className="text-4xl md:text-5xl text-[#c9a84c] mb-3"
-            style={{ fontFamily: "'Cinzel Decorative', serif" }}
-          >
+          <h1 style={{
+            fontFamily: 'var(--serif)', fontSize: 'clamp(38px, 5.5vw, 64px)',
+            fontWeight: 300, lineHeight: 1.05, color: 'var(--white)', marginBottom: '14px',
+          }}>
             {soulMap.birthData.name}
           </h1>
-          <p
-            className="text-xl text-[#e8dcc8]/60"
-            style={{ fontFamily: "'Cormorant Garamond', serif" }}
-          >
+          <p style={{
+            fontFamily: 'var(--serif)', fontSize: '18px', fontWeight: 300,
+            fontStyle: 'italic', color: 'var(--white-dim)',
+          }}>
             {SIGN_NAMES_PT[sunSign]} · {ELEMENT_NAMES[element]}
-            {soulMap.source === 'palm'
-              ? ' · Via Palma'
-              : ascendant ? ` · Ascendente ${SIGN_NAMES_PT[ascendant.sign]}` : ''}
+            {isPalm ? ' · via palma' : ascendant ? ` · ascendente ${SIGN_NAMES_PT[ascendant.sign]}` : ''}
           </p>
         </motion.div>
 
-        {/* Sacred Geometry */}
+        {/* ── Sacred Geometry ── */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.5, delay: 0.3 }}
-          className="relative mb-16 h-[300px] md:h-[400px]"
+          {...fade(0.4)}
+          style={{ position: 'relative', marginBottom: '96px', height: 'min(400px, 50vh)' }}
         >
-          <div className="absolute inset-0 opacity-30">
+          <div style={{ position: 'absolute', inset: 0, opacity: 0.2 }}>
             <TreeOfLife activeSephirah={sephirah.name} />
           </div>
-          <div className="absolute inset-0">
+          <div style={{ position: 'absolute', inset: 0 }}>
             <ElementGeometry element={element} />
           </div>
         </motion.div>
 
-        {/* Section 1: Sephirah */}
-        <RevealSection
-          title={sephirah.name}
-          subtitle={`${sephirah.meaning} · ${sephirah.planet}`}
-          delay={0.5}
-        >
-          <p className="text-lg">{sephirah.description}</p>
-          <p className="text-[#c9a84c]/40 text-sm mt-3 italic">
+        {/* ── Section 1: Sephirah ── */}
+        <RevealSection title={sephirah.name} subtitle={`${sephirah.meaning} · ${sephirah.planet}`} delay={0.6}>
+          <p>{sephirah.description}</p>
+          <p style={{ ...labelStyle, marginTop: '16px', fontSize: '8px', color: 'var(--white-ghost)' }}>
             Sephirah {sephirah.number} na Árvore da Vida · Expressão {
               sephirah.expression === 'diurnal' ? 'diurna' :
               sephirah.expression === 'nocturnal' ? 'noturna' : 'singular'
             }
           </p>
           {soulMap.sephirahExpressionPalmDerived && (
-            <p className="text-[#c9a84c]/30 text-xs mt-2 italic">
-              Expressão canônica: singular · Expressão via palma:{' '}
+            <p style={{ fontFamily: 'var(--serif)', fontSize: '14px', fontStyle: 'italic', color: 'var(--white-ghost)', marginTop: '8px' }}>
+              Expressão canônica: singular · Via palma:{' '}
               {soulMap.sephirahExpressionPalmDerived === 'diurnal' ? 'diurna' : 'noturna'}
             </p>
           )}
         </RevealSection>
 
-        {/* Section 2: Archetype + Shadow */}
-        <RevealSection
-          title={archetype.titlePt}
-          subtitle={archetype.title}
-          delay={1.0}
-        >
-          <p className="text-lg mb-4">{archetype.description}</p>
+        {/* ── Section 2: Archetype + Shadow ── */}
+        <RevealSection title={archetype.titlePt} subtitle={archetype.title} delay={1.0}>
+          <p style={{ marginBottom: '28px' }}>{archetype.description}</p>
 
-          <div className="mt-6 space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '36px' }}>
             <div>
-              <p className="text-[#c9a84c]/60 text-sm tracking-wider uppercase mb-1">Desejo Central</p>
-              <p className="text-lg">{archetype.coreDesire}</p>
+              <p style={{ ...labelStyle, marginBottom: '8px' }}>desejo central</p>
+              <p style={{ color: 'var(--white)' }}>{archetype.coreDesire}</p>
             </div>
             <div>
-              <p className="text-[#c9a84c]/60 text-sm tracking-wider uppercase mb-1">Medo Central</p>
-              <p className="text-lg">{archetype.coreFear}</p>
+              <p style={{ ...labelStyle, marginBottom: '8px' }}>medo central</p>
+              <p style={{ color: 'var(--white)' }}>{archetype.coreFear}</p>
             </div>
           </div>
 
-          <div className="mt-8 p-6 bg-white/5 rounded-lg border border-[#c9a84c]/10">
-            <p className="text-[#c9a84c]/70 text-sm tracking-wider uppercase mb-4">A Sombra</p>
-            <div className="space-y-3">
+          {/* Shadow — floating text, no card */}
+          <div style={{ borderTop: '1px solid var(--gold-line)', paddingTop: '28px' }}>
+            <p style={{ ...labelStyle, marginBottom: '20px' }}>a sombra</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div>
-                <p className="text-[#c94c4c]/70 text-xs tracking-wider uppercase mb-1">Sombra Inflada (excesso)</p>
-                <p className="text-[#e8dcc8]/70">{archetype.shadow.inflated}</p>
+                <p style={{ fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200, letterSpacing: '0.3em', color: '#c94c4c', textTransform: 'uppercase', marginBottom: '6px', opacity: 0.7 }}>
+                  inflada — excesso
+                </p>
+                <p style={{ color: 'var(--white-dim)' }}>{archetype.shadow.inflated}</p>
               </div>
               <div>
-                <p className="text-[#4c8bc9]/70 text-xs tracking-wider uppercase mb-1">Sombra Deflacionada (falta)</p>
-                <p className="text-[#e8dcc8]/70">{archetype.shadow.deflated}</p>
+                <p style={{ fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200, letterSpacing: '0.3em', color: '#4c8bc9', textTransform: 'uppercase', marginBottom: '6px', opacity: 0.7 }}>
+                  deflacionada — falta
+                </p>
+                <p style={{ color: 'var(--white-dim)' }}>{archetype.shadow.deflated}</p>
               </div>
             </div>
           </div>
         </RevealSection>
 
-        {/* Section 3: Frequency */}
-        <RevealSection
-          title="Frequência de Ressonância"
-          subtitle="Solfeggio"
-          delay={1.5}
-        >
+        {/* ── Section 3: Frequency ── */}
+        <RevealSection title="Frequência de Ressonância" subtitle="solfeggio" delay={1.5}>
           <FrequencyDisplay frequency={frequency} delay={1.7} />
         </RevealSection>
 
-        {/* Section 4: Numerology */}
+        {/* ── Section 4: Numerology ── */}
         <RevealSection
           title={`${numerology.number} · ${numerology.namePt}`}
-          subtitle={`Número de Expressão${numerology.isMasterNumber ? ' · Número Mestre' : ''}`}
+          subtitle={`número de expressão${numerology.isMasterNumber ? ' · mestre' : ''}`}
           delay={2.0}
         >
-          <p className="text-lg mb-4">{numerology.description}</p>
-          <div className="mt-4 space-y-3">
+          <p style={{ marginBottom: '24px' }}>{numerology.description}</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             <div>
-              <p className="text-[#c9a84c]/60 text-sm tracking-wider uppercase mb-1">Traços</p>
-              <p className="text-[#e8dcc8]/80">{numerology.traits}</p>
+              <p style={{ ...labelStyle, marginBottom: '8px' }}>traços</p>
+              <p style={{ color: 'var(--white)' }}>{numerology.traits}</p>
             </div>
             <div>
-              <p className="text-[#c9a84c]/60 text-sm tracking-wider uppercase mb-1">Sombra</p>
-              <p className="text-[#e8dcc8]/60">{numerology.shadow}</p>
+              <p style={{ ...labelStyle, marginBottom: '8px' }}>sombra</p>
+              <p style={{ color: 'var(--white-dim)' }}>{numerology.shadow}</p>
             </div>
           </div>
         </RevealSection>
 
-        {/* Section 5: Ascendant or Dominant Line */}
-        {soulMap.source === 'palm' && soulMap.dominantLine ? (
-          <RevealSection
-            title={LINE_NAMES_PT[soulMap.dominantLine]}
-            subtitle="Linha Dominante"
-            delay={2.5}
-          >
-            <p className="text-lg text-[#e8dcc8]/70">
-              {DOMINANT_LINE_DESCRIPTIONS[soulMap.dominantLine]}
-            </p>
+        {/* ── Section 5: Ascendant or Dominant Line ── */}
+        {isPalm && soulMap.dominantLine ? (
+          <RevealSection title={LINE_NAMES_PT[soulMap.dominantLine]} subtitle="linha dominante" delay={2.5}>
+            <p>{DOMINANT_LINE_DESCRIPTIONS[soulMap.dominantLine]}</p>
           </RevealSection>
         ) : ascendant ? (
-          <RevealSection
-            title={`Ascendente em ${SIGN_NAMES_PT[ascendant.sign]}`}
-            subtitle="Signo Ascendente (aproximado)"
-            delay={2.5}
-          >
-            <p className="text-lg text-[#e8dcc8]/70">
+          <RevealSection title={`Ascendente em ${SIGN_NAMES_PT[ascendant.sign]}`} subtitle="signo ascendente — aproximado" delay={2.5}>
+            <p>
               O ascendente representa a máscara que você apresenta ao mundo — a primeira impressão,
               o filtro pelo qual sua essência solar se expressa. Com ascendente em{' '}
-              <span className="text-[#c9a84c]">{SIGN_NAMES_PT[ascendant.sign]}</span>,
+              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>{SIGN_NAMES_PT[ascendant.sign]}</em>,
               sua presença carrega as qualidades deste signo antes que os outros vejam seu Sol em{' '}
-              <span className="text-[#c9a84c]">{SIGN_NAMES_PT[sunSign]}</span>.
+              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>{SIGN_NAMES_PT[sunSign]}</em>.
             </p>
-            <p className="text-[#c9a84c]/30 text-xs mt-3 italic">
-              Cálculo aproximado baseado no horário informado. Para precisão,
-              uma versão futura utilizará efemérides reais e coordenadas geográficas.
+            <p style={{ fontFamily: 'var(--serif)', fontSize: '14px', fontStyle: 'italic', color: 'var(--white-ghost)', marginTop: '12px' }}>
+              Cálculo aproximado baseado no horário informado.
             </p>
           </RevealSection>
         ) : null}
 
-        {/* Section 6: Psyche */}
-        <RevealSection
-          title="Estrutura Psíquica"
-          subtitle="Id · Ego · Superego"
-          delay={hasSection5 ? 3.0 : 2.5}
-        >
-          <p className="text-lg mb-6">{psyche.signature}</p>
+        {/* ── Section 6: Psyche ── */}
+        <RevealSection title="Estrutura Psíquica" subtitle="id · ego · superego" delay={hasSection5 ? 3.0 : 2.5}>
+          <p style={{ marginBottom: '28px' }}>{psyche.signature}</p>
           <PsycheBar psyche={psyche} delay={hasSection5 ? 3.2 : 2.7} />
         </RevealSection>
 
-        {/* Footer */}
+        {/* ── Footer ── */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: hasSection5 ? 3.5 : 3.0 }}
-          className="text-center mt-16 pt-8 border-t border-[#c9a84c]/10"
+          {...fade(hasSection5 ? 3.5 : 3.0)}
+          style={{ borderTop: '1px solid var(--gold-line)', paddingTop: '40px', marginTop: '40px' }}
         >
-          <p
-            className="text-[#e8dcc8]/30 text-sm mb-6"
-            style={{ fontFamily: "'Cormorant Garamond', serif" }}
-          >
+          <p style={{
+            fontFamily: 'var(--serif)', fontSize: '15px', fontWeight: 300,
+            fontStyle: 'italic', color: 'var(--white-ghost)', lineHeight: 1.7,
+            textAlign: 'center', marginBottom: '40px',
+          }}>
             {isPalm
               ? 'Os mapeamentos desta cartografia unem tradições — Quiromancia, Kabbalah, Jung, Freud, Solfeggio e Numerologia — como espelhos, não verdades absolutas.'
               : 'Os mapeamentos desta cartografia unem tradições — Astrologia, Kabbalah, Jung, Freud, Solfeggio e Numerologia — como espelhos, não verdades absolutas. A sombra é tão importante quanto a luz.'
             }
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          {/* Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '32px', flexWrap: 'wrap' }}>
             {canShare && onShare && (
               shareUrl ? (
                 <button
                   onClick={() => navigator.clipboard.writeText(shareUrl)}
-                  className="px-8 py-3 bg-[#c9a84c]/10 border border-[#c9a84c]/30 rounded-lg text-[#c9a84c]/80 hover:text-[#c9a84c] hover:border-[#c9a84c]/50 transition-all text-sm tracking-wider uppercase cursor-pointer"
-                  style={{ fontFamily: "'Cinzel Decorative', serif" }}
+                  style={btnStyle}
+                  onMouseEnter={e => btnHover(e, true)}
+                  onMouseLeave={e => btnHover(e, false)}
                 >
-                  Copiar Link
+                  copiar link
                 </button>
               ) : (
-                <motion.button
+                <button
                   onClick={onShare}
                   disabled={isSharing}
-                  whileHover={!isSharing ? { scale: 1.02 } : {}}
-                  whileTap={!isSharing ? { scale: 0.98 } : {}}
-                  className={`px-8 py-3 border rounded-lg text-sm tracking-wider uppercase transition-all ${
-                    isSharing
-                      ? 'bg-white/5 border-white/10 text-white/20 cursor-wait'
-                      : 'bg-[#c9a84c]/10 border-[#c9a84c]/30 text-[#c9a84c]/80 hover:text-[#c9a84c] hover:border-[#c9a84c]/50 cursor-pointer'
-                  }`}
-                  style={{ fontFamily: "'Cinzel Decorative', serif" }}
+                  style={{ ...btnStyle, opacity: isSharing ? 0.3 : 1, borderBottomColor: isSharing ? 'rgba(201,168,76,0.2)' : 'var(--gold)' }}
+                  onMouseEnter={e => { if (!isSharing) btnHover(e, true); }}
+                  onMouseLeave={e => { if (!isSharing) btnHover(e, false); }}
                 >
-                  {isSharing ? 'Gerando...' : 'Compartilhar'}
-                </motion.button>
+                  {isSharing ? 'gerando...' : 'compartilhar'}
+                </button>
               )
             )}
 
-            <motion.button
+            <button
               onClick={onReset}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="px-8 py-3 bg-white/5 border border-[#c9a84c]/20 rounded-lg text-[#c9a84c]/60 hover:text-[#c9a84c] hover:border-[#c9a84c]/40 transition-all text-sm tracking-wider uppercase cursor-pointer"
-              style={{ fontFamily: "'Cinzel Decorative', serif" }}
+              style={btnStyle}
+              onMouseEnter={e => btnHover(e, true)}
+              onMouseLeave={e => btnHover(e, false)}
             >
-              Nova Cartografia
-            </motion.button>
+              nova cartografia
+            </button>
           </div>
 
+          {shareUrl && (
+            <p style={{ fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200, color: 'var(--white-ghost)', marginTop: '20px', textAlign: 'center', wordBreak: 'break-all' }}>
+              {shareUrl}
+            </p>
+          )}
+
+          {/* Meet another soul */}
           {onMeet && (
-            <div className="mt-8 pt-6 border-t border-[#c9a84c]/10">
-              <p
-                className="text-[#c9a84c]/40 text-sm tracking-widest uppercase mb-4"
-                style={{ fontFamily: "'Cinzel Decorative', serif" }}
-              >
-                Encontrar outra alma
+            <div style={{ borderTop: '1px solid var(--gold-line)', marginTop: '40px', paddingTop: '32px' }}>
+              <p style={{ ...labelStyle, marginBottom: '20px', textAlign: 'center' }}>
+                encontrar outra alma
               </p>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   if (!meetInput.trim()) return;
                   let token = meetInput.trim();
-                  // Extract token from URL if a full URL was pasted
                   try {
                     const url = new URL(token);
                     const urlToken = url.searchParams.get('token');
                     if (urlToken) token = urlToken;
                   } catch {
-                    // Not a URL — use raw text as token
+                    // raw token
                   }
                   onMeet(token);
                 }}
-                className="flex flex-col sm:flex-row items-center gap-3"
+                style={{ display: 'flex', alignItems: 'flex-end', gap: '20px', maxWidth: '460px', margin: '0 auto' }}
               >
                 <input
                   type="text"
                   value={meetInput}
                   onChange={(e) => setMeetInput(e.target.value)}
-                  placeholder="Cole o link ou token"
-                  className="flex-1 w-full sm:w-auto px-4 py-2 bg-white/5 border border-[#c9a84c]/15 rounded-lg text-[#e8dcc8]/80 placeholder-[#e8dcc8]/20 text-sm focus:outline-none focus:border-[#c9a84c]/40 transition-all"
-                  style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                  placeholder="cole o link ou token"
+                  style={fieldStyle}
+                  onFocus={e => (e.target.style.borderBottomColor = 'var(--gold)')}
+                  onBlur={e => (e.target.style.borderBottomColor = 'rgba(201,168,76,0.2)')}
                 />
-                <motion.button
+                <button
                   type="submit"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="px-6 py-2 bg-[#c9a84c]/10 border border-[#c9a84c]/20 rounded-lg text-[#c9a84c]/60 hover:text-[#c9a84c] hover:border-[#c9a84c]/40 transition-all text-sm tracking-wider uppercase cursor-pointer"
-                  style={{ fontFamily: "'Cinzel Decorative', serif" }}
+                  style={{ ...btnStyle, flexShrink: 0 }}
+                  onMouseEnter={e => btnHover(e, true)}
+                  onMouseLeave={e => btnHover(e, false)}
                 >
-                  Encontrar
-                </motion.button>
+                  encontrar
+                </button>
               </form>
             </div>
           )}
-
-          {shareUrl && (
-            <p className="text-[#c9a84c]/30 text-xs mt-4 break-all">
-              {shareUrl}
-            </p>
-          )}
         </motion.div>
+
       </div>
     </motion.div>
   );

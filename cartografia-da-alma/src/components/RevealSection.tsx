@@ -11,26 +11,36 @@ interface RevealSectionProps {
 export function RevealSection({ title, subtitle, delay = 0, children }: RevealSectionProps) {
   return (
     <motion.section
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1.2, delay, ease: 'easeOut' }}
-      className="mb-12 md:mb-16"
+      style={{ marginBottom: '80px' }}
     >
-      <div className="mb-4">
-        <h2
-          className="text-2xl md:text-3xl text-[#c9a84c] mb-1"
-          style={{ fontFamily: "'Cinzel Decorative', serif" }}
-        >
-          {title}
-        </h2>
+      {/* Section header */}
+      <div style={{ marginBottom: '24px' }}>
         {subtitle && (
-          <p className="text-sm text-[#c9a84c]/50 tracking-widest uppercase">
+          <p style={{
+            fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+            letterSpacing: '0.38em', color: 'var(--gold)',
+            textTransform: 'uppercase', marginBottom: '12px',
+          }}>
             {subtitle}
           </p>
         )}
-        <div className="w-16 h-px bg-[#c9a84c]/20 mt-3" />
+        <h2 style={{
+          fontFamily: 'var(--serif)', fontSize: 'clamp(24px, 3.5vw, 36px)',
+          fontWeight: 300, color: 'var(--white)', lineHeight: 1.15,
+        }}>
+          {title}
+        </h2>
+        <div style={{ width: '40px', height: '1px', background: 'var(--gold-line)', marginTop: '18px' }} />
       </div>
-      <div className="text-[#e8dcc8] leading-relaxed" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+
+      {/* Section body */}
+      <div style={{
+        fontFamily: 'var(--serif)', fontSize: '17px', fontWeight: 300,
+        lineHeight: 1.7, color: 'var(--white-dim)',
+      }}>
         {children}
       </div>
     </motion.section>
