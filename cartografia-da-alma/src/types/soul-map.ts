@@ -189,6 +189,20 @@ export interface SoulMateReading {
   meetingNumber: NumerologyResult;
 }
 
+// ── Oracle ──
+
+export interface OracleMessage {
+  role: 'user' | 'oracle';
+  content: string;
+}
+
+export interface OracleSession {
+  soulMap: SoulMap;
+  messages: OracleMessage[];
+  questionsUsed: number;
+  closed: boolean;
+}
+
 // ── Sign metadata ──
 
 export interface SignData {

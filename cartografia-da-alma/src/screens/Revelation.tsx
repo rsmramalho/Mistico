@@ -4,6 +4,7 @@ import type { SoulMap, Element, LineName } from '../types/soul-map';
 import { RevealSection } from '../components/RevealSection';
 import { PsycheBar } from '../components/PsycheBar';
 import { FrequencyDisplay } from '../components/FrequencyDisplay';
+import { OracleSection } from '../components/OracleSection';
 import { FlowerOfLife } from '../geometry/FlowerOfLife';
 import { Hexagram } from '../geometry/Hexagram';
 import { Metatron } from '../geometry/Metatron';
@@ -332,6 +333,9 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
             </div>
           )}
         </motion.div>
+
+        {/* ── Oracle ── */}
+        <OracleSection soulMap={soulMap} />
 
       </div>
     </motion.div>

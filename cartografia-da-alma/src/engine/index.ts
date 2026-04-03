@@ -50,3 +50,4 @@ export { getNumerology, getExpressionNumber } from './numerology';
 export { getPsycheDistribution } from './freud';
 export { getHandElement, getSignFromMount, getPalmExpression, getPalmSoulMap } from './palm';
 export { getSoulMateReading } from './soul-mate';
+export { buildSystemPrompt, askOracle } from './oracle';
