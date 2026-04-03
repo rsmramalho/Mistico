@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cartografia da Alma × MindRoot</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04040a;
+  --gold:#c9a84c;
+  --gold-dim:rgba(201,168,76,0.12);
+  --gold-line:rgba(201,168,76,0.2);
+  --mind:#7eb8d4;
+  --mind-dim:rgba(126,184,212,0.12);
+  --mind-line:rgba(126,184,212,0.2);
+  --merge:#d4956a;
+  --merge-dim:rgba(212,149,106,0.15);
+  --white:rgba(232,228,218,0.92);
+  --white-dim:rgba(232,228,218,0.45);
+  --white-ghost:rgba(232,228,218,0.1);
+  --serif:'Cormorant Garant',Georgia,serif;
+  --sans:'Jost',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{color:var(--white);font-family:var(--serif);overflow-x:hidden;cursor:none}
+#cur{position:fixed;width:6px;height:6px;background:var(--gold);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:screen;transition:width .2s,height .2s}
+canvas#stars{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.7}
+
+/* sections */
+section{
+  position:relative;z-index:10;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:80px 40px;
+}
+
+/* reveal on scroll */
+.reveal{opacity:0;transform:translateY(32px);transition:opacity 1s,transform 1s}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* eyebrow */
+.eyebrow{
+  font-family:var(--sans);font-size:9px;font-weight:200;
+  letter-spacing:.42em;text-transform:uppercase;
+  margin-bottom:20px;
+}
+.eyebrow.gold{color:var(--gold)}
+.eyebrow.mind{color:var(--mind)}
+.eyebrow.merge{color:var(--merge)}
+
+/* display */
+.display{
+  font-family:var(--serif);font-weight:300;line-height:1;
+  margin-bottom:24px;
+}
+.display.xl{font-size:clamp(52px,8vw,110px)}
+.display.lg{font-size:clamp(36px,5vw,72px)}
+.display.md{font-size:clamp(24px,3vw,42px)}
+em{font-style:italic}
+
+/* body text */
+.body{
+  font-family:var(--serif);font-size:clamp(17px,2vw,22px);
+  font-weight:300;line-height:1.7;color:var(--white-dim);
+  max-width:600px;
+}
+
+/* line divider */
+.line{
+  width:40px;height:1px;margin:32px 0;
+}
+.line.gold{background:var(--gold-line)}
+.line.mind{background:var(--mind-line)}
+.line.merge{background:rgba(212,149,106,0.4)}
+
+/* ── HERO ── */
+#hero{text-align:center}
+#hero .display.xl{
+  background:linear-gradient(135deg,var(--gold) 0%,rgba(232,228,218,0.9) 50%,var(--mind) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+
+/* ── SPLIT: dois mundos ── */
+#split{
+  display:grid;grid-template-columns:1fr 1px 1fr;
+  gap:0;min-height:100vh;padding:0;align-items:stretch;
+}
+.split-col{
+  display:flex;flex-direction:column;justify-content:center;
+  padding:80px 60px;
+}
+.split-col.left{align-items:flex-end;text-align:right}
+.split-col.right{align-items:flex-start;text-align:left}
+.split-divider{
+  background:rgba(232,228,218,0.08);
+  position:relative;display:flex;align-items:center;justify-content:center;
+}
+.split-divider::before{
+  content:'';width:5px;height:5px;border-radius:50%;
+  background:var(--white-dim);
+  box-shadow:0 0 20px rgba(232,228,218,0.3);
+}
+
+/* feature list */
+.feat-list{list-style:none;margin-top:32px}
+.feat-list li{
+  font-family:var(--sans);font-size:11px;font-weight:200;
+  letter-spacing:.18em;color:var(--white-dim);
+  margin-bottom:12px;display:flex;align-items:center;gap:10px;
+}
+.feat-list li::before{content:'';width:16px;height:1px;flex-shrink:0}
+.feat-list.gold-list li::before{background:var(--gold-line)}
+.feat-list.mind-list li::before{background:var(--mind-line)}
+.split-col.left .feat-list li{flex-direction:row-reverse}
+.split-col.left .feat-list li::before{content:'';width:16px;height:1px}
+
+/* ── ORBIT: animação dos dois mundos ── */
+#orbit-section{text-align:center;overflow:hidden}
+#orbit-wrap{position:relative;width:min(600px,90vw);height:min(600px,90vw);margin:60px auto}
+#orbit-canvas{width:100%;height:100%}
+
+/* ── CROSSING ── */
+#crossing{
+  background:radial-gradient(ellipse at center,rgba(212,149,106,0.06) 0%,transparent 70%);
+  text-align:center;
+}
+.crossing-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;margin-top:64px;width:min(800px,90vw);
+  border:1px solid rgba(212,149,106,0.15);
+}
+.crossing-cell{
+  padding:32px 24px;text-align:center;
+  border:1px solid rgba(212,149,106,0.08);
+  background:rgba(212,149,106,0.03);
+  transition:background .4s;
+}
+.crossing-cell:hover{background:rgba(212,149,106,0.08)}
+.cell-label{
+  font-family:var(--sans);font-size:8px;font-weight:200;
+  letter-spacing:.4em;text-transform:uppercase;
+  color:var(--merge);margin-bottom:12px;
+}
+.cell-title{
+  font-family:var(--serif);font-size:20px;font-weight:300;
+  color:var(--white);line-height:1.2;margin-bottom:8px;
+}
+.cell-body{
+  font-family:var(--sans);font-size:10px;font-weight:200;
+  letter-spacing:.08em;color:var(--white-dim);line-height:1.6;
+}
+
+/* ── FLOW ── */
+#flow{text-align:center}
+.flow-steps{
+  display:flex;flex-direction:column;gap:0;
+  margin-top:64px;width:min(560px,90vw);
+  position:relative;
+}
+.flow-steps::before{
+  content:'';position:absolute;
+  left:50%;top:0;bottom:0;width:1px;
+  background:linear-gradient(to bottom,var(--gold-line),var(--merge-dim),var(--mind-line));
+  transform:translateX(-50%);
+}
+.flow-step{
+  display:flex;align-items:center;gap:24px;
+  padding:24px 0;position:relative;
+}
+.flow-step:nth-child(odd){flex-direction:row}
+.flow-step:nth-child(even){flex-direction:row-reverse;text-align:right}
+.step-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;
+  position:relative;z-index:2;
+}
+.step-dot.gold{background:var(--gold)}
+.step-dot.mind{background:var(--mind)}
+.step-dot.merge{background:var(--merge)}
+.step-text{flex:1}
+.step-label{
+  font-family:var(--sans);font-size:8px;font-weight:200;
+  letter-spacing:.35em;text-transform:uppercase;margin-bottom:6px;
+}
+.step-title{font-family:var(--serif);font-size:20px;font-weight:300;color:var(--white)}
+.step-body{
+  font-family:var(--sans);font-size:10px;font-weight:200;
+  letter-spacing:.08em;color:var(--white-dim);line-height:1.6;margin-top:4px;
+}
+
+/* ── CLOSING ── */
+#closing{text-align:center}
+.closing-quote{
+  font-family:var(--serif);font-size:clamp(22px,3.5vw,42px);
+  font-weight:300;font-style:italic;
+  color:var(--white);line-height:1.4;
+  max-width:700px;margin:0 auto;
+}
+.closing-quote em{color:var(--gold)}
+
+/* nav dots */
+#nav{
+  position:fixed;right:28px;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:14px;z-index:100;
+}
+.nav-dot{
+  width:4px;height:4px;border-radius:50%;
+  background:var(--white-ghost);border:none;
+  transition:background .3s,transform .3s;
+}
+.nav-dot.active{background:var(--gold);transform:scale(1.5)}
+
+@media(max-width:640px){
+  #split{grid-template-columns:1fr;grid-template-rows:auto 1px auto}
+  .split-col{padding:60px 32px;align-items:flex-start;text-align:left}
+  .split-col.left{align-items:flex-start;text-align:left}
+  .split-divider{height:1px;width:100%}
+  .split-divider::before{display:none}
+  .crossing-grid{grid-template-columns:1fr}
+  .flow-step,.flow-step:nth-child(even){flex-direction:column;align-items:flex-start;text-align:left}
+  .flow-steps::before{left:4px}
+}
+</style>
+</head>
+<body>
+<div id="cur"></div>
+<canvas id="stars"></canvas>
+
+<nav id="nav">
+  <button class="nav-dot active" onclick="scrollTo(0)"></button>
+  <button class="nav-dot" onclick="scrollTo(1)"></button>
+  <button class="nav-dot" onclick="scrollTo(2)"></button>
+  <button class="nav-dot" onclick="scrollTo(3)"></button>
+  <button class="nav-dot" onclick="scrollTo(4)"></button>
+  <button class="nav-dot" onclick="scrollTo(5)"></button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="reveal">
+    <p class="eyebrow gold">dois mundos · uma jornada</p>
+    <h1 class="display xl">O mapa<br>e a <em>vida</em></h1>
+    <div class="line gold" style="margin:32px auto"></div>
+    <p class="body" style="margin:0 auto;text-align:center">
+      Dois produtos completos em si mesmos.<br>
+      Que se tornam algo maior quando se encontram.
+    </p>
+  </div>
+</section>
+
+<!-- SPLIT: dois mundos -->
+<section id="split">
+  <div class="split-col left reveal">
+    <p class="eyebrow gold">cartografia da alma</p>
+    <h2 class="display lg" style="color:var(--white)">Quem<br>você <em style="color:var(--gold)">é</em></h2>
+    <div class="line gold" style="margin-left:auto"></div>
+    <p class="body" style="max-width:340px">
+      Um mapa interior tecido a partir de seis tradições filosóficas reais.
+      Astrologia, Kabbalah, Jung, Freud, Solfeggio, Numerologia.
+      Não entretenimento — espelhos com fontes rastreáveis.
+    </p>
+    <ul class="feat-list gold-list" style="margin-top:32px">
+      <li>Signo solar · elemento · modalidade</li>
+      <li>Sephirah na Árvore da Vida</li>
+      <li>Arquétipo + sombra junguiana</li>
+      <li>Frequência Solfeggio pessoal</li>
+      <li>Número de Expressão</li>
+      <li>Leitura via palma</li>
+      <li>Oráculo — 3 perguntas</li>
+      <li>Soul Mate — dois mapas cruzados</li>
+    </ul>
+  </div>
+
+  <div class="split-divider"></div>
+
+  <div class="split-col right reveal" style="transition-delay:.2s">
+    <p class="eyebrow mind">mindroot</p>
+    <h2 class="display lg" style="color:var(--white)">Como<br>você <em style="color:var(--mind)">vive</em></h2>
+    <div class="line mind"></div>
+    <p class="body" style="max-width:340px">
+      Um sistema operacional de vida pessoal.
+      Captura ação, emoção, tempo e alma —
+      e organiza tudo com intenção, sem overhead.
+    </p>
+    <ul class="feat-list mind-list" style="margin-top:32px">
+      <li>Tarefas com contexto emocional</li>
+      <li>Check-ins de estado interno</li>
+      <li>Projetos e hábitos</li>
+      <li>Journal integrado</li>
+      <li>Padrões ao longo do tempo</li>
+      <li>AI contextual</li>
+      <li>Energia e ritmo pessoal</li>
+      <li>Compartilhamento seletivo</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ORBIT -->
+<section id="orbit-section">
+  <div class="reveal">
+    <p class="eyebrow merge">quando se encontram</p>
+    <h2 class="display lg" style="max-width:600px;margin:0 auto 16px">
+      O oculto ilumina<br>o que os <em>dados mostram</em>
+    </h2>
+    <p class="body" style="margin:0 auto;text-align:center;max-width:500px">
+      Você não precisa acreditar nos sistemas.<br>
+      Os padrões emergem dos dados reais.
+    </p>
+  </div>
+  <div id="orbit-wrap">
+    <canvas id="orbit-canvas"></canvas>
+  </div>
+</section>
+
+<!-- CROSSING: o que emerge -->
+<section id="crossing">
+  <div class="reveal" style="width:100%;display:flex;flex-direction:column;align-items:center">
+    <p class="eyebrow merge">o que emerge no cruzamento</p>
+    <h2 class="display lg" style="margin-bottom:0">Correlações <em>invisíveis</em></h2>
+    <div class="line merge" style="margin:24px auto"></div>
+    <div class="crossing-grid reveal" style="transition-delay:.3s">
+      <div class="crossing-cell">
+        <p class="cell-label">emoção × trânsito</p>
+        <p class="cell-title">Por que esse dia foi difícil</p>
+        <p class="cell-body">Check-in baixo em 22/Mar coincide com Lua minguante no seu elemento. O sistema mostra o padrão.</p>
+      </div>
+      <div class="crossing-cell">
+        <p class="cell-label">ação × phitime</p>
+        <p class="cell-title">Quando agir com mais força</p>
+        <p class="cell-body">Projetos iniciados no seu PhiTime pessoal têm mais chance de completar. Não crença — correlação.</p>
+      </div>
+      <div class="crossing-cell">
+        <p class="cell-label">bloqueio × sombra</p>
+        <p class="cell-title">O padrão que se repete</p>
+        <p class="cell-body">Bloqueios recorrentes coincidem com a sombra inflada do arquétipo. O mapa nomeia o que você sentia.</p>
+      </div>
+      <div class="crossing-cell">
+        <p class="cell-label">produtividade × lua</p>
+        <p class="cell-title">Seu ritmo natural</p>
+        <p class="cell-body">Picos de criação em dias de elemento Água. Não prescrição — revelação retroativa de padrão real.</p>
+      </div>
+      <div class="crossing-cell">
+        <p class="cell-label">decisão × i ching</p>
+        <p class="cell-title">O momento certo</p>
+        <p class="cell-body">Modalidade cardinal age, fixo sustenta, mutável transforma. O timing não é sorte — é ciclo.</p>
+      </div>
+      <div class="crossing-cell">
+        <p class="cell-label">relação × soul mate</p>
+        <p class="cell-title">O espaço entre</p>
+        <p class="cell-body">Dois mapas cruzados revelam o que cada um projeta no outro. Jung chamou de individuação via relação.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FLOW: a jornada -->
+<section id="flow">
+  <div class="reveal">
+    <p class="eyebrow merge">a jornada</p>
+    <h2 class="display lg">Uma porta.<br><em>Dois mundos.</em></h2>
+  </div>
+  <div class="flow-steps reveal" style="transition-delay:.2s">
+    <div class="flow-step">
+      <div class="step-dot gold"></div>
+      <div class="step-text">
+        <p class="step-label" style="color:var(--gold)">cartografia da alma</p>
+        <p class="step-title">Você descobre quem é</p>
+        <p class="step-body">SoulMap completo. Seis sistemas filosóficos reais. Oráculo com contexto profundo.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-dot gold"></div>
+      <div class="step-text">
+        <p class="step-label" style="color:var(--gold)">standalone completo</p>
+        <p class="step-title">Existe por si só</p>
+        <p class="step-body">Produto completo. Você pode usar a vida inteira sem saber que o MindRoot existe.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-dot merge"></div>
+      <div class="step-text">
+        <p class="step-label" style="color:var(--merge)">o encontro</p>
+        <p class="step-title">O mapa encontra a vida</p>
+        <p class="step-body">SoulMap salvo na DB compartilhada. Quando você abre o MindRoot, o contexto já está lá.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-dot mind"></div>
+      <div class="step-text">
+        <p class="step-label" style="color:var(--mind)">mindroot</p>
+        <p class="step-title">A vida ganha camadas</p>
+        <p class="step-body">Cada tarefa, emoção e decisão passa a ter contexto oculto. O sistema correlaciona.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-dot mind"></div>
+      <div class="step-text">
+        <p class="step-label" style="color:var(--mind)">standalone completo</p>
+        <p class="step-title">Existe por si só</p>
+        <p class="step-body">Produto completo. Você pode usar a vida inteira sem saber que o Cartografia existe.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-dot merge"></div>
+      <div class="step-text">
+        <p class="step-label" style="color:var(--merge)">o padrão</p>
+        <p class="step-title">O invisível torna-se visível</p>
+        <p class="step-body">Correlações emergem. O oculto não substitui o dado — revela o padrão por baixo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSING -->
+<section id="closing">
+  <div class="reveal">
+    <p class="eyebrow gold" style="text-align:center">o princípio</p>
+    <div class="line gold" style="margin:20px auto 40px"></div>
+    <blockquote class="closing-quote">
+      Nenhum mapa precisa do outro<br>
+      para ser <em>inteiro</em>.<br><br>
+      <span style="font-size:0.7em;color:var(--white-dim)">
+        É o mesmo espaço entre —<br>
+        que emerge quando dois escolhem se encontrar.
+      </span>
+    </blockquote>
+    <div style="margin-top:64px;display:flex;gap:40px;justify-content:center;flex-wrap:wrap">
+      <div style="text-align:center">
+        <p style="font-family:var(--sans);font-size:8px;font-weight:200;letter-spacing:.4em;color:var(--gold);text-transform:uppercase;margin-bottom:8px">cartografia da alma</p>
+        <p style="font-family:var(--serif);font-size:13px;color:var(--white-dim)">cartografia.com.br</p>
+      </div>
+      <div style="width:1px;background:var(--white-ghost)"></div>
+      <div style="text-align:center">
+        <p style="font-family:var(--sans);font-size:8px;font-weight:200;letter-spacing:.4em;color:var(--mind);text-transform:uppercase;margin-bottom:8px">mindroot</p>
+        <p style="font-family:var(--serif);font-size:13px;color:var(--white-dim)">mindroot.com.au</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* cursor */
+const cur=document.getElementById('cur');
+document.addEventListener('mousemove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px'});
+
+/* stars */
+const sc=document.getElementById('stars');
+const sx=sc.getContext('2d');
+function resizeStars(){sc.width=window.innerWidth;sc.height=window.innerHeight}
+resizeStars();window.addEventListener('resize',resizeStars);
+const stars=Array.from({length:200},()=>({
+  x:Math.random(),y:Math.random(),
+  r:.3+Math.random()*.8,
+  a:Math.random(),s:.0003+Math.random()*.0004,p:Math.random()*Math.PI*2
+}));
+let t=0;
+(function drawStars(){
+  sx.clearRect(0,0,sc.width,sc.height);
+  stars.forEach(s=>{
+    const a=s.a*(.3+.7*Math.abs(Math.sin(t*s.s+s.p)));
+    sx.beginPath();sx.arc(s.x*sc.width,s.y*sc.height,s.r,0,Math.PI*2);
+    sx.fillStyle=`rgba(201,168,76,${a})`;sx.fill();
+  });
+  t++;requestAnimationFrame(drawStars);
+})();
+
+/* scroll reveal */
+const reveals=document.querySelectorAll('.reveal');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')});
+},{threshold:.15});
+reveals.forEach(r=>obs.observe(r));
+
+/* nav */
+const sections=document.querySelectorAll('section');
+const dots=document.querySelectorAll('.nav-dot');
+function scrollTo(i){sections[i].scrollIntoView({behavior:'smooth'})}
+const navObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const i=[...sections].indexOf(e.target);
+      dots.forEach(d=>d.classList.remove('active'));
+      if(dots[i])dots[i].classList.add('active');
+    }
+  });
+},{threshold:.5});
+sections.forEach(s=>navObs.observe(s));
+
+/* orbit canvas */
+const oc=document.getElementById('orbit-canvas');
+const octx=oc.getContext('2d');
+function resizeOrbit(){
+  const w=oc.parentElement.clientWidth;
+  oc.width=w;oc.height=w;
+}
+resizeOrbit();window.addEventListener('resize',resizeOrbit);
+
+let ot=0;
+function drawOrbit(){
+  const W=oc.width,H=oc.height,cx=W/2,cy=H/2;
+  octx.clearRect(0,0,W,H);
+
+  const R=W*.3,r=W*.06;
+  const gold={x:cx+Math.cos(ot*.4)*R,y:cy+Math.sin(ot*.4)*R*.6};
+  const mind={x:cx+Math.cos(ot*.4+Math.PI)*R,y:cy+Math.sin(ot*.4+Math.PI)*R*.6};
+
+  /* orbit paths */
+  octx.beginPath();octx.ellipse(cx,cy,R,R*.6,0,0,Math.PI*2);
+  octx.strokeStyle='rgba(201,168,76,0.08)';octx.lineWidth=1;octx.stroke();
+
+  /* connection line */
+  const dist=Math.hypot(gold.x-mind.x,gold.y-mind.y);
+  const maxD=R*2;
+  const alpha=Math.max(0,1-dist/maxD)*0.6;
+  if(alpha>0.05){
+    const grd=octx.createLinearGradient(gold.x,gold.y,mind.x,mind.y);
+    grd.addColorStop(0,'rgba(201,168,76,'+alpha+')');
+    grd.addColorStop(.5,'rgba(212,149,106,'+(alpha*1.4)+')');
+    grd.addColorStop(1,'rgba(126,184,212,'+alpha+')');
+    octx.beginPath();octx.moveTo(gold.x,gold.y);octx.lineTo(mind.x,mind.y);
+    octx.strokeStyle=grd;octx.lineWidth=1;octx.stroke();
+  }
+
+  /* glows */
+  [[gold,'201,168,76'],[mind,'126,184,212']].forEach(([p,c])=>{
+    const g=octx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*3);
+    g.addColorStop(0,`rgba(${c},0.25)`);g.addColorStop(1,`rgba(${c},0)`);
+    octx.beginPath();octx.arc(p.x,p.y,r*3,0,Math.PI*2);
+    octx.fillStyle=g;octx.fill();
+  });
+
+  /* dots */
+  octx.beginPath();octx.arc(gold.x,gold.y,r,0,Math.PI*2);
+  octx.fillStyle='rgba(201,168,76,0.85)';octx.fill();
+  octx.beginPath();octx.arc(mind.x,mind.y,r,0,Math.PI*2);
+  octx.fillStyle='rgba(126,184,212,0.85)';octx.fill();
+
+  /* center merge point */
+  const mg=octx.createRadialGradient(cx,cy,0,cx,cy,r*2);
+  mg.addColorStop(0,'rgba(212,149,106,0.15)');mg.addColorStop(1,'rgba(212,149,106,0)');
+  octx.beginPath();octx.arc(cx,cy,r*2,0,Math.PI*2);
+  octx.fillStyle=mg;octx.fill();
+
+  /* labels */
+  octx.font=`200 ${W*.018}px 'Jost',sans-serif`;
+  octx.letterSpacing='0.3em';
+  octx.fillStyle='rgba(201,168,76,0.7)';
+  octx.textAlign='center';
+  octx.fillText('CARTOGRAFIA',gold.x,gold.y+r*2.4);
+  octx.fillStyle='rgba(126,184,212,0.7)';
+  octx.fillText('MINDROOT',mind.x,mind.y+r*2.4);
+
+  ot+=.008;
+  requestAnimationFrame(drawOrbit);
+}
+drawOrbit();
+</script>
+</body>
+</html>
