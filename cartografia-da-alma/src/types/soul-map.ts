@@ -58,6 +58,9 @@ export interface Sephirah {
   expression: PlanetaryExpression;
   meaning: string;
   description: string;
+  paths?: string[];        // adjacent sephiroth in the Tree
+  tikkun?: string;         // the specific correction of this node
+  polarity?: string;       // between which forces this sephirah exists
 }
 
 // ── Archetype ──
@@ -210,6 +213,9 @@ export interface SignData {
   element: Element;
   modality: Modality;
   ruler: string;
+  rulerMeaning: string;
+  rulerForSign: string;
+  elementQuality: string;
   startMonth: number;
   startDay: number;
   endMonth: number;

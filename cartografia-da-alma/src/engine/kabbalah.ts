@@ -12,20 +12,89 @@ interface SephirahData {
   planet: string;
   meaning: string;
   description: string;
+  paths: string[];
+  tikkun: string;
+  polarity: string;
 }
 
 const SEPHIROTH: Record<SephirahName, SephirahData> = {
-  Kether:   { name: 'Kether',   number: 1,  planet: 'Primum Mobile', meaning: 'Coroa', description: 'O ponto antes da forma. Kether não é um lugar na Árvore — é o limite do que pode ser descrito. Unidade absoluta, anterior a toda dualidade. O que está aqui não pode ser apreendido, apenas apontado.' },
-  Chokmah:  { name: 'Chokmah',  number: 2,  planet: 'Zodiac',        meaning: 'Sabedoria', description: 'O primeiro movimento. Antes do pensamento, antes da análise — o impulso puro que precede qualquer forma. Chokmah é sabedoria como força primordial, não como conhecimento acumulado. O relâmpago antes do trovão.' },
-  Binah:    { name: 'Binah',    number: 3,  planet: 'Saturn',        meaning: 'Entendimento', description: 'A forma que contém. Saturno não é limitação — é o recipiente sem o qual nada manifesta. Binah é o entendimento que nasce de sustentar algo pelo tempo necessário. A grande mãe não nutre por bondade abstrata — nutre porque sabe que sem estrutura, a semente não germina.' },
-  Chesed:   { name: 'Chesed',   number: 4,  planet: 'Jupiter',       meaning: 'Misericórdia', description: 'A expansão que não exige retorno. Júpiter como graça — não como recompensa, mas como transbordamento natural de quem tem mais do que precisa. Chesed é a generosidade que não calcula, a visão que inclui em vez de separar. O perigo é a expansão sem discernimento.' },
-  Geburah:  { name: 'Geburah',  number: 5,  planet: 'Mars',          meaning: 'Severidade', description: 'A força que corta o que não serve. Geburah não é crueldade — é a precisão do cirurgião. Marte aqui não é agressão; é a capacidade de agir quando agir é necessário, de dizer não quando o não protege o que importa. Severidade como ato de amor radical.' },
-  Tiphareth: { name: 'Tiphareth', number: 6, planet: 'Sun',           meaning: 'Beleza', description: 'O centro que mantém tudo em órbita. Tiphareth é onde os opostos encontram equilíbrio — não neutralidade, mas harmonia viva. O Sol não apaga as sombras: ilumina o suficiente para que possam ser vistas. Beleza aqui não é estética — é a proporção justa entre todas as forças.' },
-  Netzach:  { name: 'Netzach',  number: 7,  planet: 'Venus',         meaning: 'Vitória', description: 'A vitória do desejo que persiste. Vênus em Netzach não é amor romântico — é a força criativa que sustenta toda arte, toda paixão, toda conexão. O que Netzach guarda é o fogo emocional antes de ser domesticado pela razão. Perigoso e necessário.' },
-  Hod:      { name: 'Hod',      number: 8,  planet: 'Mercury',       meaning: 'Esplendor', description: 'O esplendor da mente que nomeia. Mercúrio em Hod é a linguagem como força mágica — a capacidade de tornar real o que é dito com precisão. Análise, comunicação, o dom de ver padrões onde outros veem caos. O intelecto como instrumento, não como fim.' },
-  Yesod:    { name: 'Yesod',    number: 9,  planet: 'Moon',          meaning: 'Fundação', description: 'O substrato de tudo que se manifesta. Yesod é onde o inconsciente e o consciente se tocam — o campo de sonhos, instintos e reflexos que sustenta toda ação visível. A Lua não cria luz própria: reflete. E é nesse reflexo que a maioria das decisões reais acontece, antes de qualquer deliberação.' },
-  Malkuth:  { name: 'Malkuth',  number: 10, planet: 'Earth',         meaning: 'Reino', description: 'O lugar onde tudo finalmente acontece. Malkuth é o corpo, a matéria, o concreto — não como plano inferior, mas como destino de toda emanação. A luz que desceu por toda a Árvore chega aqui e se faz experiência. Não há nada mais espiritual do que o que é completamente encarnado.' },
-  Daath:    { name: 'Daath',    number: 0,  planet: 'Pluto',         meaning: 'Conhecimento', description: 'O abismo que não é sephirah. Daath existe entre Binah e Chesed como o vazio que precisa ser atravessado — o ponto de ruptura onde o conhecimento velho não serve mais e o novo ainda não chegou. Plutão como transformação radical: não se passa por Daath sem mudar o que era.' },
+  Kether: {
+    name: 'Kether', number: 1, planet: 'Primum Mobile', meaning: 'Coroa',
+    description: 'O ponto antes da forma. Kether não é um lugar na Árvore — é o limite do que pode ser descrito. Unidade absoluta, anterior a toda dualidade. O que está aqui não pode ser apreendido, apenas apontado.',
+    paths: ['Chokmah', 'Binah', 'Tiphareth'],
+    tikkun: 'O tikkun de Kether é lembrar que a unidade inclui tudo — inclusive o que ainda não entende.',
+    polarity: 'Unidade — anterior a toda polaridade',
+  },
+  Chokmah: {
+    name: 'Chokmah', number: 2, planet: 'Zodiac', meaning: 'Sabedoria',
+    description: 'O primeiro movimento. Antes do pensamento, antes da análise — o impulso puro que precede qualquer forma. Chokmah é sabedoria como força primordial, não como conhecimento acumulado. O relâmpago antes do trovão.',
+    paths: ['Kether', 'Binah', 'Chesed', 'Tiphareth'],
+    tikkun: 'O tikkun de Chokmah é canalizar o impulso sem perder a espontaneidade na canalização.',
+    polarity: 'entre o impulso e a forma',
+  },
+  Binah: {
+    name: 'Binah', number: 3, planet: 'Saturn', meaning: 'Entendimento',
+    description: 'A forma que contém. Saturno não é limitação — é o recipiente sem o qual nada manifesta. Binah é o entendimento que nasce de sustentar algo pelo tempo necessário. A grande mãe não nutre por bondade abstrata — nutre porque sabe que sem estrutura, a semente não germina.',
+    paths: ['Kether', 'Chokmah', 'Geburah', 'Tiphareth'],
+    tikkun: 'Aprender que estrutura sem flexibilidade vira prisão. O tikkun de Binah é sustentar sem sufocar.',
+    polarity: 'entre a contenção e a criação',
+  },
+  Chesed: {
+    name: 'Chesed', number: 4, planet: 'Jupiter', meaning: 'Misericórdia',
+    description: 'A expansão que não exige retorno. Júpiter como graça — não como recompensa, mas como transbordamento natural de quem tem mais do que precisa. Chesed é a generosidade que não calcula, a visão que inclui em vez de separar. O perigo é a expansão sem discernimento.',
+    paths: ['Chokmah', 'Binah', 'Geburah', 'Tiphareth', 'Netzach'],
+    tikkun: 'Aprender que generosidade sem discernimento dilui. O tikkun de Chesed é dar sem perder a forma.',
+    polarity: 'entre a expansão e a dissolução',
+  },
+  Geburah: {
+    name: 'Geburah', number: 5, planet: 'Mars', meaning: 'Severidade',
+    description: 'A força que corta o que não serve. Geburah não é crueldade — é a precisão do cirurgião. Marte aqui não é agressão; é a capacidade de agir quando agir é necessário, de dizer não quando o não protege o que importa. Severidade como ato de amor radical.',
+    paths: ['Binah', 'Chesed', 'Tiphareth', 'Hod'],
+    tikkun: 'Aprender que força sem compaixão destrói o que protege. O tikkun de Geburah é cortar com precisão, não com raiva.',
+    polarity: 'entre a força e a destruição',
+  },
+  Tiphareth: {
+    name: 'Tiphareth', number: 6, planet: 'Sun', meaning: 'Beleza',
+    description: 'O centro que mantém tudo em órbita. Tiphareth é onde os opostos encontram equilíbrio — não neutralidade, mas harmonia viva. O Sol não apaga as sombras: ilumina o suficiente para que possam ser vistas. Beleza aqui não é estética — é a proporção justa entre todas as forças.',
+    paths: ['Kether', 'Chokmah', 'Binah', 'Chesed', 'Geburah', 'Netzach', 'Hod', 'Yesod'],
+    tikkun: 'Aprender que o centro não é superioridade — é responsabilidade. O tikkun de Tiphareth é iluminar sem ofuscar.',
+    polarity: 'entre todos os opostos — o ponto de equilíbrio',
+  },
+  Netzach: {
+    name: 'Netzach', number: 7, planet: 'Venus', meaning: 'Vitória',
+    description: 'A vitória do desejo que persiste. Vênus em Netzach não é amor romântico — é a força criativa que sustenta toda arte, toda paixão, toda conexão. O que Netzach guarda é o fogo emocional antes de ser domesticado pela razão. Perigoso e necessário.',
+    paths: ['Chesed', 'Tiphareth', 'Hod', 'Yesod', 'Malkuth'],
+    tikkun: 'Aprender que desejo sem direção consome. O tikkun de Netzach é amar o que é, não o que poderia ser.',
+    polarity: 'entre o desejo e a saciedade',
+  },
+  Hod: {
+    name: 'Hod', number: 8, planet: 'Mercury', meaning: 'Esplendor',
+    description: 'O esplendor da mente que nomeia. Mercúrio em Hod é a linguagem como força mágica — a capacidade de tornar real o que é dito com precisão. Análise, comunicação, o dom de ver padrões onde outros veem caos. O intelecto como instrumento, não como fim.',
+    paths: ['Geburah', 'Tiphareth', 'Netzach', 'Yesod', 'Malkuth'],
+    tikkun: 'Aprender que análise sem pausa paralisa. O tikkun de Hod é nomear sem dissecar até a morte.',
+    polarity: 'entre a análise e a paralisia',
+  },
+  Yesod: {
+    name: 'Yesod', number: 9, planet: 'Moon', meaning: 'Fundação',
+    description: 'O substrato de tudo que se manifesta. Yesod é onde o inconsciente e o consciente se tocam — o campo de sonhos, instintos e reflexos que sustenta toda ação visível. A Lua não cria luz própria: reflete. E é nesse reflexo que a maioria das decisões reais acontece, antes de qualquer deliberação.',
+    paths: ['Tiphareth', 'Netzach', 'Hod', 'Malkuth'],
+    tikkun: 'Aprender que o reflexo não é a fonte. O tikkun de Yesod é confiar no que se sente sem confundir reflexo com realidade.',
+    polarity: 'entre o consciente e o inconsciente',
+  },
+  Malkuth: {
+    name: 'Malkuth', number: 10, planet: 'Earth', meaning: 'Reino',
+    description: 'O lugar onde tudo finalmente acontece. Malkuth é o corpo, a matéria, o concreto — não como plano inferior, mas como destino de toda emanação. A luz que desceu por toda a Árvore chega aqui e se faz experiência. Não há nada mais espiritual do que o que é completamente encarnado.',
+    paths: ['Netzach', 'Hod', 'Yesod'],
+    tikkun: 'O tikkun de Malkuth é honrar a matéria como destino sagrado, não como degrau inferior.',
+    polarity: 'entre o espiritual e o material',
+  },
+  Daath: {
+    name: 'Daath', number: 0, planet: 'Pluto', meaning: 'Conhecimento',
+    description: 'O abismo que não é sephirah. Daath existe entre Binah e Chesed como o vazio que precisa ser atravessado — o ponto de ruptura onde o conhecimento velho não serve mais e o novo ainda não chegou. Plutão como transformação radical: não se passa por Daath sem mudar o que era.',
+    paths: ['Kether', 'Chokmah', 'Binah', 'Chesed', 'Geburah'],
+    tikkun: 'O tikkun de Daath é atravessar o abismo sem inventar certezas para evitar o vazio.',
+    polarity: 'entre o conhecido e o abismo',
+  },
 };
 
 // Sign → Sephirah mapping via classical planetary rulership
@@ -71,5 +140,8 @@ export function getSephirah(sign: Sign): Sephirah {
     expression: mapping.expression,
     meaning: data.meaning,
     description: EXPRESSION_DESC[sign],
+    paths: data.paths,
+    tikkun: data.tikkun,
+    polarity: data.polarity,
   };
 }

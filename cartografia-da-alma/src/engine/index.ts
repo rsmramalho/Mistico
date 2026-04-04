@@ -51,3 +51,4 @@ export { getPsycheDistribution } from './freud';
 export { getHandElement, getSignFromMount, getPalmExpression, getPalmSoulMap } from './palm';
 export { getSoulMateReading } from './soul-mate';
 export { buildSystemPrompt, askOracle } from './oracle';
+export { CARTA_VARIATIONS, getVariation } from './variations';
