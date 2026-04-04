@@ -25,6 +25,8 @@ interface RevelationProps {
   onShare?: () => void;
   onMeet?: (otherToken: string) => void;
   onEmailSubmit?: (email: string) => Promise<boolean>;
+  readingId?: string | null;
+  onTierUpgrade?: (tier: import('../types/database').ReadingTier) => void;
 }
 
 const ELEMENT_NAMES: Record<Element, string> = {
@@ -316,7 +318,7 @@ function EmailCaptureWall({ onSubmit }: { onSubmit: (email: string) => Promise<b
   );
 }
 
-export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, isSaving, tier = 'session', onShare, onMeet, onEmailSubmit }: RevelationProps) {
+export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, isSaving, tier = 'session', onShare, onMeet, onEmailSubmit, readingId, onTierUpgrade }: RevelationProps) {
   const [meetInput, setMeetInput] = useState('');
   const [showFloat, setShowFloat] = useState(false);
   const { sunSign, element, ascendant, sephirah, archetype, psyche, frequency, numerology } = soulMap;
@@ -603,7 +605,7 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
         />
 
         {/* ── Oracle ── */}
-        <OracleSection soulMap={soulMap} />
+        <OracleSection soulMap={soulMap} tier={tier} readingId={readingId} onTierUpgrade={onTierUpgrade} />
 
       </div> {/* sections wrapper */}
     </motion.div>

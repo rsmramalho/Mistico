@@ -91,7 +91,7 @@ function Gateway({ onBirth, onPalm }: { onBirth: () => void; onPalm: () => void 
 }
 
 export default function App() {
-  const { screen, soulMap, soulMateReading, shareUrl, isSharing, isSaving, canShare, tier, generate, generateFromPalm, share, submitEmail, meetAnotherSoul, goToGateway, goToEntry, goToPalmEntry, reset } = useSoulMap();
+  const { screen, soulMap, soulMateReading, readingId, shareUrl, isSharing, isSaving, canShare, tier, generate, generateFromPalm, share, submitEmail, meetAnotherSoul, goToGateway, goToEntry, goToPalmEntry, reset } = useSoulMap();
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ background: '#07070f' }}>
@@ -105,7 +105,7 @@ export default function App() {
           {screen === 'palmEntry' && <PalmEntry key="palmEntry" onSubmit={generateFromPalm} onBack={reset} />}
           {screen === 'loading' && <Loading key="loading" soulMap={soulMap} />}
           {screen === 'revelation' && soulMap && (
-            <Revelation key="revelation" soulMap={soulMap} onReset={reset} canShare={canShare} shareUrl={shareUrl} isSharing={isSharing} isSaving={isSaving} tier={tier} onShare={share} onMeet={meetAnotherSoul} onEmailSubmit={submitEmail} />
+            <Revelation key="revelation" soulMap={soulMap} onReset={reset} canShare={canShare} shareUrl={shareUrl} isSharing={isSharing} isSaving={isSaving} tier={tier} readingId={readingId} onShare={share} onMeet={meetAnotherSoul} onEmailSubmit={submitEmail} onTierUpgrade={(t) => { void t; /* tier updates via hook polling */ }} />
           )}
           {screen === 'meetLoading' && <Loading key="meetLoading" />}
           {screen === 'soulMate' && soulMateReading && (
