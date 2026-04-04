@@ -7,6 +7,7 @@ import { TreeOfLife } from '../geometry/TreeOfLife';
 interface SoulMateRevelationProps {
   reading: SoulMateReading;
   onReset: () => void;
+  shareUrl?: string | null;
 }
 
 const ELEMENT_NAMES: Record<Element, string> = {
@@ -48,7 +49,7 @@ const btnHover = (e: React.MouseEvent, enter: boolean) => {
   el.style.letterSpacing = enter ? '0.42em' : '0.32em';
 };
 
-export function SoulMateRevelation({ reading, onReset }: SoulMateRevelationProps) {
+export function SoulMateRevelation({ reading, onReset, shareUrl }: SoulMateRevelationProps) {
   const { readingA, readingB, elementDynamic, mirror, tikkun, frequencyHarmony, combinedPsyche, meetingNumber } = reading;
   const nameA = readingA.birthData.name;
   const nameB = readingB.birthData.name;
@@ -226,7 +227,17 @@ export function SoulMateRevelation({ reading, onReset }: SoulMateRevelationProps
             Solfeggio e Numerologia &mdash; como espelhos, n&atilde;o verdades absolutas.
           </p>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '32px', flexWrap: 'wrap' }}>
+            {shareUrl && (
+              <button
+                onClick={() => navigator.clipboard.writeText(shareUrl)}
+                style={btnStyle}
+                onMouseEnter={e => btnHover(e, true)}
+                onMouseLeave={e => btnHover(e, false)}
+              >
+                copiar link do encontro
+              </button>
+            )}
             <button
               onClick={onReset}
               style={btnStyle}
@@ -236,6 +247,11 @@ export function SoulMateRevelation({ reading, onReset }: SoulMateRevelationProps
               nova cartografia
             </button>
           </div>
+          {shareUrl && (
+            <p style={{ fontFamily: 'var(--sans)', fontSize: '9px', color: 'var(--white-ghost)', marginTop: '16px', textAlign: 'center', wordBreak: 'break-all' }}>
+              {shareUrl}
+            </p>
+          )}
         </motion.div>
 
       </div>

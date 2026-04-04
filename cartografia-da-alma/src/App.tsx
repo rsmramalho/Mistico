@@ -6,6 +6,7 @@ import { Entry } from './screens/Entry';
 import { PalmEntry } from './screens/PalmEntry';
 import { Loading } from './screens/Loading';
 import { Revelation } from './screens/Revelation';
+import { Viewer } from './screens/Viewer';
 import { SoulMateRevelation } from './screens/SoulMateRevelation';
 import { Landing } from './screens/Landing';
 
@@ -23,7 +24,7 @@ function Cursor() {
     };
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseover', over);
-    return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseover', over); };
+    return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseover', over); }
   }, []);
   return <div ref={curRef} className="cursor" />;
 }
@@ -32,16 +33,13 @@ function Gateway({ onBirth, onPalm }: { onBirth: () => void; onPalm: () => void 
   return (
     <motion.div
       key="gateway"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       transition={{ duration: 1.2 }}
       className="min-h-screen flex flex-col items-center justify-center"
       style={{ padding: '40px 24px', position: 'relative' }}
     >
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1.2, delay: 0.3 }}
         style={{ textAlign: 'center', maxWidth: '560px' }}
       >
@@ -54,31 +52,25 @@ function Gateway({ onBirth, onPalm }: { onBirth: () => void; onPalm: () => void 
         <p style={{ fontFamily: 'var(--serif)', fontSize: '18px', fontWeight: 300, fontStyle: 'italic', color: 'var(--white-dim)', lineHeight: 1.7, marginBottom: '56px' }}>
           Seis tradições. Um mapa. O padrão que já opera em você, com ou sem nome.
         </p>
-
         <motion.button
           onClick={onBirth}
           whileHover={{ letterSpacing: '0.42em' }}
           style={{
-            background: 'transparent', border: 'none',
-            borderBottom: '1px solid var(--gold)',
+            background: 'transparent', border: 'none', borderBottom: '1px solid var(--gold)',
             fontFamily: 'var(--sans)', fontSize: '11px', fontWeight: 300,
-            letterSpacing: '0.35em', color: 'var(--gold)',
-            textTransform: 'uppercase', padding: '0 0 8px',
-            transition: 'letter-spacing 0.3s', display: 'block',
-            margin: '0 auto 32px',
+            letterSpacing: '0.35em', color: 'var(--gold)', textTransform: 'uppercase',
+            padding: '0 0 8px', transition: 'letter-spacing 0.3s', display: 'block', margin: '0 auto 32px',
           }}
         >
           iniciar cartografia →
         </motion.button>
-
         <button
           onClick={onPalm}
           style={{
             background: 'transparent', border: 'none',
             fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
-            letterSpacing: '0.3em', color: 'var(--white-dim)',
-            textTransform: 'uppercase', padding: 0,
-            transition: 'color 0.3s',
+            letterSpacing: '0.3em', color: 'var(--white-dim)', textTransform: 'uppercase',
+            padding: 0, transition: 'color 0.3s',
           }}
           onMouseEnter={e => (e.currentTarget.style.color = 'var(--gold)')}
           onMouseLeave={e => (e.currentTarget.style.color = 'var(--white-dim)')}
@@ -91,7 +83,13 @@ function Gateway({ onBirth, onPalm }: { onBirth: () => void; onPalm: () => void 
 }
 
 export default function App() {
-  const { screen, soulMap, soulMateReading, readingId, shareUrl, isSharing, isSaving, canShare, tier, generate, generateFromPalm, share, submitEmail, meetAnotherSoul, goToGateway, goToEntry, goToPalmEntry, reset } = useSoulMap();
+  const {
+    screen, soulMap, viewerMap, soulMateReading, soulMateShareUrl,
+    readingId, shareUrl, isSharing, isSaving, canShare, tier,
+    generate, generateFromPalm, share, submitEmail,
+    meetAnotherSoul, meetFromViewer,
+    goToGateway, goToEntry, goToPalmEntry, reset,
+  } = useSoulMap();
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ background: '#07070f' }}>
@@ -99,17 +97,39 @@ export default function App() {
       <CosmosBackground />
       <div className="relative z-10">
         <AnimatePresence mode="wait">
-          {screen === 'landing' && <Landing key="landing" onEnter={goToGateway} />}
-          {screen === 'gateway' && <Gateway key="gateway" onBirth={goToEntry} onPalm={goToPalmEntry} />}
-          {screen === 'entry' && <Entry key="entry" onSubmit={generate} onBack={reset} />}
-          {screen === 'palmEntry' && <PalmEntry key="palmEntry" onSubmit={generateFromPalm} onBack={reset} />}
-          {screen === 'loading' && <Loading key="loading" soulMap={soulMap} />}
+          {screen === 'landing'    && <Landing key="landing" onEnter={goToGateway} />}
+          {screen === 'gateway'    && <Gateway key="gateway" onBirth={goToEntry} onPalm={goToPalmEntry} />}
+          {screen === 'entry'      && <Entry key="entry" onSubmit={generate} onBack={reset} />}
+          {screen === 'palmEntry'  && <PalmEntry key="palmEntry" onSubmit={generateFromPalm} onBack={reset} />}
+          {screen === 'loading'    && <Loading key="loading" soulMap={soulMap} />}
+          {screen === 'viewer'     && viewerMap && (
+            <Viewer key="viewer" soulMap={viewerMap} onMeet={meetFromViewer} onReset={reset} />
+          )}
           {screen === 'revelation' && soulMap && (
-            <Revelation key="revelation" soulMap={soulMap} onReset={reset} canShare={canShare} shareUrl={shareUrl} isSharing={isSharing} isSaving={isSaving} tier={tier} readingId={readingId} onShare={share} onMeet={meetAnotherSoul} onEmailSubmit={submitEmail} onTierUpgrade={(t) => { void t; /* tier updates via hook polling */ }} />
+            <Revelation
+              key="revelation"
+              soulMap={soulMap}
+              onReset={reset}
+              canShare={canShare}
+              shareUrl={shareUrl}
+              isSharing={isSharing}
+              isSaving={isSaving}
+              tier={tier}
+              readingId={readingId}
+              onShare={share}
+              onMeet={meetAnotherSoul}
+              onEmailSubmit={submitEmail}
+              onTierUpgrade={() => {}}
+            />
           )}
           {screen === 'meetLoading' && <Loading key="meetLoading" />}
-          {screen === 'soulMate' && soulMateReading && (
-            <SoulMateRevelation key="soulMate" reading={soulMateReading} onReset={reset} />
+          {screen === 'soulMate'    && soulMateReading && (
+            <SoulMateRevelation
+              key="soulMate"
+              reading={soulMateReading}
+              shareUrl={soulMateShareUrl}
+              onReset={reset}
+            />
           )}
         </AnimatePresence>
       </div>
