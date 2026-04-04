@@ -54,3 +54,6 @@ export { buildSystemPrompt, askOracle } from './oracle';
 export { CARTA_VARIATIONS, getVariation } from './variations';
 export { ORACLE_IDENTITIES, getOracleIdentity } from './oracle-identities';
 export { getCardProvenance, getAllProvenance, getMapSeal } from './provenance';
+export { computeBridges } from './bridges';
+export { getKabbalahBodyVariation } from './body-variations';
+export type { BridgeHighlight, Bridges } from './bridges';

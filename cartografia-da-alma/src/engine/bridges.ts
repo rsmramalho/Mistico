@@ -6,12 +6,24 @@ import type { SoulMap } from '../types/soul-map';
 // Computed from field combinations — feels personal because it is.
 // ═══════════════════════════════════════
 
+export type BridgeSystemId = 'astrology' | 'kabbalah' | 'shadow' | 'frequency' | 'numerology';
+
+export interface BridgeHighlight {
+  systemA: BridgeSystemId;
+  fieldA: string;
+  systemB: BridgeSystemId;
+  fieldB: string;
+  resonance: string;
+  strength: number;       // 0-1, higher = stronger resonance
+}
+
 export interface Bridges {
   sephirahToArchetype: string;
   archetypeToFrequency: string;
   frequencyToNumerology: string;
   numerologyToAscendant: string;
   synthesis: string;
+  highlights: BridgeHighlight[];
 }
 
 export function computeBridges(map: SoulMap): Bridges {
@@ -42,7 +54,9 @@ export function computeBridges(map: SoulMap): Bridges {
   // ── Synthesis ──
   const synthesis = buildSynthesis(map);
 
-  return { sephirahToArchetype, archetypeToFrequency, frequencyToNumerology, numerologyToAscendant, synthesis };
+  const highlights = computeHighlights(map);
+
+  return { sephirahToArchetype, archetypeToFrequency, frequencyToNumerology, numerologyToAscendant, synthesis, highlights };
 }
 
 // ── Bridge builders ──
@@ -125,6 +139,126 @@ function buildNumerologyFinalBridge(number: number, _sign: string, element: stri
   };
 
   return (numeroBridges[number] ?? `Número ${number} e elemento ${el}`) + '. O que vem a seguir é como esses campos se organizam na estrutura psíquica.';
+}
+
+// ── Highlight detection ──
+// Finds the 2-3 strongest cross-system resonances for THIS person
+
+function computeHighlights(map: SoulMap): BridgeHighlight[] {
+  const { archetype, sephirah, frequency, numerology, psyche, element } = map;
+  const highlights: BridgeHighlight[] = [];
+
+  // 1. Shadow ↔ Numerology shadow — do they describe the same wound?
+  const shadowWords = (archetype.shadow.inflated + ' ' + archetype.shadow.deflated).toLowerCase();
+  const numShadow = numerology.shadow.toLowerCase();
+  const sharedWoundPatterns: [string, string][] = [
+    ['control', 'controle'], ['isol', 'distância'], ['rigidez', 'rígid'],
+    ['perfeccion', 'obsess'], ['medo', 'fraqueza'], ['superficial', 'dispers'],
+    ['possessiv', 'depend'], ['poder', 'dominâ'], ['martír', 'sacrifíc'],
+  ];
+  for (const [a, b] of sharedWoundPatterns) {
+    if ((shadowWords.includes(a) || shadowWords.includes(b)) &&
+        (numShadow.includes(a) || numShadow.includes(b))) {
+      highlights.push({
+        systemA: 'shadow',
+        fieldA: 'shadow.inflated',
+        systemB: 'numerology',
+        fieldB: 'numerology.shadow',
+        resonance: `a sombra do ${archetype.titlePt} e a sombra do número ${numerology.number} descrevem o mesmo padrão`,
+        strength: 0.9,
+      });
+      break;
+    }
+  }
+
+  // 2. Sephirah planet ↔ Archetype desire — planetary alignment
+  const planetArchetypeLinks: Record<string, string[]> = {
+    'Marte': ['Hero', 'Magician'],
+    'Vênus': ['Lover', 'Diplomat'],
+    'Mercúrio': ['Jester', 'Sage'],
+    'Lua': ['Caregiver', 'Mystic'],
+    'Sol': ['Ruler'],
+    'Júpiter': ['Explorer', 'Mystic'],
+    'Saturno': ['Elder', 'Rebel'],
+  };
+  const linked = planetArchetypeLinks[sephirah.planet];
+  if (linked?.includes(archetype.name)) {
+    highlights.push({
+      systemA: 'kabbalah',
+      fieldA: 'sephirah.planet',
+      systemB: 'shadow',
+      fieldB: 'archetype.name',
+      resonance: `${sephirah.planet} governa tanto ${sephirah.name} quanto o território do ${archetype.titlePt} — reforço duplo`,
+      strength: 0.85,
+    });
+  }
+
+  // 3. Frequency ↔ Numerology — harmonic resonance
+  const freqNumHarmonics: Record<string, string> = {
+    '396-9': 'libertação (396 Hz) e completude (9) — ciclo que fecha para abrir',
+    '528-6': 'reparação (528 Hz) e cuidado (6) — o que cura e o que protege',
+    '639-2': 'conexão (639 Hz) e mediação (2) — dois campos de ponte',
+    '741-7': 'discernimento (741 Hz) e busca (7) — precisão duplicada',
+    '852-11': 'intuição (852 Hz) e iluminação (11) — canal aberto nos dois registros',
+    '963-9': 'unidade (963 Hz) e sabedoria (9) — dissolução e integração',
+    '417-5': 'mudança (417 Hz) e liberdade (5) — movimento como vocação',
+    '528-3': 'reparação (528 Hz) e criatividade (3) — reconstruir pelo ato criativo',
+    '396-1': 'libertação (396 Hz) e início (1) — soltar para começar',
+  };
+  const fnKey = `${frequency.hz}-${numerology.number}`;
+  if (freqNumHarmonics[fnKey]) {
+    highlights.push({
+      systemA: 'frequency',
+      fieldA: 'frequency.hz',
+      systemB: 'numerology',
+      fieldB: 'numerology.number',
+      resonance: freqNumHarmonics[fnKey],
+      strength: 0.8,
+    });
+  }
+
+  // 4. Psyche distribution ↔ Archetype — structural echo
+  if (psyche.id >= 40 && ['Hero', 'Rebel', 'Explorer'].includes(archetype.name)) {
+    highlights.push({
+      systemA: 'shadow',
+      fieldA: 'psyche.id',
+      systemB: 'shadow',
+      fieldB: 'archetype.coreDesire',
+      resonance: `id dominante (${psyche.id}%) encontra um arquétipo que opera pelo impulso — a pulsão e o padrão se alimentam`,
+      strength: 0.75,
+    });
+  } else if (psyche.superego >= 40 && ['Elder', 'Sage', 'Caregiver'].includes(archetype.name)) {
+    highlights.push({
+      systemA: 'shadow',
+      fieldA: 'psyche.superego',
+      systemB: 'shadow',
+      fieldB: 'archetype.coreDesire',
+      resonance: `superego forte (${psyche.superego}%) com um arquétipo de responsabilidade — estrutura que sustenta mas pode rigidificar`,
+      strength: 0.75,
+    });
+  }
+
+  // 5. Element ↔ Sephirah polarity — elemental alignment
+  const elementSephirahResonance: Record<string, string[]> = {
+    fire: ['Geburah', 'Netzach'],
+    water: ['Chesed', 'Yesod'],
+    air: ['Hod', 'Tiphareth'],
+    earth: ['Malkuth', 'Binah'],
+  };
+  if (elementSephirahResonance[element]?.includes(sephirah.name)) {
+    highlights.push({
+      systemA: 'astrology',
+      fieldA: 'element',
+      systemB: 'kabbalah',
+      fieldB: 'sephirah.name',
+      resonance: `elemento ${element} ressoa naturalmente com ${sephirah.name} — o campo elemental e a posição na Árvore se reforçam`,
+      strength: 0.7,
+    });
+  }
+
+  // Sort by strength, keep top 3
+  highlights.sort((a, b) => b.strength - a.strength);
+  return highlights.slice(0, 3);
 }
 
 function buildSynthesis(map: SoulMap): string {

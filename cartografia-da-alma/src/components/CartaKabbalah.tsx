@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import type { SoulMap, SephirahName } from '../types/soul-map';
 import { SephirahGlyph } from '../geometry/glyphs';
+import { getKabbalahBodyVariation } from '../engine/body-variations';
 
 const fadeBlock = (i: number) => ({
   initial: { opacity: 0, y: 12 },
@@ -35,10 +36,12 @@ const goldLine: React.CSSProperties = {
 
 interface Props {
   soulMap: SoulMap;
+  seed?: number;
 }
 
-export function CartaKabbalah({ soulMap }: Props) {
+export function CartaKabbalah({ soulMap, seed = 0 }: Props) {
   const { sephirah } = soulMap;
+  const bodyVariation = getKabbalahBodyVariation(soulMap.sunSign, seed);
   let blockIndex = 0;
 
   return (
@@ -116,6 +119,18 @@ export function CartaKabbalah({ soulMap }: Props) {
           </motion.div>
         </>
       )}
+
+      {/* Block 5 — Personal body variation (sign × sephirah) */}
+      <div style={goldLine} />
+      <motion.div {...fadeBlock(blockIndex++)}>
+        <div style={labelStyle}>o que isso significa para você</div>
+        <p style={bodyStyle}>
+          {bodyVariation.paragraph1}
+        </p>
+        <p style={{ ...bodyStyle, marginTop: '16px' }}>
+          {bodyVariation.paragraph2}
+        </p>
+      </motion.div>
     </div>
   );
 }

@@ -20,7 +20,18 @@ interface SoulMapPayload {
   ascendant?: { sign: string } | null;
 }
 
-function buildPrompt(s: SoulMapPayload, synthesis: string): string {
+interface BridgePayload {
+  systemA: string;
+  systemB: string;
+  resonance: string;
+}
+
+function buildPrompt(s: SoulMapPayload, synthesis: string, bridges?: BridgePayload[]): string {
+  const bridgeBlock = bridges?.length
+    ? `\nCONEXÕES ESPECÍFICAS DESTA PESSOA (use-as — não mencione sistemas pelo nome, deixe a conexão emergir no texto):
+${bridges.map(b => `${b.systemA} × ${b.systemB}: ${b.resonance}`).join('\n')}\n`
+    : '';
+
   return `Você é um cartógrafo da alma.
 
 Você recebeu o mapa completo de ${s.birthData.name}. Escreva uma carta diretamente para ela.
@@ -46,18 +57,19 @@ Ascendente: ${s.ascendant?.sign ?? 'não calculado'}
 Estrutura Psíquica: Id ${s.psyche.id}% · Ego ${s.psyche.ego}% · Superego ${s.psyche.superego}%
 ${s.psyche.signature}
 Síntese: ${synthesis}
-
+${bridgeBlock}
 REGRAS DA CARTA:
 1. Segunda pessoa. Começa direto — sem "Olá", sem nome, sem introdução.
 2. Começa com o padrão mais forte desta pessoa — não com o signo. O signo é contexto, não abertura.
 3. Sem títulos. Sem seções. Sem listas. Sem asteriscos. Prosa fluida.
 4. A sombra tem peso real. A versão inflada do arquétipo destrói — nomeie com precisão, não com suavização.
 5. Frequência e numerologia aparecem entrelaçadas, não separadas.
-6. 500-700 palavras. Parágrafos curtos — máximo 4 frases cada.
-7. O último parágrafo não conclui. Uma frase que abre, não fecha.
-8. Português brasileiro. Sem "jornada", "despertar", "vibração", "universo conspira".
-9. Denso mas respirável. Cada frase ganha o espaço que ocupa.
-10. Esta carta é para ${s.birthData.name} especificamente — não é descrição genérica de ${s.sunSign}.`;
+6. Se há conexões específicas, use-as para criar frases que só existem para esta combinação.
+7. 500-700 palavras. Parágrafos curtos — máximo 4 frases cada.
+8. O último parágrafo não conclui. Uma frase que abre, não fecha.
+9. Português brasileiro. Sem "jornada", "despertar", "vibração", "universo conspira".
+10. Denso mas respirável. Cada frase ganha o espaço que ocupa.
+11. Esta carta é para ${s.birthData.name} especificamente — não é descrição genérica de ${s.sunSign}.`;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -66,7 +78,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'not configured' });
 
-  const { soulMap, synthesis } = req.body as { soulMap: SoulMapPayload; synthesis: string };
+  const { soulMap, synthesis, bridges } = req.body as {
+    soulMap: SoulMapPayload;
+    synthesis: string;
+    bridges?: BridgePayload[];
+  };
   if (!soulMap) return res.status(400).json({ error: 'soulMap required' });
 
   try {
@@ -80,7 +96,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 1200,
-        messages: [{ role: 'user', content: buildPrompt(soulMap, synthesis) }],
+        messages: [{ role: 'user', content: buildPrompt(soulMap, synthesis, bridges) }],
       }),
     });
 

@@ -119,7 +119,7 @@ function getVariationText(cardId: CardId, soulMap: SoulMap, variation: 0 | 1 | 2
 
 // ── Card body content ──
 
-function getCardContent(cardId: CardId, soulMap: SoulMap): React.ReactNode {
+function getCardContent(cardId: CardId, soulMap: SoulMap, seed: number): React.ReactNode {
   const provenance = getCardProvenance(cardId, soulMap);
 
   let body: React.ReactNode;
@@ -128,7 +128,7 @@ function getCardContent(cardId: CardId, soulMap: SoulMap): React.ReactNode {
       body = <CartaAstrologia soulMap={soulMap} />;
       break;
     case 'kabbalah':
-      body = <CartaKabbalah soulMap={soulMap} />;
+      body = <CartaKabbalah soulMap={soulMap} seed={seed} />;
       break;
     case 'shadow':
       body = <CartaSombra soulMap={soulMap} />;
@@ -173,6 +173,7 @@ const cardVisible = {
 export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
   const journey = useJourney(soulMap);
   const {
+    seed,
     cards,
     currentCard,
     currentIndex,
@@ -210,7 +211,7 @@ export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
   const fundoEscuro = CARD_FUNDO_ESCURO[currentCard.id];
 
   const bodyContent = currentCard.bodyRevealed
-    ? getCardContent(currentCard.id, soulMap)
+    ? getCardContent(currentCard.id, soulMap, seed)
     : null;
 
   const handleOracleResult = (question: string, answer: string) => {

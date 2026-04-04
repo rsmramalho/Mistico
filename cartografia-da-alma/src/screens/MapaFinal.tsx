@@ -9,6 +9,8 @@ import { SephirahGlyph, ElementGlyph, ArchetypeGlyph } from '../geometry/glyphs'
 import { FrequencyWave } from '../geometry/FrequencyWave';
 import { getSignData } from '../engine/astrology';
 import { getAllProvenance, getMapSeal } from '../engine/provenance';
+import { computeBridges } from '../engine/bridges';
+import type { BridgeHighlight } from '../engine/bridges';
 
 // ── Props ──
 
@@ -273,16 +275,24 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
   const now = useMemo(() => new Date(), []);
   const dateStr = `${now.getDate()} ${MONTHS_PT[now.getMonth()]} ${now.getFullYear()}`;
 
+  // Compute bridges for this person
+  const bridges = useMemo(() => computeBridges(soulMap), [soulMap]);
+
   // Fetch synthesis on mount
   useEffect(() => {
     let cancelled = false;
 
     async function fetchSynthesis() {
       try {
+        const bridgePayload = bridges.highlights.map(h => ({
+          systemA: h.systemA,
+          systemB: h.systemB,
+          resonance: h.resonance,
+        }));
         const res = await fetch('/api/carta', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ soulMap, prompt: 'synthesis' }),
+          body: JSON.stringify({ soulMap, prompt: 'synthesis', bridges: bridgePayload }),
         });
         if (!res.ok) throw new Error('API error');
         const data = await res.json();
@@ -579,6 +589,71 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
             </p>
           </motion.div>
         </motion.div>
+
+        {/* ── Bridge highlights — cross-system resonances ── */}
+        {bridges.highlights.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 3.0 }}
+            style={{ margin: '32px 0 0' }}
+          >
+            <p
+              style={{
+                fontFamily: 'var(--sans)',
+                fontSize: '8px',
+                fontWeight: 200,
+                letterSpacing: '0.35em',
+                color: 'var(--gold)',
+                textTransform: 'uppercase',
+                margin: '0 0 16px',
+              }}
+            >
+              ressonâncias
+            </p>
+            {bridges.highlights.map((h: BridgeHighlight, i: number) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -6 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 3.2 + i * 0.2 }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  gap: '8px',
+                  marginBottom: '10px',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'var(--sans)',
+                    fontSize: '8px',
+                    fontWeight: 200,
+                    letterSpacing: '0.2em',
+                    color: 'var(--gold)',
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                  }}
+                >
+                  {h.systemA} · {h.systemB}
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'var(--serif)',
+                    fontSize: '14px',
+                    fontWeight: 300,
+                    fontStyle: 'italic',
+                    color: 'var(--white-dim)',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {h.resonance}
+                </span>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
 
         {/* ── Divider before synthesis ── */}
         <motion.div
