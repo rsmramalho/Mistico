@@ -10,6 +10,8 @@ import { Hexagram } from '../geometry/Hexagram';
 import { Metatron } from '../geometry/Metatron';
 import { SriYantra } from '../geometry/SriYantra';
 import { TreeOfLife } from '../geometry/TreeOfLife';
+import { computeBridges } from '../engine/bridges';
+import { useInView } from '../hooks/useInView';
 
 interface RevelationProps {
   soulMap: SoulMap;
@@ -42,30 +44,9 @@ const DOMINANT_LINE_DESCRIPTIONS: Record<LineName, string> = {
   fate: 'A linha do Destino corta sua palma com clareza — existe um senso de propósito forte, uma direção que vai além de escolhas conscientes. Vocação e missão são forças ativas na sua vida.',
 };
 
-const fade = (delay = 0) => ({
-  initial: { opacity: 0, y: 14 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 1, delay },
-});
-
 const labelStyle: React.CSSProperties = {
   fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
   letterSpacing: '0.38em', color: 'var(--gold)', textTransform: 'uppercase',
-};
-
-const btnStyle: React.CSSProperties = {
-  background: 'transparent', border: 'none',
-  borderBottom: '1px solid var(--gold)',
-  fontFamily: 'var(--sans)', fontSize: '10px', fontWeight: 300,
-  letterSpacing: '0.32em', color: 'var(--gold)',
-  textTransform: 'uppercase', padding: '0 0 6px',
-  transition: 'color 0.3s, letter-spacing 0.3s',
-};
-
-const btnHover = (e: React.MouseEvent, enter: boolean) => {
-  const el = e.target as HTMLElement;
-  el.style.color = enter ? 'var(--white)' : 'var(--gold)';
-  el.style.letterSpacing = enter ? '0.42em' : '0.32em';
 };
 
 function ElementGeometry({ element }: { element: Element }) {
@@ -77,11 +58,153 @@ function ElementGeometry({ element }: { element: Element }) {
   }
 }
 
+function SynthesisBlock({ text }: { text: string }) {
+  const { ref, inView } = useInView(0.15);
+  return (
+    <div ref={ref} style={{ margin: '0 0 80px', padding: '40px 0', borderTop: '1px solid var(--gold-line)', borderBottom: '1px solid var(--gold-line)' }}>
+      <motion.p
+        initial={{ opacity: 0, y: 16 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 1.2 }}
+        style={{
+          fontFamily: 'var(--serif)', fontSize: '17px', fontWeight: 300,
+          fontStyle: 'italic', color: 'var(--white-dim)', lineHeight: 1.7,
+          textAlign: 'center',
+        }}
+      >
+        {text}
+      </motion.p>
+    </div>
+  );
+}
+
+interface FooterBlockProps {
+  isPalm: boolean;
+  canShare?: boolean;
+  shareUrl?: string | null;
+  isSharing?: boolean;
+  onShare?: () => void;
+  onMeet?: (token: string) => void;
+  onReset: () => void;
+  meetInput: string;
+  setMeetInput: (v: string) => void;
+  fieldStyle: React.CSSProperties;
+}
+
+function FooterBlock({ isPalm, canShare, shareUrl, isSharing, onShare, onMeet, onReset, meetInput, setMeetInput, fieldStyle }: FooterBlockProps) {
+  const { ref, inView } = useInView(0.1);
+  const btnStyle: React.CSSProperties = {
+    background: 'transparent', border: 'none',
+    borderBottom: '1px solid var(--gold)',
+    fontFamily: 'var(--sans)', fontSize: '10px', fontWeight: 300,
+    letterSpacing: '0.32em', color: 'var(--gold)',
+    textTransform: 'uppercase', padding: '0 0 6px',
+    transition: 'color 0.3s, letter-spacing 0.3s',
+  };
+  const btnHover = (e: React.MouseEvent, enter: boolean) => {
+    const el = e.target as HTMLElement;
+    el.style.color = enter ? 'var(--white)' : 'var(--gold)';
+    el.style.letterSpacing = enter ? '0.42em' : '0.32em';
+  };
+
+  return (
+    <div ref={ref}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={inView ? { opacity: 1 } : {}}
+        transition={{ duration: 1 }}
+      >
+        <p style={{
+          fontFamily: 'var(--serif)', fontSize: '15px', fontWeight: 300,
+          fontStyle: 'italic', color: 'var(--white-ghost)', lineHeight: 1.7,
+          textAlign: 'center', marginBottom: '40px',
+        }}>
+          {isPalm
+            ? 'Os mapeamentos desta cartografia unem tradições — Quiromancia, Kabbalah, Jung, Freud, Solfeggio e Numerologia — como espelhos, não verdades absolutas.'
+            : 'Os mapeamentos desta cartografia unem tradições — Astrologia, Kabbalah, Jung, Freud, Solfeggio e Numerologia — como espelhos, não verdades absolutas. A sombra é tão importante quanto a luz.'
+          }
+        </p>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '32px', flexWrap: 'wrap' }}>
+          {canShare && onShare && (
+            shareUrl ? (
+              <button onClick={() => navigator.clipboard.writeText(shareUrl)} style={btnStyle} onMouseEnter={e => btnHover(e, true)} onMouseLeave={e => btnHover(e, false)}>
+                copiar link
+              </button>
+            ) : (
+              <button onClick={onShare} disabled={isSharing} style={{ ...btnStyle, opacity: isSharing ? 0.3 : 1 }} onMouseEnter={e => { if (!isSharing) btnHover(e, true); }} onMouseLeave={e => { if (!isSharing) btnHover(e, false); }}>
+                {isSharing ? 'gerando...' : 'compartilhar'}
+              </button>
+            )
+          )}
+          <button onClick={onReset} style={btnStyle} onMouseEnter={e => btnHover(e, true)} onMouseLeave={e => btnHover(e, false)}>
+            nova cartografia
+          </button>
+        </div>
+
+        {shareUrl && (
+          <p style={{ fontFamily: 'var(--sans)', fontSize: '9px', color: 'var(--white-ghost)', marginTop: '20px', textAlign: 'center', wordBreak: 'break-all' }}>
+            {shareUrl}
+          </p>
+        )}
+
+        {onMeet && (
+          <div style={{ borderTop: '1px solid var(--gold-line)', marginTop: '40px', paddingTop: '32px' }}>
+            <p style={{ fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200, letterSpacing: '0.38em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '20px', textAlign: 'center' }}>
+              encontrar outra alma
+            </p>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '20px', maxWidth: '460px', margin: '0 auto' }}>
+              <input
+                type="text" value={meetInput} onChange={e => setMeetInput(e.target.value)}
+                placeholder="cole o link ou token" style={fieldStyle}
+                onFocus={e => (e.target.style.borderBottomColor = 'var(--gold)')}
+                onBlur={e => (e.target.style.borderBottomColor = 'rgba(201,168,76,0.2)')}
+              />
+              <button
+                onClick={() => {
+                  if (!meetInput.trim()) return;
+                  let token = meetInput.trim();
+                  try { const url = new URL(token); const t = url.searchParams.get('token'); if (t) token = t; } catch { /* raw token */ }
+                  onMeet(token);
+                }}
+                style={{ ...btnStyle, flexShrink: 0 }}
+                onMouseEnter={e => btnHover(e, true)} onMouseLeave={e => btnHover(e, false)}
+              >
+                encontrar
+              </button>
+            </div>
+          </div>
+        )}
+      </motion.div>
+    </div>
+  );
+}
+
+function Bridge({ text }: { text: string }) {
+  const { ref, inView } = useInView(0.2);
+  return (
+    <div ref={ref} style={{ margin: '-32px 0 64px', paddingLeft: '0' }}>
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={inView ? { opacity: 1 } : {}}
+        transition={{ duration: 1 }}
+        style={{
+          fontFamily: 'var(--serif)', fontSize: '15px', fontWeight: 300,
+          fontStyle: 'italic', color: 'var(--gold)', lineHeight: 1.6,
+          opacity: 0.65,
+        }}
+      >
+        {text}
+      </motion.p>
+    </div>
+  );
+}
+
 export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, onShare, onMeet }: RevelationProps) {
   const [meetInput, setMeetInput] = useState('');
   const { sunSign, element, ascendant, sephirah, archetype, psyche, frequency, numerology } = soulMap;
   const isPalm = soulMap.source === 'palm';
-  const hasSection5 = isPalm ? !!soulMap.dominantLine : !!ascendant;
+  const bridges = computeBridges(soulMap);
 
   const fieldStyle: React.CSSProperties = {
     flex: 1, width: '100%', background: 'transparent', border: 'none',
@@ -175,7 +298,7 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
         </div>
 
         {/* ── Section 1: Sephirah ── */}
-        <RevealSection title={sephirah.name} subtitle={`${sephirah.meaning} · ${sephirah.planet}`} delay={0.6}>
+        <RevealSection title={sephirah.name} subtitle={`${sephirah.meaning} · ${sephirah.planet}`}>
           <p>{sephirah.description}</p>
           <p style={{ ...labelStyle, marginTop: '16px', fontSize: '8px', color: 'var(--white-ghost)' }}>
             Sephirah {sephirah.number} na Árvore da Vida · Expressão {
@@ -191,8 +314,10 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
           )}
         </RevealSection>
 
+        <Bridge text={bridges.sephirahToArchetype} />
+
         {/* ── Section 2: Archetype + Shadow ── */}
-        <RevealSection title={archetype.titlePt} subtitle={archetype.title} delay={1.0}>
+        <RevealSection title={archetype.titlePt} subtitle={archetype.title}>
           <p style={{ marginBottom: '28px' }}>{archetype.description}</p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '36px' }}>
@@ -206,7 +331,7 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
             </div>
           </div>
 
-          {/* Shadow — border-left blocks */}
+          {/* Shadow */}
           <p style={{ ...labelStyle, marginBottom: '20px', marginTop: '36px' }}>a sombra</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div style={{ borderLeft: '1px solid var(--gold-line)', paddingLeft: '16px' }}>
@@ -224,16 +349,19 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
           </div>
         </RevealSection>
 
+        <Bridge text={bridges.archetypeToFrequency} />
+
         {/* ── Section 3: Frequency ── */}
-        <RevealSection title="Frequência de Ressonância" subtitle="solfeggio" delay={1.5}>
-          <FrequencyDisplay frequency={frequency} delay={1.7} />
+        <RevealSection title="Frequência de Ressonância" subtitle="solfeggio">
+          <FrequencyDisplay frequency={frequency} delay={0} />
         </RevealSection>
+
+        <Bridge text={bridges.frequencyToNumerology} />
 
         {/* ── Section 4: Numerology ── */}
         <RevealSection
           title={`${numerology.number} · ${numerology.namePt}`}
           subtitle={`número de expressão${numerology.isMasterNumber ? ' · mestre' : ''}`}
-          delay={2.0}
         >
           <p style={{ marginBottom: '24px' }}>{numerology.description}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
@@ -248,13 +376,15 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
           </div>
         </RevealSection>
 
+        <Bridge text={bridges.numerologyToAscendant} />
+
         {/* ── Section 5: Ascendant or Dominant Line ── */}
         {isPalm && soulMap.dominantLine ? (
-          <RevealSection title={LINE_NAMES_PT[soulMap.dominantLine]} subtitle="linha dominante" delay={2.5}>
+          <RevealSection title={LINE_NAMES_PT[soulMap.dominantLine]} subtitle="linha dominante">
             <p>{DOMINANT_LINE_DESCRIPTIONS[soulMap.dominantLine]}</p>
           </RevealSection>
         ) : ascendant ? (
-          <RevealSection title={`Ascendente em ${SIGN_NAMES_PT[ascendant.sign]}`} subtitle="signo ascendente — aproximado" delay={2.5}>
+          <RevealSection title={`Ascendente em ${SIGN_NAMES_PT[ascendant.sign]}`} subtitle="signo ascendente — aproximado">
             <p>
               O ascendente representa a máscara que você apresenta ao mundo — a primeira impressão,
               o filtro pelo qual sua essência solar se expressa. Com ascendente em{' '}
@@ -269,111 +399,27 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
         ) : null}
 
         {/* ── Section 6: Psyche ── */}
-        <RevealSection title="Estrutura Psíquica" subtitle="id · ego · superego" delay={hasSection5 ? 3.0 : 2.5}>
+        <RevealSection title="Estrutura Psíquica" subtitle="id · ego · superego">
           <p style={{ marginBottom: '28px' }}>{psyche.signature}</p>
-          <PsycheBar psyche={psyche} delay={hasSection5 ? 3.2 : 2.7} />
+          <PsycheBar psyche={psyche} delay={0} />
         </RevealSection>
 
+        {/* ── Synthesis ── */}
+        <SynthesisBlock text={bridges.synthesis} />
+
         {/* ── Footer ── */}
-        <motion.div
-          {...fade(hasSection5 ? 3.5 : 3.0)}
-          style={{ borderTop: '1px solid var(--gold-line)', paddingTop: '40px', marginTop: '40px' }}
-        >
-          <p style={{
-            fontFamily: 'var(--serif)', fontSize: '15px', fontWeight: 300,
-            fontStyle: 'italic', color: 'var(--white-ghost)', lineHeight: 1.7,
-            textAlign: 'center', marginBottom: '40px',
-          }}>
-            {isPalm
-              ? 'Os mapeamentos desta cartografia unem tradições — Quiromancia, Kabbalah, Jung, Freud, Solfeggio e Numerologia — como espelhos, não verdades absolutas.'
-              : 'Os mapeamentos desta cartografia unem tradições — Astrologia, Kabbalah, Jung, Freud, Solfeggio e Numerologia — como espelhos, não verdades absolutas. A sombra é tão importante quanto a luz.'
-            }
-          </p>
-
-          {/* Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '32px', flexWrap: 'wrap' }}>
-            {canShare && onShare && (
-              shareUrl ? (
-                <button
-                  onClick={() => navigator.clipboard.writeText(shareUrl)}
-                  style={btnStyle}
-                  onMouseEnter={e => btnHover(e, true)}
-                  onMouseLeave={e => btnHover(e, false)}
-                >
-                  copiar link
-                </button>
-              ) : (
-                <button
-                  onClick={onShare}
-                  disabled={isSharing}
-                  style={{ ...btnStyle, opacity: isSharing ? 0.3 : 1, borderBottomColor: isSharing ? 'rgba(201,168,76,0.2)' : 'var(--gold)' }}
-                  onMouseEnter={e => { if (!isSharing) btnHover(e, true); }}
-                  onMouseLeave={e => { if (!isSharing) btnHover(e, false); }}
-                >
-                  {isSharing ? 'gerando...' : 'compartilhar'}
-                </button>
-              )
-            )}
-
-            <button
-              onClick={onReset}
-              style={btnStyle}
-              onMouseEnter={e => btnHover(e, true)}
-              onMouseLeave={e => btnHover(e, false)}
-            >
-              nova cartografia
-            </button>
-          </div>
-
-          {shareUrl && (
-            <p style={{ fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200, color: 'var(--white-ghost)', marginTop: '20px', textAlign: 'center', wordBreak: 'break-all' }}>
-              {shareUrl}
-            </p>
-          )}
-
-          {/* Meet another soul */}
-          {onMeet && (
-            <div style={{ borderTop: '1px solid var(--gold-line)', marginTop: '40px', paddingTop: '32px' }}>
-              <p style={{ ...labelStyle, marginBottom: '20px', textAlign: 'center' }}>
-                encontrar outra alma
-              </p>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (!meetInput.trim()) return;
-                  let token = meetInput.trim();
-                  try {
-                    const url = new URL(token);
-                    const urlToken = url.searchParams.get('token');
-                    if (urlToken) token = urlToken;
-                  } catch {
-                    // raw token
-                  }
-                  onMeet(token);
-                }}
-                style={{ display: 'flex', alignItems: 'flex-end', gap: '20px', maxWidth: '460px', margin: '0 auto' }}
-              >
-                <input
-                  type="text"
-                  value={meetInput}
-                  onChange={(e) => setMeetInput(e.target.value)}
-                  placeholder="cole o link ou token"
-                  style={fieldStyle}
-                  onFocus={e => (e.target.style.borderBottomColor = 'var(--gold)')}
-                  onBlur={e => (e.target.style.borderBottomColor = 'rgba(201,168,76,0.2)')}
-                />
-                <button
-                  type="submit"
-                  style={{ ...btnStyle, flexShrink: 0 }}
-                  onMouseEnter={e => btnHover(e, true)}
-                  onMouseLeave={e => btnHover(e, false)}
-                >
-                  encontrar
-                </button>
-              </form>
-            </div>
-          )}
-        </motion.div>
+        <FooterBlock
+          isPalm={isPalm}
+          canShare={canShare}
+          shareUrl={shareUrl}
+          isSharing={isSharing}
+          onShare={onShare}
+          onMeet={onMeet}
+          onReset={onReset}
+          meetInput={meetInput}
+          setMeetInput={setMeetInput}
+          fieldStyle={fieldStyle}
+        />
 
         {/* ── Oracle ── */}
         <OracleSection soulMap={soulMap} />
