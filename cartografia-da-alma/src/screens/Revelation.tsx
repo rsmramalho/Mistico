@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { SoulMap, Element, LineName } from '../types/soul-map';
 import { RevealSection } from '../components/RevealSection';
@@ -202,9 +202,22 @@ function Bridge({ text }: { text: string }) {
 
 export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, onShare, onMeet }: RevelationProps) {
   const [meetInput, setMeetInput] = useState('');
+  const [showFloat, setShowFloat] = useState(false);
   const { sunSign, element, ascendant, sephirah, archetype, psyche, frequency, numerology } = soulMap;
   const isPalm = soulMap.source === 'palm';
   const bridges = computeBridges(soulMap);
+
+  // Show floating share after user scrolls past first viewport
+  useEffect(() => {
+    const onScroll = () => { if (window.scrollY > window.innerHeight * 0.6) setShowFloat(true); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const handleShare = async () => {
+    if (shareUrl) { navigator.clipboard.writeText(shareUrl); return; }
+    onShare?.();
+  };
 
   const fieldStyle: React.CSSProperties = {
     flex: 1, width: '100%', background: 'transparent', border: 'none',
@@ -221,6 +234,35 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
       transition={{ duration: 1.2 }}
       style={{ minHeight: '100vh' }}
     >
+      {/* ── Floating share button ── */}
+      {canShare && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={showFloat ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
+          transition={{ duration: 0.6 }}
+          style={{
+            position: 'fixed', bottom: '32px', right: '32px', zIndex: 100,
+          }}
+        >
+          <button
+            onClick={handleShare}
+            style={{
+              background: 'rgba(4,4,10,0.9)',
+              border: '1px solid var(--gold-line)',
+              fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+              letterSpacing: '0.35em', color: 'var(--gold)',
+              textTransform: 'uppercase', padding: '12px 20px',
+              backdropFilter: 'blur(12px)',
+              transition: 'border-color 0.3s, color 0.3s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--gold)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--gold-line)'; }}
+          >
+            {shareUrl ? 'link copiado ✓' : isSharing ? 'gerando...' : 'compartilhar mapa'}
+          </button>
+        </motion.div>
+      )}
+
       {/* ── First viewport: name alone ── */}
       <div style={{
         minHeight: '100svh', display: 'flex', flexDirection: 'column',
@@ -228,9 +270,13 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
         padding: '40px 24px', position: 'relative',
       }}>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <div style={{ width: 'min(500px, 90vw)', height: 'min(500px, 90vw)', opacity: 0.07 }}>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 120, repeat: Infinity, ease: 'linear' }}
+            style={{ width: 'min(600px, 95vw)', height: 'min(600px, 95vw)', opacity: 0.13 }}
+          >
             <ElementGeometry element={element} />
-          </div>
+          </motion.div>
         </div>
 
         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
@@ -289,12 +335,16 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
 
         {/* ── Sacred Geometry ── */}
         <div style={{ position: 'relative', marginBottom: '96px', height: 'min(360px, 48vh)' }}>
-          <div style={{ position: 'absolute', inset: 0, opacity: 0.15 }}>
+          <div style={{ position: 'absolute', inset: 0, opacity: 0.18 }}>
             <TreeOfLife activeSephirah={sephirah.name} />
           </div>
-          <div style={{ position: 'absolute', inset: 0, opacity: 0.7 }}>
+          <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
+            style={{ position: 'absolute', inset: 0, opacity: 0.85 }}
+          >
             <ElementGeometry element={element} />
-          </div>
+          </motion.div>
         </div>
 
         {/* ── Section 1: Sephirah ── */}

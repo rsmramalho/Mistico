@@ -18,6 +18,12 @@ export function RevealSection({ title, subtitle, children }: RevealSectionProps)
         initial={{ opacity: 0, y: 28 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 1.1, ease: [0.25, 0.1, 0.25, 1] }}
+        style={{
+          background: 'rgba(201,168,76,0.02)',
+          borderLeft: '1px solid var(--gold-line)',
+          paddingLeft: '28px',
+          paddingTop: '4px',
+        }}
       >
         <div style={{ marginBottom: '28px' }}>
           {subtitle && (
