@@ -1,42 +1,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { SoulMap, OracleSession } from '../types/soul-map';
+import { useInView } from '../hooks/useInView';
 
 interface OracleSectionProps {
   soulMap: SoulMap;
 }
-
-const QUESTION_LABELS = [
-  'sua primeira pergunta',
-  'sua segunda pergunta',
-  'sua terceira pergunta',
-];
-
-const labelStyle: React.CSSProperties = {
-  fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
-  letterSpacing: '0.38em', color: 'var(--gold)', textTransform: 'uppercase',
-};
-
-const btnStyle: React.CSSProperties = {
-  background: 'transparent', border: 'none',
-  borderBottom: '1px solid var(--gold)',
-  fontFamily: 'var(--sans)', fontSize: '10px', fontWeight: 300,
-  letterSpacing: '0.32em', color: 'var(--gold)',
-  textTransform: 'uppercase', padding: '0 0 6px',
-  transition: 'color 0.3s, letter-spacing 0.3s',
-};
-
-const btnHover = (e: React.MouseEvent, enter: boolean) => {
-  const el = e.target as HTMLElement;
-  el.style.color = enter ? 'var(--white)' : 'var(--gold)';
-  el.style.letterSpacing = enter ? '0.42em' : '0.32em';
-};
-
-const fade = (delay = 0) => ({
-  initial: { opacity: 0, y: 14 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 1, delay },
-});
 
 export function OracleSection({ soulMap }: OracleSectionProps) {
   const [session, setSession] = useState<OracleSession>({
@@ -45,8 +14,8 @@ export function OracleSection({ soulMap }: OracleSectionProps) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { ref, inView } = useInView(0.1);
 
-  // Don't render if API key is not set
   if (!import.meta.env.VITE_ANTHROPIC_API_KEY) return null;
 
   const handleAsk = async () => {
@@ -65,132 +34,163 @@ export function OracleSection({ soulMap }: OracleSectionProps) {
     }
   };
 
-  // Build Q&A pairs from messages
   const qaPairs: { question: string; answer: string }[] = [];
   for (let i = 0; i < session.messages.length; i += 2) {
     const q = session.messages[i];
     const a = session.messages[i + 1];
-    if (q && a) {
-      qaPairs.push({ question: q.content, answer: a.content });
-    }
+    if (q && a) qaPairs.push({ question: q.content, answer: a.content });
   }
 
-  const filledDots = 3 - session.questionsUsed;
-  const dots = Array.from({ length: 3 }, (_, i) => (i < filledDots ? '●' : '○')).join(' ');
+  const remaining = 3 - session.questionsUsed;
 
   return (
-    <motion.div
-      {...fade(0)}
-      style={{ marginTop: '64px' }}
+    <div
+      ref={ref}
+      style={{
+        borderTop: '1px solid var(--gold-line)',
+        marginTop: '80px',
+        paddingTop: '96px',
+        paddingBottom: '80px',
+      }}
     >
-      {/* Gold separator */}
-      <div style={{
-        width: '100%', height: '1px',
-        background: 'var(--gold)', opacity: 0.2,
-        marginBottom: '32px',
-      }} />
-
-      {/* Header row: label left, dots right */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        marginBottom: '20px',
-      }}>
-        <span style={labelStyle}>o oráculo</span>
-        <span style={{
-          fontFamily: 'var(--sans)', fontSize: '9px', color: 'var(--gold)',
-          letterSpacing: '0.15em',
+      {/* Portal header */}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
+        style={{ textAlign: 'center', marginBottom: '64px' }}
+      >
+        <p style={{
+          fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+          letterSpacing: '0.42em', color: 'var(--gold)',
+          textTransform: 'uppercase', marginBottom: '20px',
         }}>
-          {dots}
-        </span>
-      </div>
+          o oráculo
+        </p>
+        <h2 style={{
+          fontFamily: 'var(--serif)', fontSize: 'clamp(32px, 5vw, 52px)',
+          fontWeight: 300, color: 'var(--white)', lineHeight: 1.1,
+          marginBottom: '20px', margin: '0 0 20px',
+        }}>
+          Você tem três perguntas.
+        </h2>
+        <p style={{
+          fontFamily: 'var(--serif)', fontSize: '18px', fontWeight: 300,
+          fontStyle: 'italic', color: 'var(--white-dim)', marginBottom: '32px',
+        }}>
+          Escolha com intenção.
+        </p>
 
-      {/* Subtitle */}
-      <p style={{
-        fontFamily: 'var(--serif)', fontSize: '28px', fontWeight: 300,
-        color: 'var(--white)', marginBottom: '8px', lineHeight: 1.3,
-      }}>
-        Você tem três perguntas.
-      </p>
-      <p style={{
-        fontFamily: 'var(--serif)', fontSize: '18px', fontWeight: 300,
-        fontStyle: 'italic', color: 'var(--white-dim)', marginBottom: '40px',
-      }}>
-        Escolha com intenção.
-      </p>
+        {/* Remaining dots */}
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+          {Array.from({ length: 3 }, (_, i) => (
+            <div key={i} style={{
+              width: '5px', height: '5px', borderRadius: '50%',
+              background: i < remaining ? 'var(--gold)' : 'transparent',
+              border: '1px solid var(--gold)',
+              opacity: i < remaining ? 1 : 0.35,
+              transition: 'all 0.5s',
+            }} />
+          ))}
+        </div>
+      </motion.div>
 
-      {/* Previous Q&A pairs */}
+      {/* Q&A pairs */}
       {qaPairs.map((qa, idx) => (
-        <motion.div key={idx} {...fade(0.2)} style={{ marginBottom: '36px' }}>
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9 }}
+          style={{ marginBottom: '48px' }}
+        >
           <p style={{
-            ...labelStyle, color: 'var(--white-ghost)',
-            marginBottom: '8px',
+            fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+            letterSpacing: '0.38em', color: 'var(--gold)', textTransform: 'uppercase',
+            marginBottom: '16px', opacity: 0.6,
           }}>
             {qa.question}
           </p>
           <p style={{
             fontFamily: 'var(--serif)', fontSize: '20px', fontWeight: 300,
-            color: 'var(--white-dim)', lineHeight: 1.8,
+            color: 'var(--white)', lineHeight: 1.8,
+            borderLeft: '1px solid var(--gold-line)', paddingLeft: '20px',
           }}>
             {qa.answer}
           </p>
         </motion.div>
       ))}
 
-      {/* Loading state */}
+      {/* Loading */}
       {isLoading && (
         <motion.p
-          animate={{ opacity: [0.25, 0.7, 0.25] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          animate={{ opacity: [0.2, 0.6, 0.2] }}
+          transition={{ duration: 2.5, repeat: Infinity }}
           style={{
-            ...labelStyle, marginBottom: '32px',
+            fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+            letterSpacing: '0.42em', color: 'var(--gold)',
+            textTransform: 'uppercase', marginBottom: '32px',
           }}
         >
-          o oráculo contempla...
+          contemplando...
         </motion.p>
       )}
 
-      {/* Error */}
       {error && (
-        <p style={{ ...labelStyle, marginBottom: '24px' }}>
+        <p style={{
+          fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+          letterSpacing: '0.38em', color: 'var(--gold)',
+          textTransform: 'uppercase', marginBottom: '24px', opacity: 0.5,
+        }}>
           {error}
         </p>
       )}
 
-      {/* Question input area — only if session not closed and not loading */}
+      {/* Input */}
       {!session.closed && !isLoading && (
-        <motion.div {...fade(0.1)}>
-          <label style={{ ...labelStyle, display: 'block', marginBottom: '14px' }}>
-            {QUESTION_LABELS[session.questionsUsed] ?? 'sua pergunta'}
-          </label>
-          <div style={{
-            display: 'flex', alignItems: 'flex-end', gap: '20px',
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 1, delay: 0.4 }}
+        >
+          <p style={{
+            fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+            letterSpacing: '0.42em', color: 'var(--gold)',
+            textTransform: 'uppercase', marginBottom: '16px',
           }}>
+            {['sua primeira pergunta', 'sua segunda pergunta', 'sua terceira pergunta'][session.questionsUsed] ?? 'sua pergunta'}
+          </p>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '24px' }}>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleAsk(); }}
-              placeholder=""
               style={{
-                flex: 1, width: '100%', background: 'transparent', border: 'none',
-                borderBottom: '1px solid rgba(201,168,76,0.2)',
-                color: 'var(--white)', fontFamily: 'var(--serif)', fontSize: '20px',
-                fontWeight: 300, padding: '0 0 10px', outline: 'none',
-                borderRadius: 0,
-                caretColor: 'var(--gold)', transition: 'border-color 0.4s',
+                flex: 1, background: 'transparent', border: 'none',
+                borderBottom: '1px solid rgba(201,168,76,0.25)',
+                color: 'var(--white)', fontFamily: 'var(--serif)',
+                fontSize: '20px', fontWeight: 300, padding: '0 0 12px',
+                outline: 'none', caretColor: 'var(--gold)',
+                transition: 'border-color 0.4s',
               }}
               onFocus={e => (e.target.style.borderBottomColor = 'var(--gold)')}
-              onBlur={e => (e.target.style.borderBottomColor = 'rgba(201,168,76,0.2)')}
+              onBlur={e => (e.target.style.borderBottomColor = 'rgba(201,168,76,0.25)')}
             />
             <button
               onClick={handleAsk}
               disabled={!input.trim()}
               style={{
-                ...btnStyle, flexShrink: 0,
-                opacity: input.trim() ? 1 : 0.3,
+                background: 'transparent', border: 'none',
+                borderBottom: '1px solid var(--gold)',
+                fontFamily: 'var(--sans)', fontSize: '10px', fontWeight: 300,
+                letterSpacing: '0.32em', color: 'var(--gold)',
+                textTransform: 'uppercase', padding: '0 0 6px',
+                opacity: input.trim() ? 1 : 0.3, flexShrink: 0,
+                transition: 'color 0.3s, letter-spacing 0.3s',
               }}
-              onMouseEnter={e => { if (input.trim()) btnHover(e, true); }}
-              onMouseLeave={e => { if (input.trim()) btnHover(e, false); }}
+              onMouseEnter={e => { if (input.trim()) { (e.target as HTMLElement).style.letterSpacing = '0.42em'; } }}
+              onMouseLeave={e => { (e.target as HTMLElement).style.letterSpacing = '0.32em'; }}
             >
               perguntar
             </button>
@@ -198,20 +198,23 @@ export function OracleSection({ soulMap }: OracleSectionProps) {
         </motion.div>
       )}
 
-      {/* After 3 questions */}
       {session.closed && (
-        <motion.div {...fade(0.3)} style={{ marginTop: '40px', textAlign: 'left' }}>
-          <div style={{
-            width: '40px', height: '1px', background: 'var(--gold)',
-            marginBottom: '20px',
-          }} />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          style={{ textAlign: 'center', paddingTop: '40px' }}
+        >
+          <div style={{ width: '1px', height: '40px', background: 'var(--gold-line)', margin: '0 auto 20px' }} />
           <p style={{
-            ...labelStyle, letterSpacing: '0.4em',
+            fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+            letterSpacing: '0.42em', color: 'var(--gold)', textTransform: 'uppercase',
+            opacity: 0.5,
           }}>
             o oráculo não fala mais hoje
           </p>
         </motion.div>
       )}
-    </motion.div>
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
+import { useInView } from '../hooks/useInView';
 
 interface RevealSectionProps {
   title: string;
@@ -8,41 +9,53 @@ interface RevealSectionProps {
   children: ReactNode;
 }
 
-export function RevealSection({ title, subtitle, delay = 0, children }: RevealSectionProps) {
-  return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 1.2, delay, ease: 'easeOut' }}
-      style={{ marginBottom: '80px' }}
-    >
-      {/* Section header */}
-      <div style={{ marginBottom: '24px' }}>
-        {subtitle && (
-          <p style={{
-            fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
-            letterSpacing: '0.38em', color: 'var(--gold)',
-            textTransform: 'uppercase', marginBottom: '12px',
-          }}>
-            {subtitle}
-          </p>
-        )}
-        <h2 style={{
-          fontFamily: 'var(--serif)', fontSize: '34px',
-          fontWeight: 300, color: 'var(--white)', lineHeight: 1.15,
-        }}>
-          {title}
-        </h2>
-        <div style={{ width: '40px', height: '1px', background: 'var(--gold-line)', marginTop: '18px' }} />
-      </div>
+export function RevealSection({ title, subtitle, children }: RevealSectionProps) {
+  const { ref, inView } = useInView(0.12);
 
-      {/* Section body */}
-      <div style={{
-        fontFamily: 'var(--serif)', fontSize: '17px', fontWeight: 300,
-        lineHeight: 1.7, color: 'var(--white-dim)',
-      }}>
-        {children}
-      </div>
-    </motion.section>
+  return (
+    <div ref={ref} style={{ marginBottom: '96px' }}>
+      <motion.div
+        initial={{ opacity: 0, y: 28 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 1.1, ease: [0.25, 0.1, 0.25, 1] }}
+      >
+        <div style={{ marginBottom: '28px' }}>
+          {subtitle && (
+            <p style={{
+              fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+              letterSpacing: '0.42em', color: 'var(--gold)',
+              textTransform: 'uppercase', marginBottom: '14px',
+            }}>
+              {subtitle}
+            </p>
+          )}
+          <h2 style={{
+            fontFamily: 'var(--serif)', fontSize: 'clamp(36px, 5vw, 52px)',
+            fontWeight: 300, color: 'var(--white)', lineHeight: 1.1,
+            margin: 0,
+          }}>
+            {title}
+          </h2>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={inView ? { width: '48px' } : {}}
+            transition={{ duration: 0.8, delay: 0.3, ease: 'easeOut' }}
+            style={{ height: '1px', background: 'var(--gold)', marginTop: '20px' }}
+          />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 1, delay: 0.25 }}
+          style={{
+            fontFamily: 'var(--serif)', fontSize: '18px', fontWeight: 300,
+            lineHeight: 1.75, color: 'var(--white-dim)',
+          }}
+        >
+          {children}
+        </motion.div>
+      </motion.div>
+    </div>
   );
 }

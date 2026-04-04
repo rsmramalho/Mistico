@@ -95,43 +95,84 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 1 }}
-      style={{ minHeight: '100vh', padding: '80px 24px 64px' }}
+      transition={{ duration: 1.2 }}
+      style={{ minHeight: '100vh' }}
     >
-      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-
-        {/* ── Header ── */}
-        <motion.div {...fade(0.2)} style={{ textAlign: 'center', marginBottom: '80px' }}>
-          <p style={{ ...labelStyle, marginBottom: '18px' }}>
-            cartografia da alma
-          </p>
-          <h1 style={{
-            fontFamily: 'var(--serif)', fontSize: 'clamp(52px, 7vw, 88px)',
-            fontWeight: 300, lineHeight: 1.05, color: 'var(--white)', marginBottom: '18px',
-          }}>
-            {soulMap.birthData.name}
-          </h1>
-          <p style={{
-            fontFamily: 'var(--sans)', fontSize: '10px', fontWeight: 200,
-            letterSpacing: '0.35em', color: 'var(--gold)', textTransform: 'uppercase',
-          }}>
-            {SIGN_NAMES_PT[sunSign]} · {ELEMENT_NAMES[element]}
-            {isPalm ? ' · via palma' : ascendant ? ` · ascendente ${SIGN_NAMES_PT[ascendant.sign]}` : ''}
-          </p>
-        </motion.div>
-
-        {/* ── Sacred Geometry ── */}
-        <motion.div
-          {...fade(0.4)}
-          style={{ position: 'relative', marginBottom: '96px', height: 'min(400px, 50vh)' }}
-        >
-          <div style={{ position: 'absolute', inset: 0, opacity: 0.2 }}>
-            <TreeOfLife activeSephirah={sephirah.name} />
-          </div>
-          <div style={{ position: 'absolute', inset: 0 }}>
+      {/* ── First viewport: name alone ── */}
+      <div style={{
+        minHeight: '100svh', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        padding: '40px 24px', position: 'relative',
+      }}>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+          <div style={{ width: 'min(500px, 90vw)', height: 'min(500px, 90vw)', opacity: 0.07 }}>
             <ElementGeometry element={element} />
           </div>
-        </motion.div>
+        </div>
+
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.4 }}
+            style={{ ...labelStyle, marginBottom: '28px' }}
+          >
+            cartografia da alma
+          </motion.p>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.4, delay: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+            style={{
+              fontFamily: 'var(--serif)',
+              fontSize: 'clamp(52px, 9vw, 120px)',
+              fontWeight: 300, lineHeight: 1.0,
+              color: 'var(--white)', marginBottom: '28px',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {soulMap.birthData.name}
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 1.2 }}
+            style={{
+              fontFamily: 'var(--sans)', fontSize: '10px', fontWeight: 200,
+              letterSpacing: '0.4em', color: 'var(--gold)', textTransform: 'uppercase',
+            }}
+          >
+            {SIGN_NAMES_PT[sunSign]} · {ELEMENT_NAMES[element]}
+            {isPalm ? ' · via palma' : ascendant ? ` · ascendente ${SIGN_NAMES_PT[ascendant.sign]}` : ''}
+          </motion.p>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.5, 0] }}
+          transition={{ duration: 2.5, delay: 2, repeat: Infinity, ease: 'easeInOut' }}
+          style={{
+            position: 'absolute', bottom: '40px',
+            width: '1px', height: '48px',
+            background: 'linear-gradient(to bottom, transparent, var(--gold))',
+          }}
+        />
+      </div>
+
+      {/* ── Sections ── */}
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '80px 24px 64px' }}>
+
+        {/* ── Sacred Geometry ── */}
+        <div style={{ position: 'relative', marginBottom: '96px', height: 'min(360px, 48vh)' }}>
+          <div style={{ position: 'absolute', inset: 0, opacity: 0.15 }}>
+            <TreeOfLife activeSephirah={sephirah.name} />
+          </div>
+          <div style={{ position: 'absolute', inset: 0, opacity: 0.7 }}>
+            <ElementGeometry element={element} />
+          </div>
+        </div>
 
         {/* ── Section 1: Sephirah ── */}
         <RevealSection title={sephirah.name} subtitle={`${sephirah.meaning} · ${sephirah.planet}`} delay={0.6}>
@@ -337,7 +378,7 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
         {/* ── Oracle ── */}
         <OracleSection soulMap={soulMap} />
 
-      </div>
+      </div> {/* sections wrapper */}
     </motion.div>
   );
 }
