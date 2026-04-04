@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { SoulMap, Element } from '../types/soul-map';
 import { FlowerOfLife } from '../geometry/FlowerOfLife';
 import { Hexagram } from '../geometry/Hexagram';
 import { Metatron } from '../geometry/Metatron';
 import { SriYantra } from '../geometry/SriYantra';
+import { SephirahGlyph, ElementGlyph, ArchetypeGlyph } from '../geometry/glyphs';
+import { FrequencyWave } from '../geometry/FrequencyWave';
+import { getSignData } from '../engine/astrology';
 
 // ── Props ──
 
@@ -17,13 +20,23 @@ interface MapaFinalProps {
   isSharing?: boolean;
 }
 
-// ── Sign names (Portuguese) ──
+// ── PT maps ──
 
 const SIGN_PT: Record<string, string> = {
-  Aries: 'Aries', Taurus: 'Touro', Gemini: 'Gemeos', Cancer: 'Cancer',
-  Leo: 'Leao', Virgo: 'Virgem', Libra: 'Libra', Scorpio: 'Escorpiao',
-  Sagittarius: 'Sagitario', Capricorn: 'Capricornio', Aquarius: 'Aquario', Pisces: 'Peixes',
+  Aries: '\u00c1ries', Taurus: 'Touro', Gemini: 'G\u00eameos', Cancer: 'C\u00e2ncer',
+  Leo: 'Le\u00e3o', Virgo: 'Virgem', Libra: 'Libra', Scorpio: 'Escorpi\u00e3o',
+  Sagittarius: 'Sagit\u00e1rio', Capricorn: 'Capric\u00f3rnio', Aquarius: 'Aqu\u00e1rio', Pisces: 'Peixes',
 };
+
+const ELEMENT_PT: Record<Element, string> = {
+  fire: 'Fogo', earth: 'Terra', air: 'Ar', water: '\u00c1gua',
+};
+
+const MODALITY_PT: Record<string, string> = {
+  cardinal: 'Cardinal', fixed: 'Fixo', mutable: 'Mut\u00e1vel',
+};
+
+const MONTHS_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
 // ── Element geometry ──
 
@@ -40,7 +53,52 @@ function ElementGeometry({ element }: { element: Element }) {
 
 function buildFallback(soulMap: SoulMap): string {
   const { archetype, sephirah, frequency, numerology } = soulMap;
-  return `${archetype.titlePt} em ${sephirah.name}. ${sephirah.tikkun ?? ''} A frequencia e ${frequency.hz} Hz — ${frequency.keywordPt}. O numero ${numerology.number} carrega ${numerology.namePt}.`;
+  return `${archetype.titlePt} em ${sephirah.name}. ${sephirah.tikkun ?? ''} A frequ\u00eancia \u00e9 ${frequency.hz} Hz \u2014 ${frequency.keywordPt}. O n\u00famero ${numerology.number} carrega ${numerology.namePt}.`;
+}
+
+// ── Gold divider ──
+
+function GoldLine() {
+  return (
+    <div
+      style={{
+        width: '100%',
+        height: '1px',
+        background: 'var(--gold-line)',
+        margin: '32px 0',
+      }}
+    />
+  );
+}
+
+// ── Word-by-word text reveal ──
+
+function WordReveal({
+  text,
+  delayMs,
+  perWordMs,
+  style,
+}: {
+  text: string;
+  delayMs: number;
+  perWordMs: number;
+  style?: React.CSSProperties;
+}) {
+  const words = text.split(' ');
+  return (
+    <span style={style}>
+      {words.map((word, i) => (
+        <motion.span
+          key={i}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: delayMs / 1000 + (i * perWordMs) / 1000 }}
+        >
+          {word}{i < words.length - 1 ? ' ' : ''}
+        </motion.span>
+      ))}
+    </span>
+  );
 }
 
 // ── Component ──
@@ -48,10 +106,14 @@ function buildFallback(soulMap: SoulMap): string {
 export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isSharing }: MapaFinalProps) {
   const [synthesis, setSynthesis] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showSynthesis, setShowSynthesis] = useState(false);
 
   const signPT = SIGN_PT[soulMap.sunSign] ?? soulMap.sunSign;
-  const metaLine = `${soulMap.birthData.name} · ${signPT} · ${soulMap.sephirah.name} · ${soulMap.archetype.titlePt}`;
+  const elementPT = ELEMENT_PT[soulMap.element];
+  const modalityPT = MODALITY_PT[soulMap.modality] ?? soulMap.modality;
+  const signData = getSignData(soulMap.sunSign);
+
+  const now = useMemo(() => new Date(), []);
+  const dateStr = `${now.getDate()} ${MONTHS_PT[now.getMonth()]} ${now.getFullYear()}`;
 
   // Fetch synthesis on mount
   useEffect(() => {
@@ -62,7 +124,7 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
         const res = await fetch('/api/carta', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(soulMap),
+          body: JSON.stringify({ soulMap, prompt: 'synthesis' }),
         });
         if (!res.ok) throw new Error('API error');
         const data = await res.json();
@@ -82,14 +144,6 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
     return () => { cancelled = true; };
   }, [soulMap]);
 
-  // Show synthesis with delay after loading completes
-  useEffect(() => {
-    if (!loading && synthesis) {
-      const timer = setTimeout(() => setShowSynthesis(true), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [loading, synthesis]);
-
   // Share / copy handler
   const handleShare = () => {
     if (shareUrl) {
@@ -107,79 +161,31 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
 
   // ── Styles ──
 
-  const containerStyle: React.CSSProperties = {
-    height: '100svh',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  };
-
-  const geometryWrapperStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    opacity: 0.25,
-    pointerEvents: 'none',
-    width: 'min(90vw, 600px)',
-    height: 'min(90vw, 600px)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  };
-
-  const metaStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    padding: '32px 24px',
-    textAlign: 'center',
+  const labelStyle: React.CSSProperties = {
     fontFamily: 'var(--sans)',
-    fontSize: '9px',
+    fontSize: '8px',
     fontWeight: 200,
     letterSpacing: '0.35em',
     color: 'var(--gold)',
     textTransform: 'uppercase',
+    margin: '0 0 12px',
   };
 
-  const synthesisStyle: React.CSSProperties = {
+  const cellTitleStyle: React.CSSProperties = {
     fontFamily: 'var(--serif)',
-    fontSize: '20px',
+    fontSize: '28px',
     fontWeight: 300,
-    lineHeight: 1.8,
-    color: 'var(--white-dim)',
-    maxWidth: '580px',
-    textAlign: 'center',
-    padding: '0 24px',
-    position: 'relative',
-    zIndex: 1,
+    color: 'var(--white)',
+    margin: '8px 0 4px',
+    lineHeight: 1.3,
   };
 
-  const loadingStyle: React.CSSProperties = {
+  const cellSubtitleStyle: React.CSSProperties = {
     fontFamily: 'var(--sans)',
-    fontSize: '9px',
+    fontSize: '10px',
     fontWeight: 200,
-    letterSpacing: '0.35em',
-    color: 'var(--gold)',
-    textTransform: 'uppercase',
-    position: 'relative',
-    zIndex: 1,
-  };
-
-  const footerStyle: React.CSSProperties = {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: '32px 24px',
-    display: 'flex',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    gap: '32px',
+    color: 'var(--white-dim)',
+    margin: 0,
   };
 
   const actionStyle: React.CSSProperties = {
@@ -208,92 +214,323 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
     el.style.letterSpacing = '0.32em';
   };
 
+  // Name words for word-by-word animation
+  const nameWords = soulMap.birthData.name.split(' ');
+
+  // Compute total animation end for actions delay
+  const synthesisWords = (synthesis ?? '').split(' ').length;
+  const synthesisEnd = 4.0 + (synthesisWords * 60) / 1000;
+  const actionsDelay = synthesisEnd + 1;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 1.2 }}
-      style={containerStyle}
+      transition={{ duration: 2 }}
+      style={{ position: 'relative' }}
     >
-      {/* Background geometry — slow rotation */}
+      {/* ── Background element geometry ── */}
       <motion.div
-        style={geometryWrapperStyle}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 100, repeat: Infinity, ease: 'linear' }}
+        style={{
+          position: 'absolute',
+          top: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          opacity: 0.18,
+          pointerEvents: 'none',
+          width: 'min(80vw, 500px)',
+          height: 'min(80vw, 500px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 0,
+        }}
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1, rotate: 360 }}
+        transition={{
+          scale: { duration: 3, delay: 0.5, ease: 'easeOut' },
+          rotate: { duration: 120, repeat: Infinity, ease: 'linear' },
+        }}
       >
         <ElementGeometry element={soulMap.element} />
       </motion.div>
 
-      {/* Top bar — metadata */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 0.3 }}
-        style={metaStyle}
+      {/* ── Scrollable content ── */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          maxWidth: '640px',
+          margin: '0 auto',
+          padding: '64px 24px',
+        }}
       >
-        {metaLine}
-      </motion.div>
+        {/* ── Header ── */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span
+            style={{
+              fontFamily: 'var(--sans)',
+              fontSize: '8px',
+              fontWeight: 200,
+              letterSpacing: '0.35em',
+              color: 'var(--gold)',
+              textTransform: 'uppercase',
+            }}
+          >
+            Cartografia da Alma
+          </span>
+          <span
+            style={{
+              fontFamily: 'var(--sans)',
+              fontSize: '8px',
+              fontWeight: 200,
+              letterSpacing: '0.35em',
+              color: 'var(--gold)',
+              textTransform: 'uppercase',
+            }}
+          >
+            {dateStr}
+          </span>
+        </div>
 
-      {/* Center — synthesis or loading */}
-      {loading ? (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          style={loadingStyle}
-        >
-          o mapa se revela...
-        </motion.p>
-      ) : showSynthesis && synthesis ? (
+        <GoldLine />
+
+        {/* ── Name section ── */}
+        <div style={{ margin: '0 0 0' }}>
+          <h1
+            style={{
+              fontFamily: 'var(--serif)',
+              fontSize: '48px',
+              fontWeight: 300,
+              color: 'var(--white)',
+              margin: '0 0 8px',
+              lineHeight: 1.1,
+              textAlign: 'left',
+            }}
+          >
+            {nameWords.map((word, i) => (
+              <motion.span
+                key={i}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 1.0 + i * 0.1 }}
+              >
+                {word}{i < nameWords.length - 1 ? ' ' : ''}
+              </motion.span>
+            ))}
+          </h1>
+          <p
+            style={{
+              fontFamily: 'var(--sans)',
+              fontSize: '9px',
+              fontWeight: 200,
+              letterSpacing: '0.35em',
+              color: 'var(--gold)',
+              textTransform: 'uppercase',
+              margin: 0,
+            }}
+          >
+            {signPT} &middot; {elementPT} &middot; {modalityPT}
+          </p>
+        </div>
+
+        <GoldLine />
+
+        {/* ── Systems grid ── */}
         <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.4, delay: 0 }}
-          style={synthesisStyle}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '40px',
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 2.0 }}
         >
-          {synthesis.split('\n').filter(Boolean).map((p, i) => (
-            <p key={i} style={{ margin: i === 0 ? 0 : '1.2em 0 0' }}>{p}</p>
-          ))}
-        </motion.div>
-      ) : null}
+          {/* Signo Solar */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 2.0 }}
+          >
+            <p style={labelStyle}>Signo Solar</p>
+            <ElementGlyph element={soulMap.element} size={32} />
+            <p style={cellTitleStyle}>{signPT}</p>
+            <p style={cellSubtitleStyle}>{signData.elementQuality}</p>
+          </motion.div>
 
-      {/* Footer — three actions */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 2 }}
-        style={footerStyle}
-      >
-        <button
-          type="button"
-          onClick={handleShare}
-          disabled={isSharing}
-          style={{ ...actionStyle, opacity: isSharing ? 0.5 : 1 }}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
+          {/* Kabbalah */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 2.2 }}
+          >
+            <p style={labelStyle}>Kabbalah</p>
+            <SephirahGlyph name={soulMap.sephirah.name} size={32} />
+            <p style={cellTitleStyle}>{soulMap.sephirah.name}</p>
+            <p style={cellSubtitleStyle}>{soulMap.sephirah.planet}</p>
+          </motion.div>
+
+          {/* Arqu\u00e9tipo */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 2.4 }}
+          >
+            <p style={labelStyle}>Arqu\u00e9tipo</p>
+            <ArchetypeGlyph name={soulMap.archetype.name} size={32} />
+            <p style={cellTitleStyle}>{soulMap.archetype.titlePt}</p>
+            <p style={cellSubtitleStyle}>{soulMap.archetype.coreDesire}</p>
+          </motion.div>
+
+          {/* Frequ\u00eancia */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 2.6 }}
+          >
+            <p style={labelStyle}>Frequ\u00eancia</p>
+            <FrequencyWave hz={soulMap.frequency.hz} width={120} height={40} />
+            <p style={cellTitleStyle}>{soulMap.frequency.hz} Hz</p>
+            <p style={cellSubtitleStyle}>{soulMap.frequency.keywordPt}</p>
+          </motion.div>
+
+          {/* Numerologia — full width */}
+          <motion.div
+            style={{ gridColumn: '1 / -1' }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 2.8 }}
+          >
+            <p style={labelStyle}>Numerologia</p>
+            <p style={cellTitleStyle}>
+              N\u00famero {soulMap.numerology.number} &middot; {soulMap.numerology.namePt}
+            </p>
+            <p
+              style={{
+                fontFamily: 'var(--serif)',
+                fontSize: '16px',
+                fontWeight: 300,
+                fontStyle: 'italic',
+                color: 'var(--white-dim)',
+                margin: '8px 0 0',
+                lineHeight: 1.6,
+              }}
+            >
+              {soulMap.numerology.traits}
+            </p>
+          </motion.div>
+        </motion.div>
+
+        {/* ── Divider before synthesis ── */}
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 0.8, delay: 3.5 }}
+          style={{ transformOrigin: 'left' }}
         >
-          {shareLabel}
-        </button>
-        <button
-          type="button"
-          onClick={onMeet}
-          style={actionStyle}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
+          <GoldLine />
+        </motion.div>
+
+        {/* ── Synthesis ── */}
+        <div
+          style={{
+            fontFamily: 'var(--serif)',
+            fontSize: '18px',
+            fontWeight: 300,
+            fontStyle: 'italic',
+            lineHeight: 1.8,
+            color: 'var(--white-dim)',
+            maxWidth: '580px',
+            textAlign: 'center',
+            margin: '0 auto',
+            minHeight: '60px',
+          }}
         >
-          cruzar com outra alma
-        </button>
-        <button
-          type="button"
-          onClick={onReset}
-          style={actionStyle}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
+          {loading ? (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0.3, 1, 0.3] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              style={{
+                fontFamily: 'var(--sans)',
+                fontSize: '9px',
+                fontWeight: 200,
+                letterSpacing: '0.35em',
+                color: 'var(--gold)',
+                textTransform: 'uppercase',
+                textAlign: 'center',
+              }}
+            >
+              o mapa se revela...
+            </motion.p>
+          ) : synthesis ? (
+            synthesis.split('\n').filter(Boolean).map((paragraph, pi) => (
+              <p key={pi} style={{ margin: pi === 0 ? 0 : '1.2em 0 0' }}>
+                <WordReveal
+                  text={paragraph}
+                  delayMs={4000 + pi * 400}
+                  perWordMs={60}
+                />
+              </p>
+            ))
+          ) : null}
+        </div>
+
+        {/* ── Divider before actions ── */}
+        <GoldLine />
+
+        {/* ── Actions ── */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: loading ? 5 : actionsDelay }}
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            gap: '32px',
+          }}
         >
-          nova cartografia
-        </button>
-      </motion.div>
+          <button
+            type="button"
+            onClick={handleShare}
+            disabled={isSharing}
+            style={{ ...actionStyle, opacity: isSharing ? 0.5 : 1 }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            {shareLabel}
+          </button>
+          <button
+            type="button"
+            onClick={onMeet}
+            style={actionStyle}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            cruzar com outra alma
+          </button>
+          <button
+            type="button"
+            onClick={onReset}
+            style={actionStyle}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            nova cartografia
+          </button>
+        </motion.div>
+      </div>
+
+      {/* ── Responsive: single column on mobile ── */}
+      <style>{`
+        @media (max-width: 480px) {
+          div[style*="gridTemplateColumns"] {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </motion.div>
   );
 }
