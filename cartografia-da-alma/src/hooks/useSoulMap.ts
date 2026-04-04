@@ -7,7 +7,7 @@ import { isSupabaseConfigured } from '../lib/supabase';
 
 export type AppScreen =
   | 'landing' | 'gateway' | 'entry' | 'palmEntry'
-  | 'loading' | 'revelation' | 'viewer'
+  | 'loading' | 'journey' | 'mapaFinal' | 'revelation' | 'viewer'
   | 'meetLoading' | 'soulMate';
 
 export function useSoulMap() {
@@ -121,7 +121,7 @@ export function useSoulMap() {
         } catch { /* fallback to normal revelation */ }
         setInvitedByToken(null);
       }
-      setTimeout(() => setScreen('revelation'), 7000);
+      setTimeout(() => setScreen('journey'), 7000);
     });
   }, [persistReading, invitedByToken]);
 
@@ -134,7 +134,7 @@ export function useSoulMap() {
     setSoulMap(map);
     setScreen('loading');
     persistReading(map);
-    setTimeout(() => setScreen('revelation'), 7000);
+    setTimeout(() => setScreen('journey'), 7000);
   }, [persistReading]);
 
   // ── Email capture ──
@@ -205,6 +205,7 @@ export function useSoulMap() {
   const goToGateway   = useCallback(() => setScreen('gateway'), []);
   const goToEntry     = useCallback(() => setScreen('entry'), []);
   const goToPalmEntry = useCallback(() => setScreen('palmEntry'), []);
+  const goToMapaFinal = useCallback(() => setScreen('mapaFinal'), []);
 
   const reset = useCallback(() => {
     setSoulMap(null);
@@ -228,7 +229,7 @@ export function useSoulMap() {
     tier, emailCaptured, invitedByToken,
     generate, generateFromPalm, share, submitEmail,
     meetAnotherSoul, meetFromViewer,
-    goToLanding, goToGateway, goToEntry, goToPalmEntry, reset,
+    goToLanding, goToGateway, goToEntry, goToPalmEntry, goToMapaFinal, reset,
     canShare: isSupabaseConfigured,
   };
 }

@@ -9,6 +9,8 @@ import { Revelation } from './screens/Revelation';
 import { Viewer } from './screens/Viewer';
 import { SoulMateRevelation } from './screens/SoulMateRevelation';
 import { Landing } from './screens/Landing';
+import { Journey } from './screens/Journey';
+import { MapaFinal } from './screens/MapaFinal';
 
 function Cursor() {
   const curRef = useRef<HTMLDivElement>(null);
@@ -88,7 +90,7 @@ export default function App() {
     readingId, shareUrl, isSharing, isSaving, canShare, tier,
     generate, generateFromPalm, share, submitEmail,
     meetAnotherSoul, meetFromViewer,
-    goToGateway, goToEntry, goToPalmEntry, reset,
+    goToGateway, goToEntry, goToPalmEntry, goToMapaFinal, reset,
   } = useSoulMap();
 
   return (
@@ -102,6 +104,20 @@ export default function App() {
           {screen === 'entry'      && <Entry key="entry" onSubmit={generate} onBack={reset} />}
           {screen === 'palmEntry'  && <PalmEntry key="palmEntry" onSubmit={generateFromPalm} onBack={reset} />}
           {screen === 'loading'    && <Loading key="loading" soulMap={soulMap} />}
+          {screen === 'journey'    && soulMap && (
+            <Journey key="journey" soulMap={soulMap} onComplete={goToMapaFinal} />
+          )}
+          {screen === 'mapaFinal'  && soulMap && (
+            <MapaFinal
+              key="mapaFinal"
+              soulMap={soulMap}
+              onShare={share}
+              onMeet={() => { /* TODO: meet flow from mapa final */ }}
+              onReset={reset}
+              shareUrl={shareUrl}
+              isSharing={isSharing}
+            />
+          )}
           {screen === 'viewer'     && viewerMap && (
             <Viewer key="viewer" soulMap={viewerMap} onMeet={meetFromViewer} onReset={reset} />
           )}
