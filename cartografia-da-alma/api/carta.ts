@@ -1,58 +1,64 @@
 // ═══════════════════════════════════════
 // Cartografia da Alma — A Carta
 // Vercel Function: /api/carta
-// Streams a letter written directly to the person
-// using their complete SoulMap as context
+// Returns complete letter as JSON
+// Client handles word-by-word reveal
 // ═══════════════════════════════════════
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import type { SoulMap } from '../src/types/soul-map';
 
-function buildCartaPrompt(soulMap: SoulMap, bridges: { synthesis: string }): string {
-  const { birthData, sunSign, element, modality, sephirah, archetype, psyche, frequency, numerology, ascendant } = soulMap;
+interface SoulMapPayload {
+  birthData: { name: string };
+  sunSign: string;
+  element: string;
+  modality: string;
+  sephirah: { name: string; meaning: string; planet: string; description: string; number: number; expression: string };
+  archetype: { titlePt: string; title: string; description: string; coreDesire: string; coreFear: string; shadow: { inflated: string; deflated: string } };
+  psyche: { id: number; ego: number; superego: number; signature: string };
+  frequency: { hz: number; keyword: string; description: string };
+  numerology: { number: number; namePt: string; description: string; traits: string; shadow: string };
+  ascendant?: { sign: string } | null;
+}
 
+function buildPrompt(s: SoulMapPayload, synthesis: string): string {
   return `Você é um cartógrafo da alma.
 
-Você recebeu o mapa completo de ${birthData.name}. Escreva uma carta diretamente para ela.
+Você recebeu o mapa completo de ${s.birthData.name}. Escreva uma carta diretamente para ela.
 
 O MAPA:
-Nome: ${birthData.name}
-Signo Solar: ${sunSign} — ${element}, ${modality}
-Sephirah: ${sephirah.name} (${sephirah.meaning}) — planeta ${sephirah.planet}
-${sephirah.description}
-Arquétipo: ${archetype.titlePt} (${archetype.title})
-${archetype.description}
-Desejo Central: ${archetype.coreDesire}
-Medo Central: ${archetype.coreFear}
-Sombra Inflada (excesso): ${archetype.shadow.inflated}
-Sombra Deflacionada (falta): ${archetype.shadow.deflated}
-Frequência: ${frequency.hz} Hz — ${frequency.keyword}
-${frequency.description}
-Número de Expressão: ${numerology.number} (${numerology.namePt})
-${numerology.description}
-Traços: ${numerology.traits}
-Sombra Numerológica: ${numerology.shadow}
-Ascendente: ${ascendant?.sign ?? 'não calculado'}
-Estrutura Psíquica: Id ${psyche.id}% · Ego ${psyche.ego}% · Superego ${psyche.superego}%
-${psyche.signature}
-Síntese dos sistemas: ${bridges.synthesis}
+Nome: ${s.birthData.name}
+Signo Solar: ${s.sunSign} — ${s.element}, ${s.modality}
+Sephirah: ${s.sephirah.name} (${s.sephirah.meaning}) — planeta ${s.sephirah.planet}
+${s.sephirah.description}
+Arquétipo: ${s.archetype.titlePt} (${s.archetype.title})
+${s.archetype.description}
+Desejo Central: ${s.archetype.coreDesire}
+Medo Central: ${s.archetype.coreFear}
+Sombra Inflada (excesso): ${s.archetype.shadow.inflated}
+Sombra Deflacionada (falta): ${s.archetype.shadow.deflated}
+Frequência: ${s.frequency.hz} Hz — ${s.frequency.keyword}
+${s.frequency.description}
+Número de Expressão: ${s.numerology.number} (${s.numerology.namePt})
+${s.numerology.description}
+Traços: ${s.numerology.traits}
+Sombra Numerológica: ${s.numerology.shadow}
+Ascendente: ${s.ascendant?.sign ?? 'não calculado'}
+Estrutura Psíquica: Id ${s.psyche.id}% · Ego ${s.psyche.ego}% · Superego ${s.psyche.superego}%
+${s.psyche.signature}
+Síntese: ${synthesis}
 
 REGRAS DA CARTA:
 1. Segunda pessoa. Começa direto — sem "Olá", sem nome, sem introdução.
-2. Começa com o padrão mais forte desta pessoa específica — não com o signo. O signo é contexto, não abertura.
+2. Começa com o padrão mais forte desta pessoa — não com o signo. O signo é contexto, não abertura.
 3. Sem títulos. Sem seções. Sem listas. Sem asteriscos. Prosa fluida.
-4. A sombra tem peso real. A versão inflada do arquétipo destrói — nomeie isso com precisão, não com suavização.
-5. Frequência e numerologia aparecem entrelaçadas no texto, não como parágrafos separados.
-6. 500-700 palavras. Parágrafos curtos — máximo 4 frases por parágrafo.
+4. A sombra tem peso real. A versão inflada do arquétipo destrói — nomeie com precisão, não com suavização.
+5. Frequência e numerologia aparecem entrelaçadas, não separadas.
+6. 500-700 palavras. Parágrafos curtos — máximo 4 frases cada.
 7. O último parágrafo não conclui. Uma frase que abre, não fecha.
-8. Português brasileiro. Sem "jornada", "despertar", "vibração", "universo conspira". Sem new age. Sem autoajuda.
+8. Português brasileiro. Sem "jornada", "despertar", "vibração", "universo conspira".
 9. Denso mas respirável. Cada frase ganha o espaço que ocupa.
-10. A carta é para esta pessoa específica — não é descrição genérica de ${sunSign}.`;
+10. Esta carta é para ${s.birthData.name} especificamente — não é descrição genérica de ${s.sunSign}.`;
 }
-
-export const config = {
-  runtime: 'nodejs',
-};
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -60,17 +66,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'not configured' });
 
-  const { soulMap, bridges } = req.body as { soulMap: SoulMap; bridges: { synthesis: string } };
+  const { soulMap, synthesis } = req.body as { soulMap: SoulMapPayload; synthesis: string };
   if (!soulMap) return res.status(400).json({ error: 'soulMap required' });
 
-  // Set up streaming response
-  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-  res.setHeader('Transfer-Encoding', 'chunked');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('X-Accel-Buffering', 'no');
-
   try {
-    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -79,55 +79,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1024,
-        stream: true,
-        messages: [
-          {
-            role: 'user',
-            content: buildCartaPrompt(soulMap, bridges),
-          },
-        ],
+        max_tokens: 1200,
+        messages: [{ role: 'user', content: buildPrompt(soulMap, synthesis) }],
       }),
     });
 
-    if (!anthropicRes.ok || !anthropicRes.body) {
-      return res.status(500).json({ error: 'upstream error' });
-    }
+    const data = await response.json() as { content?: Array<{ type: string; text?: string }> };
+    const carta = data.content?.find(b => b.type === 'text')?.text ?? '';
 
-    const reader = anthropicRes.body.getReader();
-    const decoder = new TextDecoder();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n');
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const data = line.slice(6);
-        if (data === '[DONE]') continue;
-
-        try {
-          const parsed = JSON.parse(data) as {
-            type: string;
-            delta?: { type: string; text?: string };
-          };
-          if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
-            res.write(parsed.delta.text);
-          }
-        } catch { /* skip malformed chunks */ }
-      }
-    }
-
-    res.end();
+    return res.status(200).json({ carta });
   } catch (err) {
     console.error('Carta error:', err);
-    if (!res.headersSent) {
-      res.status(500).json({ error: 'carta unavailable' });
-    } else {
-      res.end();
-    }
+    return res.status(500).json({ error: 'carta unavailable' });
   }
 }
