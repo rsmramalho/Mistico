@@ -13,6 +13,7 @@ import { SriYantra } from '../geometry/SriYantra';
 import { TreeOfLife } from '../geometry/TreeOfLife';
 import { computeBridges } from '../engine/bridges';
 import { useInView } from '../hooks/useInView';
+import { useAudio } from '../hooks/useAudio';
 
 interface RevelationProps {
   soulMap: SoulMap;
@@ -321,9 +322,11 @@ function EmailCaptureWall({ onSubmit }: { onSubmit: (email: string) => Promise<b
 export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, isSaving, tier = 'session', onShare, onMeet, onEmailSubmit, readingId, onTierUpgrade }: RevelationProps) {
   const [meetInput, setMeetInput] = useState('');
   const [showFloat, setShowFloat] = useState(false);
+  const [journeyMode, setJourneyMode] = useState(false);
   const { sunSign, element, ascendant, sephirah, archetype, psyche, frequency, numerology } = soulMap;
   const isPalm = soulMap.source === 'palm';
   const bridges = computeBridges(soulMap);
+  const audio = useAudio(frequency.hz);
 
   // Show floating share after user scrolls past first viewport
   useEffect(() => {
@@ -335,6 +338,18 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
   const handleShare = async () => {
     if (shareUrl) { navigator.clipboard.writeText(shareUrl); return; }
     onShare?.();
+  };
+
+  const handleNativeShare = async () => {
+    const text = `Minha cartografia: ${soulMap.sunSign} · ${sephirah.name} · ${archetype.titlePt}`;
+    const url = shareUrl ?? window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `Cartografia de ${soulMap.birthData.name}`, text, url });
+        return;
+      } catch { /* user cancelled */ }
+    }
+    await navigator.clipboard.writeText(`${text}\n${url}`);
   };
 
   const fieldStyle: React.CSSProperties = {
@@ -363,7 +378,7 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
           }}
         >
           <button
-            onClick={handleShare}
+            onClick={shareUrl ? handleShare : handleNativeShare}
             disabled={isSaving || isSharing}
             style={{
               background: 'rgba(4,4,10,0.9)',
@@ -382,6 +397,41 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
           </button>
         </motion.div>
       )}
+
+      {/* ── Journey + Audio controls ── */}
+      <div style={{
+        position: 'fixed', top: '24px', left: '24px', zIndex: 100,
+        display: 'flex', gap: '12px', alignItems: 'center',
+      }}>
+        <button
+          onClick={() => setJourneyMode(j => !j)}
+          title={journeyMode ? 'modo scroll' : 'modo jornada'}
+          style={{
+            background: journeyMode ? 'rgba(201,168,76,0.12)' : 'rgba(4,4,10,0.8)',
+            border: '1px solid var(--gold-line)',
+            fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200,
+            letterSpacing: '0.3em', color: 'var(--gold)',
+            textTransform: 'uppercase', padding: '8px 14px',
+            backdropFilter: 'blur(12px)', transition: 'background 0.3s',
+          }}
+        >
+          {journeyMode ? '· · ·' : '— — —'}
+        </button>
+        <button
+          onClick={audio.toggle}
+          title={audio.playing ? 'silêncio' : `${frequency.hz} Hz`}
+          style={{
+            background: audio.playing ? 'rgba(201,168,76,0.12)' : 'rgba(4,4,10,0.8)',
+            border: '1px solid var(--gold-line)',
+            fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200,
+            letterSpacing: '0.3em', color: 'var(--gold)',
+            textTransform: 'uppercase', padding: '8px 14px',
+            backdropFilter: 'blur(12px)', transition: 'background 0.3s',
+          }}
+        >
+          {audio.playing ? `♪ ${frequency.hz}hz` : '♩'}
+        </button>
+      </div>
 
       {/* ── First viewport: name alone ── */}
       <div style={{
@@ -451,7 +501,15 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
       </div>
 
       {/* ── Sections ── */}
-      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '80px 24px 64px' }}>
+      <div style={{
+        maxWidth: '600px', margin: '0 auto',
+        padding: journeyMode ? '0 24px' : '80px 24px 64px',
+        ...(journeyMode ? {
+          scrollSnapType: 'y mandatory',
+          overflowY: 'auto',
+          height: '100svh',
+        } : {}),
+      }}>
 
         {/* ── Sacred Geometry ── */}
         <div style={{ position: 'relative', marginBottom: '96px', height: 'min(360px, 48vh)' }}>
@@ -468,7 +526,7 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
         </div>
 
         {/* ── Section 1: Sephirah ── */}
-        <RevealSection title={sephirah.name} subtitle={`${sephirah.meaning} · ${sephirah.planet}`}>
+        <RevealSection journey={journeyMode} title={sephirah.name} subtitle={`${sephirah.meaning} · ${sephirah.planet}`}>
           <p>{sephirah.description}</p>
           <p style={{ ...labelStyle, marginTop: '16px', fontSize: '8px', color: 'var(--white-ghost)' }}>
             Sephirah {sephirah.number} na Árvore da Vida · Expressão {
@@ -487,7 +545,7 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
         <Bridge text={bridges.sephirahToArchetype} />
 
         {/* ── Section 2: Archetype + Shadow ── */}
-        <RevealSection title={archetype.titlePt} subtitle={archetype.title}>
+        <RevealSection journey={journeyMode} title={archetype.titlePt} subtitle={archetype.title}>
           <p style={{ marginBottom: '28px' }}>{archetype.description}</p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '36px' }}>
@@ -531,7 +589,7 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
           <>
 
         {/* ── Section 3: Frequency ── */}
-        <RevealSection title="Frequência de Ressonância" subtitle="solfeggio">
+        <RevealSection journey={journeyMode} title="Frequência de Ressonância" subtitle="solfeggio">
           <FrequencyDisplay frequency={frequency} delay={0} />
         </RevealSection>
 
@@ -559,11 +617,11 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
 
         {/* ── Section 5: Ascendant or Dominant Line ── */}
         {isPalm && soulMap.dominantLine ? (
-          <RevealSection title={LINE_NAMES_PT[soulMap.dominantLine]} subtitle="linha dominante">
+          <RevealSection journey={journeyMode} title={LINE_NAMES_PT[soulMap.dominantLine]} subtitle="linha dominante">
             <p>{DOMINANT_LINE_DESCRIPTIONS[soulMap.dominantLine]}</p>
           </RevealSection>
         ) : ascendant ? (
-          <RevealSection title={`Ascendente em ${SIGN_NAMES_PT[ascendant.sign]}`} subtitle="signo ascendente — aproximado">
+          <RevealSection journey={journeyMode} title={`Ascendente em ${SIGN_NAMES_PT[ascendant.sign]}`} subtitle="signo ascendente — aproximado">
             <p>
               O ascendente representa a máscara que você apresenta ao mundo — a primeira impressão,
               o filtro pelo qual sua essência solar se expressa. Com ascendente em{' '}
@@ -578,7 +636,7 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
         ) : null}
 
         {/* ── Section 6: Psyche ── */}
-        <RevealSection title="Estrutura Psíquica" subtitle="id · ego · superego">
+        <RevealSection journey={journeyMode} title="Estrutura Psíquica" subtitle="id · ego · superego">
           <p style={{ marginBottom: '28px' }}>{psyche.signature}</p>
           <PsycheBar psyche={psyche} delay={0} />
         </RevealSection>

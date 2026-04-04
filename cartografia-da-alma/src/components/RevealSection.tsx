@@ -6,14 +6,25 @@ interface RevealSectionProps {
   title: string;
   subtitle?: string;
   delay?: number;
+  journey?: boolean;
   children: ReactNode;
 }
 
-export function RevealSection({ title, subtitle, children }: RevealSectionProps) {
-  const { ref, inView } = useInView(0.12);
+export function RevealSection({ title, subtitle, journey = false, children }: RevealSectionProps) {
+  const { ref, inView } = useInView(journey ? 0.3 : 0.12);
 
   return (
-    <div ref={ref} style={{ marginBottom: '96px' }}>
+    <div
+      ref={ref}
+      style={journey ? {
+        minHeight: '100svh',
+        display: 'flex',
+        alignItems: 'center',
+        scrollSnapAlign: 'start',
+        padding: '80px 0',
+        width: '100%',
+      } : { marginBottom: '96px' }}
+    >
       <motion.div
         initial={{ opacity: 0, y: 28 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -23,6 +34,7 @@ export function RevealSection({ title, subtitle, children }: RevealSectionProps)
           borderLeft: '1px solid var(--gold-line)',
           paddingLeft: '28px',
           paddingTop: '4px',
+          width: '100%',
         }}
       >
         <div style={{ marginBottom: '28px' }}>
