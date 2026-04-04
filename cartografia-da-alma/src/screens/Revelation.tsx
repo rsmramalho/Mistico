@@ -148,7 +148,7 @@ function Footer({
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '20px', maxWidth: '460px', margin: '0 auto' }}>
             <input
               type="text" value={meetInput} onChange={e => setMeetInput(e.target.value)}
-              placeholder="cole o link de outro mapa" style={fieldStyle}
+              placeholder="cole o link de outro mapa — ex: cartografia-da-alma.vercel.app/?token=..." style={fieldStyle}
               onFocus={e => (e.target.style.borderBottomColor = 'var(--gold)')}
               onBlur={e => (e.target.style.borderBottomColor = 'rgba(201,168,76,0.2)')}
             />
