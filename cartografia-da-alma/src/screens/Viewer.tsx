@@ -104,7 +104,7 @@ export function Viewer({ soulMap, onMeet, onReset }: ViewerProps) {
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
           <motion.div
             animate={{ rotate: 360 }}
-            transition={{ duration: 120, repeat: Infinity, ease: 'linear' }}
+            transition={{ duration: 160, repeat: Infinity, ease: 'linear' }}
             style={{ width: 'min(600px, 95vw)', height: 'min(600px, 95vw)', opacity: 0.1 }}
           >
             <ElementGeometry element={element} />
@@ -145,7 +145,7 @@ export function Viewer({ soulMap, onMeet, onReset }: ViewerProps) {
           <div style={{ position: 'absolute', inset: 0, opacity: 0.18 }}>
             <TreeOfLife activeSephirah={sephirah.name} />
           </div>
-          <motion.div animate={{ rotate: -360 }} transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
+          <motion.div animate={{ rotate: -360 }} transition={{ duration: 160, repeat: Infinity, ease: 'linear' }}
             style={{ position: 'absolute', inset: 0, opacity: 0.85 }}>
             <ElementGeometry element={element} />
           </motion.div>

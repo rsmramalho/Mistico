@@ -68,11 +68,11 @@ const CARD_LABELS: Record<CardId, string> = {
 // ── minPause per card (ROADMAP-V2) ──
 
 const CARD_MIN_PAUSE: Record<CardId, number> = {
-  astrology: 3,
-  kabbalah: 3,
-  shadow: 5,    // denser card
+  astrology: 4,
+  kabbalah: 4,
+  shadow: 6,    // denser card — more time to sit with the shadow
   frequency: 4,
-  numerology: 3,
+  numerology: 4,
 };
 
 // ── fundoEscuro per card ──
@@ -135,19 +135,19 @@ function getCardContent(cardId: CardId, soulMap: SoulMap): React.ReactNode {
 
 const cardExit = {
   opacity: 0,
-  y: -24,
-  transition: { duration: 0.5, ease: 'easeIn' as const },
+  y: -32,
+  transition: { duration: 0.7, ease: 'easeIn' as const },
 };
 
 const cardEnter = {
   opacity: 0,
-  y: 40,
+  y: 48,
 };
 
 const cardVisible = {
   opacity: 1,
   y: 0,
-  transition: { duration: 0.9, delay: 0.35 + 0.1, ease: 'easeOut' as const },
+  transition: { duration: 1.2, delay: 0.6, ease: 'easeOut' as const },
 };
 
 // ═══════════════════════════════════════
@@ -175,7 +175,7 @@ export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
 
     const text = getVariationText(currentCard.id, soulMap, currentCard.variation);
     const wordCount = text?.split(' ').length ?? 10;
-    const delay = wordCount * 0.08 + 1.5; // word animation duration + buffer
+    const delay = wordCount * 0.14 + 1.8; // word animation duration + buffer
 
     const timer = setTimeout(revealBody, delay * 1000);
     return () => clearTimeout(timer);

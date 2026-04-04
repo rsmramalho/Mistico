@@ -83,7 +83,7 @@ function SectionPadrao() {
       }}>
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 120, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 160, repeat: Infinity, ease: 'linear' }}
           style={{ width: 'min(800px, 130vw)', height: 'min(800px, 130vw)', opacity: 0.07 }}
         >
           <FlowerOfLife />

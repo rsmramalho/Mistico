@@ -249,7 +249,7 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
         animate={{ scale: 1, rotate: 360 }}
         transition={{
           scale: { duration: 3, delay: 0.5, ease: 'easeOut' },
-          rotate: { duration: 120, repeat: Infinity, ease: 'linear' },
+          rotate: { duration: 160, repeat: Infinity, ease: 'linear' },
         }}
       >
         <ElementGeometry element={soulMap.element} />

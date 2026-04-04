@@ -16,8 +16,8 @@ interface CartaSectionProps {
   onComplete?: () => void;
 }
 
-const FREE_WORDS = 120; // words visible without email
-const WORD_DELAY = 60;  // ms per word
+const FREE_WORDS = 100; // words visible without email
+const WORD_DELAY = 140; // ms per word
 
 export function CartaSection({ soulMap, tier = 'session', onEmailSubmit, onComplete }: CartaSectionProps) {
   const [allWords, setAllWords]         = useState<string[]>([]);

@@ -59,10 +59,10 @@ export function Carta({
   fundoEscuro = false,
 }: CartaProps) {
   const words = useMemo(() => variation.split(' '), [variation]);
-  const variationDuration = words.length * 0.08 + 1.0; // word animation starts at t=1.0
+  const variationDuration = words.length * 0.14 + 0.8; // word animation starts at t=0.8
   const bodyDelay = variationDuration;
-  const oracleDelay = bodyDelay + 1.5;
-  const continueDelay = oracle ? oracleDelay + 1.5 : bodyDelay + 1.5;
+  const oracleDelay = bodyDelay + 2.5;
+  const continueDelay = oracle ? oracleDelay + 2.0 : bodyDelay + 2.0;
 
   // Track whether minPause has elapsed since body appeared
   const [continueEnabled, setContinueEnabled] = useState(false);
@@ -157,7 +157,7 @@ export function Carta({
             left: '50%',
             transform: 'translate(-50%, -50%)',
             pointerEvents: 'none',
-            animation: 'carta-rotate 100s linear infinite',
+            animation: 'carta-rotate 160s linear infinite',
           }}
         >
           {geometry}
@@ -181,7 +181,7 @@ export function Carta({
                 key={i}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, delay: 1.0 + i * 0.08 }}
+                transition={{ duration: 0.5, delay: 0.8 + i * 0.14 }}
                 style={{ display: 'inline-block', marginRight: '0.3em' }}
               >
                 {word}
@@ -193,7 +193,7 @@ export function Carta({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1.2, delay: bodyDelay, staggerChildren: 0.4 }}
+            transition={{ duration: 1.4, delay: bodyDelay + 0.5, staggerChildren: 2.5 }}
           >
             {body}
           </motion.div>

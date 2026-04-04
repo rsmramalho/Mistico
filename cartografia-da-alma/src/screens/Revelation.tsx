@@ -211,7 +211,7 @@ function MapaOrigem({ soulMap }: { soulMap: SoulMap }) {
               <div style={{ position: 'absolute', inset: 0, opacity: 0.15 }}>
                 <TreeOfLife activeSephirah={sephirah.name} />
               </div>
-              <motion.div animate={{ rotate: -360 }} transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
+              <motion.div animate={{ rotate: -360 }} transition={{ duration: 160, repeat: Infinity, ease: 'linear' }}
                 style={{ position: 'absolute', inset: 0, opacity: 0.8 }}>
                 <ElementGeometry element={element} />
               </motion.div>
@@ -391,7 +391,7 @@ export function Revelation({
         padding: '40px 24px', position: 'relative',
       }}>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <motion.div animate={{ rotate: 360 }} transition={{ duration: 120, repeat: Infinity, ease: 'linear' }}
+          <motion.div animate={{ rotate: 360 }} transition={{ duration: 160, repeat: Infinity, ease: 'linear' }}
             style={{ width: 'min(600px, 95vw)', height: 'min(600px, 95vw)', opacity: 0.13 }}>
             <ElementGeometry element={element} />
           </motion.div>
