@@ -6,7 +6,6 @@ import { Entry } from './screens/Entry';
 import { PalmEntry } from './screens/PalmEntry';
 import { Loading } from './screens/Loading';
 import { Revelation } from './screens/Revelation';
-import { Viewer } from './screens/Viewer';
 import { SoulMateRevelation } from './screens/SoulMateRevelation';
 import { Landing } from './screens/Landing';
 import { Journey } from './screens/Journey';
@@ -89,7 +88,7 @@ export default function App() {
     screen, soulMap, viewerMap, soulMateReading, soulMateShareUrl,
     readingId, shareUrl, isSharing, isSaving, canShare, tier,
     generate, generateFromPalm, share, submitEmail,
-    meetAnotherSoul, meetFromViewer,
+    meetAnotherSoul, meetFromViewer, saveOracleAnswer,
     goToGateway, goToEntry, goToPalmEntry, goToMapaFinal, reset,
   } = useSoulMap();
 
@@ -105,7 +104,7 @@ export default function App() {
           {screen === 'palmEntry'  && <PalmEntry key="palmEntry" onSubmit={generateFromPalm} onBack={reset} />}
           {screen === 'loading'    && <Loading key="loading" soulMap={soulMap} />}
           {screen === 'journey'    && soulMap && (
-            <Journey key="journey" soulMap={soulMap} onComplete={goToMapaFinal} />
+            <Journey key="journey" soulMap={soulMap} onComplete={goToMapaFinal} onOracleAnswer={saveOracleAnswer} />
           )}
           {screen === 'mapaFinal'  && soulMap && (
             <MapaFinal
@@ -119,7 +118,13 @@ export default function App() {
             />
           )}
           {screen === 'viewer'     && viewerMap && (
-            <Viewer key="viewer" soulMap={viewerMap} onMeet={meetFromViewer} onReset={reset} />
+            <MapaFinal
+              key="viewer"
+              soulMap={viewerMap}
+              onShare={() => {}}
+              onMeet={meetFromViewer}
+              onReset={reset}
+            />
           )}
           {screen === 'revelation' && soulMap && (
             <Revelation

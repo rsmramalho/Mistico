@@ -150,6 +150,9 @@ export interface SoulMap {
 
   // Numerologia
   numerology: NumerologyResult;
+
+  // Journey oracle answers (persisted per card)
+  oracleAnswers?: Record<string, { question: string; answer: string }>;
 }
 
 // ── Soul Mate ──

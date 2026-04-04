@@ -26,6 +26,7 @@ import { TreeOfLife } from '../geometry/TreeOfLife';
 interface JourneyProps {
   soulMap: SoulMap;
   onComplete: () => void;
+  onOracleAnswer?: (cardId: string, question: string, answer: string) => void;
 }
 
 // ── Geometry per element ──
@@ -151,7 +152,7 @@ const cardVisible = {
 
 // ═══════════════════════════════════════
 
-export function Journey({ soulMap, onComplete }: JourneyProps) {
+export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
   const journey = useJourney(soulMap);
   const {
     currentCard,
@@ -193,11 +194,16 @@ export function Journey({ soulMap, onComplete }: JourneyProps) {
     ? getCardContent(currentCard.id, soulMap)
     : null;
 
+  const handleOracleResult = (question: string, answer: string) => {
+    setOracleResult(question, answer);
+    onOracleAnswer?.(currentCard.id, question, answer);
+  };
+
   const oracleContent = currentCard.bodyRevealed ? (
     <OracloCarta
       cardId={currentCard.id}
       soulMap={soulMap}
-      onResult={setOracleResult}
+      onResult={handleOracleResult}
       used={currentCard.oracleUsed}
       question={currentCard.oracleQuestion}
       answer={currentCard.oracleAnswer}

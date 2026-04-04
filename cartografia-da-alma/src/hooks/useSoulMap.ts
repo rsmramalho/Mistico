@@ -201,6 +201,28 @@ export function useSoulMap() {
     } catch { setScreen('revelation'); }
   }, [soulMap, readingId]);
 
+  // ── Save oracle answer to SoulMap + Supabase ──
+  const saveOracleAnswer = useCallback(async (cardId: string, question: string, answer: string) => {
+    if (!soulMap) return;
+    const updated = {
+      ...soulMap,
+      oracleAnswers: {
+        ...soulMap.oracleAnswers,
+        [cardId]: { question, answer },
+      },
+    };
+    setSoulMap(updated);
+    // Re-save to Supabase if we have a readingId
+    if (readingId && isSupabaseConfigured) {
+      try {
+        const { supabase } = await import('../lib/supabase');
+        if (supabase) {
+          await supabase.from('atom_items').update({ body: updated as any }).eq('id', readingId);
+        }
+      } catch { /* silent fail */ }
+    }
+  }, [soulMap, readingId]);
+
   const goToLanding   = useCallback(() => setScreen('landing'), []);
   const goToGateway   = useCallback(() => setScreen('gateway'), []);
   const goToEntry     = useCallback(() => setScreen('entry'), []);
@@ -228,7 +250,7 @@ export function useSoulMap() {
     readingId, shareUrl, isSharing, isSaving,
     tier, emailCaptured, invitedByToken,
     generate, generateFromPalm, share, submitEmail,
-    meetAnotherSoul, meetFromViewer,
+    meetAnotherSoul, meetFromViewer, saveOracleAnswer,
     goToLanding, goToGateway, goToEntry, goToPalmEntry, goToMapaFinal, reset,
     canShare: isSupabaseConfigured,
   };
