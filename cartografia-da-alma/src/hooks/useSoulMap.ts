@@ -13,6 +13,7 @@ export function useSoulMap() {
   const [readingId, setReadingId] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // ── Resolve ?token=xxx or ?meet=tokenA,tokenB on mount ──
   useEffect(() => {
@@ -55,13 +56,21 @@ export function useSoulMap() {
   }, []);
 
   // ── Persist reading to Supabase ──
-  const persistReading = useCallback(async (map: SoulMap) => {
-    if (!isSupabaseConfigured) return;
+  const persistReading = useCallback(async (map: SoulMap): Promise<string | null> => {
+    if (!isSupabaseConfigured) return null;
+    setIsSaving(true);
     try {
       const row = await saveReading(map);
-      if (row) setReadingId(row.id);
+      if (row) {
+        setReadingId(row.id);
+        return row.id;
+      }
+      return null;
     } catch {
       // Supabase save failed — app still works client-side
+      return null;
+    } finally {
+      setIsSaving(false);
     }
   }, []);
 
@@ -86,11 +95,20 @@ export function useSoulMap() {
   }, [persistReading]);
 
   // ── Share ──
+  const soulMapRef = useState<SoulMap | null>(null);
+  void soulMapRef; // used via closure below
+
   const share = useCallback(async () => {
-    if (!readingId || isSharing) return null;
+    if (isSharing || isSaving) return null;
     setIsSharing(true);
     try {
-      const link = await createShareLink(readingId);
+      let id = readingId;
+      // If save failed earlier, retry before creating share link
+      if (!id && soulMap && isSupabaseConfigured) {
+        id = await persistReading(soulMap);
+      }
+      if (!id) return null;
+      const link = await createShareLink(id);
       if (link) {
         const url = `${window.location.origin}${window.location.pathname}?token=${link.token}`;
         setShareUrl(url);
@@ -102,7 +120,7 @@ export function useSoulMap() {
     } finally {
       setIsSharing(false);
     }
-  }, [readingId, isSharing]);
+  }, [readingId, isSharing, isSaving, soulMap, persistReading]);
 
   // ── Meet another soul ──
   const meetAnotherSoul = useCallback(async (otherToken: string) => {
@@ -139,9 +157,9 @@ export function useSoulMap() {
   }, []);
 
   return {
-    screen, soulMap, soulMateReading, readingId, shareUrl, isSharing,
+    screen, soulMap, soulMateReading, readingId, shareUrl, isSharing, isSaving,
     generate, generateFromPalm, share, meetAnotherSoul,
     goToLanding, goToGateway, goToEntry, goToPalmEntry, reset,
-    canShare: isSupabaseConfigured && !!readingId,
+    canShare: isSupabaseConfigured,
   };
 }

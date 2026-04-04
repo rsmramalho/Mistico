@@ -19,6 +19,7 @@ interface RevelationProps {
   canShare?: boolean;
   shareUrl?: string | null;
   isSharing?: boolean;
+  isSaving?: boolean;
   onShare?: () => void;
   onMeet?: (otherToken: string) => void;
 }
@@ -83,6 +84,7 @@ interface FooterBlockProps {
   canShare?: boolean;
   shareUrl?: string | null;
   isSharing?: boolean;
+  isSaving?: boolean;
   onShare?: () => void;
   onMeet?: (token: string) => void;
   onReset: () => void;
@@ -91,7 +93,7 @@ interface FooterBlockProps {
   fieldStyle: React.CSSProperties;
 }
 
-function FooterBlock({ isPalm, canShare, shareUrl, isSharing, onShare, onMeet, onReset, meetInput, setMeetInput, fieldStyle }: FooterBlockProps) {
+function FooterBlock({ isPalm, canShare, shareUrl, isSharing, isSaving, onShare, onMeet, onReset, meetInput, setMeetInput, fieldStyle }: FooterBlockProps) {
   const { ref, inView } = useInView(0.1);
   const btnStyle: React.CSSProperties = {
     background: 'transparent', border: 'none',
@@ -132,8 +134,14 @@ function FooterBlock({ isPalm, canShare, shareUrl, isSharing, onShare, onMeet, o
                 copiar link
               </button>
             ) : (
-              <button onClick={onShare} disabled={isSharing} style={{ ...btnStyle, opacity: isSharing ? 0.3 : 1 }} onMouseEnter={e => { if (!isSharing) btnHover(e, true); }} onMouseLeave={e => { if (!isSharing) btnHover(e, false); }}>
-                {isSharing ? 'gerando...' : 'compartilhar'}
+              <button
+                onClick={onShare}
+                disabled={isSharing || isSaving}
+                style={{ ...btnStyle, opacity: (isSharing || isSaving) ? 0.35 : 1 }}
+                onMouseEnter={e => { if (!isSharing && !isSaving) btnHover(e, true); }}
+                onMouseLeave={e => { if (!isSharing && !isSaving) btnHover(e, false); }}
+              >
+                {isSaving ? 'preparando...' : isSharing ? 'gerando...' : 'compartilhar'}
               </button>
             )
           )}
@@ -200,7 +208,7 @@ function Bridge({ text }: { text: string }) {
   );
 }
 
-export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, onShare, onMeet }: RevelationProps) {
+export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, isSaving, onShare, onMeet }: RevelationProps) {
   const [meetInput, setMeetInput] = useState('');
   const [showFloat, setShowFloat] = useState(false);
   const { sunSign, element, ascendant, sephirah, archetype, psyche, frequency, numerology } = soulMap;
@@ -246,6 +254,7 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
         >
           <button
             onClick={handleShare}
+            disabled={isSaving || isSharing}
             style={{
               background: 'rgba(4,4,10,0.9)',
               border: '1px solid var(--gold-line)',
@@ -253,12 +262,13 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
               letterSpacing: '0.35em', color: 'var(--gold)',
               textTransform: 'uppercase', padding: '12px 20px',
               backdropFilter: 'blur(12px)',
-              transition: 'border-color 0.3s, color 0.3s',
+              opacity: (isSaving || isSharing) ? 0.45 : 1,
+              transition: 'border-color 0.3s, color 0.3s, opacity 0.3s',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--gold)'; }}
+            onMouseEnter={e => { if (!isSaving && !isSharing) (e.currentTarget as HTMLElement).style.borderColor = 'var(--gold)'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--gold-line)'; }}
           >
-            {shareUrl ? 'link copiado ✓' : isSharing ? 'gerando...' : 'compartilhar mapa'}
+            {shareUrl ? 'link copiado ✓' : isSaving ? 'preparando...' : isSharing ? 'gerando...' : 'compartilhar mapa'}
           </button>
         </motion.div>
       )}
@@ -463,6 +473,7 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
           canShare={canShare}
           shareUrl={shareUrl}
           isSharing={isSharing}
+          isSaving={isSaving}
           onShare={onShare}
           onMeet={onMeet}
           onReset={onReset}
