@@ -16,8 +16,6 @@ export function OracleSection({ soulMap }: OracleSectionProps) {
   const [error, setError] = useState<string | null>(null);
   const { ref, inView } = useInView(0.1);
 
-  if (!import.meta.env.VITE_ANTHROPIC_API_KEY) return null;
-
   const handleAsk = async () => {
     if (!input.trim() || isLoading || session.closed) return;
     setIsLoading(true);
