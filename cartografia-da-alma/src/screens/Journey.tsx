@@ -5,6 +5,7 @@ import type { CardId } from '../hooks/useJourney';
 import { useJourney } from '../hooks/useJourney';
 import { CARTA_VARIATIONS, type CartaVariations } from '../engine/variations';
 import { Carta } from '../components/Carta';
+import { JourneyTimeline } from '../components/JourneyTimeline';
 import { OracloCarta } from '../components/OracloCarta';
 import { CartaAstrologia } from '../components/CartaAstrologia';
 import { CartaKabbalah } from '../components/CartaKabbalah';
@@ -155,6 +156,7 @@ const cardVisible = {
 export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
   const journey = useJourney(soulMap);
   const {
+    cards,
     currentCard,
     currentIndex,
     totalCards,
@@ -214,27 +216,30 @@ export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
   const showContinue = currentCard.bodyRevealed;
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={currentCard.id}
-        initial={cardEnter}
-        animate={cardVisible}
-        exit={cardExit}
-        style={{ minHeight: '100svh' }}
-      >
-        <Carta
-          label={label}
-          geometry={geometry}
-          variation={variationText}
-          body={bodyContent}
-          oracle={oracleContent}
-          onContinue={advanceCard}
-          showContinue={showContinue}
-          progress={progress}
-          minPause={minPause}
-          fundoEscuro={fundoEscuro}
-        />
-      </motion.div>
-    </AnimatePresence>
+    <>
+      <JourneyTimeline cards={cards} currentIndex={currentIndex} />
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentCard.id}
+          initial={cardEnter}
+          animate={cardVisible}
+          exit={cardExit}
+          style={{ minHeight: '100svh' }}
+        >
+          <Carta
+            label={label}
+            geometry={geometry}
+            variation={variationText}
+            body={bodyContent}
+            oracle={oracleContent}
+            onContinue={advanceCard}
+            showContinue={showContinue}
+            progress={progress}
+            minPause={minPause}
+            fundoEscuro={fundoEscuro}
+          />
+        </motion.div>
+      </AnimatePresence>
+    </>
   );
 }
