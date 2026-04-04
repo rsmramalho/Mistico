@@ -7,6 +7,7 @@ import { PalmEntry } from './screens/PalmEntry';
 import { Loading } from './screens/Loading';
 import { Revelation } from './screens/Revelation';
 import { SoulMateRevelation } from './screens/SoulMateRevelation';
+import { Landing } from './screens/Landing';
 
 function Cursor() {
   const curRef = useRef<HTMLDivElement>(null);
@@ -90,7 +91,7 @@ function Gateway({ onBirth, onPalm }: { onBirth: () => void; onPalm: () => void 
 }
 
 export default function App() {
-  const { screen, soulMap, soulMateReading, shareUrl, isSharing, canShare, generate, generateFromPalm, share, meetAnotherSoul, goToEntry, goToPalmEntry, reset } = useSoulMap();
+  const { screen, soulMap, soulMateReading, shareUrl, isSharing, canShare, generate, generateFromPalm, share, meetAnotherSoul, goToGateway, goToEntry, goToPalmEntry, reset } = useSoulMap();
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ background: '#07070f' }}>
@@ -98,6 +99,7 @@ export default function App() {
       <CosmosBackground />
       <div className="relative z-10">
         <AnimatePresence mode="wait">
+          {screen === 'landing' && <Landing key="landing" onEnter={goToGateway} />}
           {screen === 'gateway' && <Gateway key="gateway" onBirth={goToEntry} onPalm={goToPalmEntry} />}
           {screen === 'entry' && <Entry key="entry" onSubmit={generate} onBack={reset} />}
           {screen === 'palmEntry' && <PalmEntry key="palmEntry" onSubmit={generateFromPalm} onBack={reset} />}

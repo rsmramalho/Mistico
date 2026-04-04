@@ -4,10 +4,10 @@ import { getSoulMap, getPalmSoulMap, getSoulMateReading } from '../engine';
 import { saveReading, getReadingByToken, createShareLink } from '../lib/readings';
 import { isSupabaseConfigured } from '../lib/supabase';
 
-type AppScreen = 'gateway' | 'entry' | 'palmEntry' | 'loading' | 'revelation' | 'meetLoading' | 'soulMate';
+type AppScreen = 'landing' | 'gateway' | 'entry' | 'palmEntry' | 'loading' | 'revelation' | 'meetLoading' | 'soulMate';
 
 export function useSoulMap() {
-  const [screen, setScreen] = useState<AppScreen>('gateway');
+  const [screen, setScreen] = useState<AppScreen>('landing');
   const [soulMap, setSoulMap] = useState<SoulMap | null>(null);
   const [soulMateReading, setSoulMateReading] = useState<SoulMateReading | null>(null);
   const [readingId, setReadingId] = useState<string | null>(null);
@@ -122,6 +122,8 @@ export function useSoulMap() {
     }
   }, [soulMap]);
 
+  const goToLanding = useCallback(() => setScreen('landing'), []);
+  const goToGateway = useCallback(() => setScreen('gateway'), []);
   const goToEntry = useCallback(() => setScreen('entry'), []);
   const goToPalmEntry = useCallback(() => setScreen('palmEntry'), []);
 
@@ -130,17 +132,16 @@ export function useSoulMap() {
     setSoulMateReading(null);
     setReadingId(null);
     setShareUrl(null);
-    // Clean token from URL
     if (window.location.search) {
       window.history.replaceState({}, '', window.location.pathname);
     }
-    setScreen('gateway');
+    setScreen('landing');
   }, []);
 
   return {
     screen, soulMap, soulMateReading, readingId, shareUrl, isSharing,
     generate, generateFromPalm, share, meetAnotherSoul,
-    goToEntry, goToPalmEntry, reset,
+    goToLanding, goToGateway, goToEntry, goToPalmEntry, reset,
     canShare: isSupabaseConfigured && !!readingId,
   };
 }
