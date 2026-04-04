@@ -454,20 +454,28 @@ function SectionCTA({ onEnter }: { onEnter: () => void }) {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.6 }}
+            transition={{ duration: 1, delay: 1.2 }}
             style={{
-              fontFamily: 'var(--sans)', fontSize: '11px', fontWeight: 300,
-              letterSpacing: '0.4em', color: 'var(--gold)',
-              textTransform: 'uppercase', marginBottom: '56px',
+              fontFamily: 'var(--sans)', fontSize: '10px', fontWeight: 300,
+              letterSpacing: '0.45em', color: 'var(--gold)',
+              textTransform: 'uppercase', marginBottom: '48px',
             }}
           >
             N&atilde;o &eacute; hor&oacute;scopo. &Eacute; cartografia.
           </motion.p>
 
+          {/* Divider */}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ duration: 0.8, delay: 2.0 }}
+            style={{ width: '40px', height: '1px', background: 'var(--gold)', margin: '0 auto 48px', transformOrigin: 'center' }}
+          />
+
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1.2 }}
+            transition={{ duration: 1, delay: 2.5 }}
           >
             <motion.button
               onClick={onEnter}
@@ -485,6 +493,20 @@ function SectionCTA({ onEnter }: { onEnter: () => void }) {
               revelar meu mapa &rarr;
             </motion.button>
           </motion.div>
+
+          {/* Systems footer */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 3.0 }}
+            style={{
+              fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200,
+              letterSpacing: '0.3em', color: 'var(--white-ghost)',
+              textTransform: 'uppercase', marginTop: '48px',
+            }}
+          >
+            Astrologia &middot; Kabbalah &middot; Jung &middot; Freud &middot; Solfeggio &middot; Numerologia
+          </motion.p>
         </div>
       )}
     </div>
