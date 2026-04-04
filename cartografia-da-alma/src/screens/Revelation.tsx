@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { SoulMap, Element, LineName } from '../types/soul-map';
+import type { ReadingTier } from '../types/database';
 import { RevealSection } from '../components/RevealSection';
 import { PsycheBar } from '../components/PsycheBar';
 import { FrequencyDisplay } from '../components/FrequencyDisplay';
@@ -20,8 +21,10 @@ interface RevelationProps {
   shareUrl?: string | null;
   isSharing?: boolean;
   isSaving?: boolean;
+  tier?: ReadingTier;
   onShare?: () => void;
   onMeet?: (otherToken: string) => void;
+  onEmailSubmit?: (email: string) => Promise<boolean>;
 }
 
 const ELEMENT_NAMES: Record<Element, string> = {
@@ -208,7 +211,112 @@ function Bridge({ text }: { text: string }) {
   );
 }
 
-export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, isSaving, onShare, onMeet }: RevelationProps) {
+
+// ── Email Capture Wall ──
+
+function EmailCaptureWall({ onSubmit }: { onSubmit: (email: string) => Promise<boolean> }) {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const { ref, inView } = useInView(0.1);
+
+  const handleSubmit = async () => {
+    if (!email.trim() || loading || done) return;
+    setLoading(true);
+    const ok = await onSubmit(email.trim());
+    if (ok) setDone(true);
+    setLoading(false);
+  };
+
+  if (done) return null;
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0 }}
+      animate={inView ? { opacity: 1 } : {}}
+      transition={{ duration: 1 }}
+      style={{
+        margin: '64px 0',
+        padding: '48px 0',
+        borderTop: '1px solid var(--gold-line)',
+        borderBottom: '1px solid var(--gold-line)',
+        textAlign: 'center',
+      }}
+    >
+      <p style={{
+        fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+        letterSpacing: '0.42em', color: 'var(--gold)', textTransform: 'uppercase',
+        marginBottom: '24px',
+      }}>
+        o mapa continua
+      </p>
+      <p style={{
+        fontFamily: 'var(--serif)', fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 300,
+        color: 'var(--white)', lineHeight: 1.4, marginBottom: '8px',
+      }}>
+        entramos no mapa.
+      </p>
+      <p style={{
+        fontFamily: 'var(--serif)', fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 300,
+        fontStyle: 'italic', color: 'var(--white-dim)', lineHeight: 1.4, marginBottom: '40px',
+      }}>
+        vamos até o fim.
+      </p>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '20px', maxWidth: '400px', margin: '0 auto' }}>
+        <div style={{ flex: 1 }}>
+          <p style={{
+            fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+            letterSpacing: '0.38em', color: 'var(--gold)', textTransform: 'uppercase',
+            marginBottom: '14px', textAlign: 'left',
+          }}>
+            seu email
+          </p>
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') handleSubmit(); }}
+            placeholder="você@email.com"
+            style={{
+              width: '100%', background: 'transparent', border: 'none',
+              borderBottom: '1px solid rgba(201,168,76,0.3)',
+              color: 'var(--white)', fontFamily: 'var(--serif)',
+              fontSize: '18px', fontWeight: 300, padding: '0 0 10px',
+              outline: 'none', caretColor: 'var(--gold)',
+              transition: 'border-color 0.3s',
+            }}
+            onFocus={e => (e.target.style.borderBottomColor = 'var(--gold)')}
+            onBlur={e => (e.target.style.borderBottomColor = 'rgba(201,168,76,0.3)')}
+          />
+        </div>
+        <button
+          onClick={handleSubmit}
+          disabled={!email.trim() || loading}
+          style={{
+            background: 'transparent', border: 'none',
+            borderBottom: `1px solid ${email.trim() ? 'var(--gold)' : 'rgba(201,168,76,0.2)'}`,
+            fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 300,
+            letterSpacing: '0.32em', color: email.trim() ? 'var(--gold)' : 'rgba(201,168,76,0.3)',
+            textTransform: 'uppercase', padding: '0 0 10px', flexShrink: 0,
+            opacity: loading ? 0.4 : 1, transition: 'all 0.3s',
+          }}
+        >
+          {loading ? 'abrindo...' : 'revelar →'}
+        </button>
+      </div>
+      <p style={{
+        fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200,
+        letterSpacing: '0.2em', color: 'rgba(232,228,218,0.2)',
+        textTransform: 'uppercase', marginTop: '20px',
+      }}>
+        enviamos o link da sua leitura por email
+      </p>
+    </motion.div>
+  );
+}
+
+export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, isSaving, tier = 'session', onShare, onMeet, onEmailSubmit }: RevelationProps) {
   const [meetInput, setMeetInput] = useState('');
   const [showFloat, setShowFloat] = useState(false);
   const { sunSign, element, ascendant, sephirah, archetype, psyche, frequency, numerology } = soulMap;
@@ -411,6 +519,15 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
 
         <Bridge text={bridges.archetypeToFrequency} />
 
+        {/* ── Email capture wall (session tier only) ── */}
+        {tier === 'session' && onEmailSubmit && (
+          <EmailCaptureWall onSubmit={onEmailSubmit} />
+        )}
+
+        {/* ── Sections 3-6: visible for email+ tier ── */}
+        {tier !== 'session' && (
+          <>
+
         {/* ── Section 3: Frequency ── */}
         <RevealSection title="Frequência de Ressonância" subtitle="solfeggio">
           <FrequencyDisplay frequency={frequency} delay={0} />
@@ -463,6 +580,9 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
           <p style={{ marginBottom: '28px' }}>{psyche.signature}</p>
           <PsycheBar psyche={psyche} delay={0} />
         </RevealSection>
+
+          </>
+        )} {/* end tier !== session */}
 
         {/* ── Synthesis ── */}
         <SynthesisBlock text={bridges.synthesis} />
