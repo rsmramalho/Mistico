@@ -1,11 +1,17 @@
+// ═══════════════════════════════════════
+// Cartografia da Alma — Revelation
+// A carta é o produto. O mapa é a origem.
+// ═══════════════════════════════════════
+
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import type { SoulMap, Element, LineName } from '../types/soul-map';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { SoulMap, Element } from '../types/soul-map';
 import type { ReadingTier } from '../types/database';
+import { CartaSection } from '../components/CartaSection';
+import { OracleSection } from '../components/OracleSection';
 import { RevealSection } from '../components/RevealSection';
 import { PsycheBar } from '../components/PsycheBar';
 import { FrequencyDisplay } from '../components/FrequencyDisplay';
-import { OracleSection } from '../components/OracleSection';
 import { FlowerOfLife } from '../geometry/FlowerOfLife';
 import { Hexagram } from '../geometry/Hexagram';
 import { Metatron } from '../geometry/Metatron';
@@ -15,6 +21,8 @@ import { computeBridges } from '../engine/bridges';
 import { useInView } from '../hooks/useInView';
 import { useAudio } from '../hooks/useAudio';
 
+// ── Types ──
+
 interface RevelationProps {
   soulMap: SoulMap;
   onReset: () => void;
@@ -23,12 +31,14 @@ interface RevelationProps {
   isSharing?: boolean;
   isSaving?: boolean;
   tier?: ReadingTier;
+  readingId?: string | null;
   onShare?: () => void;
   onMeet?: (otherToken: string) => void;
   onEmailSubmit?: (email: string) => Promise<boolean>;
-  readingId?: string | null;
-  onTierUpgrade?: (tier: import('../types/database').ReadingTier) => void;
+  onTierUpgrade?: (tier: ReadingTier) => void;
 }
+
+// ── Helpers ──
 
 const ELEMENT_NAMES: Record<Element, string> = {
   fire: 'Fogo', earth: 'Terra', air: 'Ar', water: 'Água',
@@ -44,194 +54,47 @@ const LINE_NAMES_PT: Record<string, string> = {
   heart: 'Coração', head: 'Cabeça', life: 'Vida', fate: 'Destino',
 };
 
-const DOMINANT_LINE_DESCRIPTIONS: Record<LineName, string> = {
-  heart: 'A linha do Coração é a mais marcada na sua palma — sua vida emocional e afetiva é o centro gravitacional da sua experiência. Relações, empatia e conexão guiam suas decisões mais do que razão ou ambição.',
-  head: 'A linha da Cabeça domina sua palma — o intelecto é seu instrumento primário. Análise, comunicação e pensamento estratégico são as forças que movem seu caminho.',
-  life: 'A linha da Vida é a mais profunda na sua palma — vitalidade e resiliência definem sua trajetória. Há uma força vital intensa que sustenta tudo o que você constrói.',
-  fate: 'A linha do Destino corta sua palma com clareza — existe um senso de propósito forte, uma direção que vai além de escolhas conscientes. Vocação e missão são forças ativas na sua vida.',
-};
+function ElementGeometry({ element }: { element: Element }) {
+  switch (element) {
+    case 'air':   return <FlowerOfLife />;
+    case 'fire':  return <Hexagram />;
+    case 'earth': return <Metatron />;
+    case 'water': return <SriYantra />;
+  }
+}
 
 const labelStyle: React.CSSProperties = {
   fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
   letterSpacing: '0.38em', color: 'var(--gold)', textTransform: 'uppercase',
 };
 
-function ElementGeometry({ element }: { element: Element }) {
-  switch (element) {
-    case 'air': return <FlowerOfLife />;
-    case 'fire': return <Hexagram />;
-    case 'earth': return <Metatron />;
-    case 'water': return <SriYantra />;
-  }
-}
+// ── Footer (share + meet + reset) ──
 
-function SynthesisBlock({ text }: { text: string }) {
-  const { ref, inView } = useInView(0.15);
-  return (
-    <div ref={ref} style={{ margin: '0 0 80px', padding: '40px 0', borderTop: '1px solid var(--gold-line)', borderBottom: '1px solid var(--gold-line)' }}>
-      <motion.p
-        initial={{ opacity: 0, y: 16 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 1.2 }}
-        style={{
-          fontFamily: 'var(--serif)', fontSize: '17px', fontWeight: 300,
-          fontStyle: 'italic', color: 'var(--white-dim)', lineHeight: 1.7,
-          textAlign: 'center',
-        }}
-      >
-        {text}
-      </motion.p>
-    </div>
-  );
-}
-
-interface FooterBlockProps {
-  isPalm: boolean;
-  canShare?: boolean;
-  shareUrl?: string | null;
-  isSharing?: boolean;
-  isSaving?: boolean;
-  onShare?: () => void;
-  onMeet?: (token: string) => void;
-  onReset: () => void;
-  meetInput: string;
-  setMeetInput: (v: string) => void;
-  fieldStyle: React.CSSProperties;
-}
-
-function FooterBlock({ isPalm, canShare, shareUrl, isSharing, isSaving, onShare, onMeet, onReset, meetInput, setMeetInput, fieldStyle }: FooterBlockProps) {
+function Footer({
+  canShare, shareUrl, isSharing, isSaving, onShare, onMeet, onReset, meetInput, setMeetInput,
+}: {
+  canShare?: boolean; shareUrl?: string | null; isSharing?: boolean; isSaving?: boolean;
+  onShare?: () => void; onMeet?: (t: string) => void; onReset: () => void;
+  meetInput: string; setMeetInput: (v: string) => void;
+}) {
   const { ref, inView } = useInView(0.1);
-  const btnStyle: React.CSSProperties = {
-    background: 'transparent', border: 'none',
-    borderBottom: '1px solid var(--gold)',
+  const btn: React.CSSProperties = {
+    background: 'transparent', border: 'none', borderBottom: '1px solid var(--gold)',
     fontFamily: 'var(--sans)', fontSize: '10px', fontWeight: 300,
-    letterSpacing: '0.32em', color: 'var(--gold)',
-    textTransform: 'uppercase', padding: '0 0 6px',
-    transition: 'color 0.3s, letter-spacing 0.3s',
+    letterSpacing: '0.32em', color: 'var(--gold)', textTransform: 'uppercase',
+    padding: '0 0 6px', transition: 'color 0.3s, letter-spacing 0.3s',
   };
-  const btnHover = (e: React.MouseEvent, enter: boolean) => {
-    const el = e.target as HTMLElement;
+  const hover = (e: React.MouseEvent, enter: boolean) => {
+    const el = e.currentTarget as HTMLElement;
     el.style.color = enter ? 'var(--white)' : 'var(--gold)';
     el.style.letterSpacing = enter ? '0.42em' : '0.32em';
   };
-
-  return (
-    <div ref={ref}>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={inView ? { opacity: 1 } : {}}
-        transition={{ duration: 1 }}
-      >
-        <p style={{
-          fontFamily: 'var(--serif)', fontSize: '15px', fontWeight: 300,
-          fontStyle: 'italic', color: 'var(--white-ghost)', lineHeight: 1.7,
-          textAlign: 'center', marginBottom: '40px',
-        }}>
-          {isPalm
-            ? 'Os mapeamentos desta cartografia unem tradições — Quiromancia, Kabbalah, Jung, Freud, Solfeggio e Numerologia — como espelhos, não verdades absolutas.'
-            : 'Os mapeamentos desta cartografia unem tradições — Astrologia, Kabbalah, Jung, Freud, Solfeggio e Numerologia — como espelhos, não verdades absolutas. A sombra é tão importante quanto a luz.'
-          }
-        </p>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '32px', flexWrap: 'wrap' }}>
-          {canShare && onShare && (
-            shareUrl ? (
-              <button onClick={() => navigator.clipboard.writeText(shareUrl)} style={btnStyle} onMouseEnter={e => btnHover(e, true)} onMouseLeave={e => btnHover(e, false)}>
-                copiar link
-              </button>
-            ) : (
-              <button
-                onClick={onShare}
-                disabled={isSharing || isSaving}
-                style={{ ...btnStyle, opacity: (isSharing || isSaving) ? 0.35 : 1 }}
-                onMouseEnter={e => { if (!isSharing && !isSaving) btnHover(e, true); }}
-                onMouseLeave={e => { if (!isSharing && !isSaving) btnHover(e, false); }}
-              >
-                {isSaving ? 'preparando...' : isSharing ? 'gerando...' : 'compartilhar'}
-              </button>
-            )
-          )}
-          <button onClick={onReset} style={btnStyle} onMouseEnter={e => btnHover(e, true)} onMouseLeave={e => btnHover(e, false)}>
-            nova cartografia
-          </button>
-        </div>
-
-        {shareUrl && (
-          <p style={{ fontFamily: 'var(--sans)', fontSize: '9px', color: 'var(--white-ghost)', marginTop: '20px', textAlign: 'center', wordBreak: 'break-all' }}>
-            {shareUrl}
-          </p>
-        )}
-
-        {onMeet && (
-          <div style={{ borderTop: '1px solid var(--gold-line)', marginTop: '40px', paddingTop: '32px' }}>
-            <p style={{ fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200, letterSpacing: '0.38em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '20px', textAlign: 'center' }}>
-              encontrar outra alma
-            </p>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '20px', maxWidth: '460px', margin: '0 auto' }}>
-              <input
-                type="text" value={meetInput} onChange={e => setMeetInput(e.target.value)}
-                placeholder="cartografia-da-alma.vercel.app?token=..." style={fieldStyle}
-                onFocus={e => (e.target.style.borderBottomColor = 'var(--gold)')}
-                onBlur={e => (e.target.style.borderBottomColor = 'rgba(201,168,76,0.2)')}
-              />
-              <button
-                onClick={() => {
-                  if (!meetInput.trim()) return;
-                  let token = meetInput.trim();
-                  try { const url = new URL(token); const t = url.searchParams.get('token'); if (t) token = t; } catch { /* raw token */ }
-                  onMeet(token);
-                }}
-                style={{ ...btnStyle, flexShrink: 0 }}
-                onMouseEnter={e => btnHover(e, true)} onMouseLeave={e => btnHover(e, false)}
-              >
-                encontrar
-              </button>
-            </div>
-          </div>
-        )}
-      </motion.div>
-    </div>
-  );
-}
-
-function Bridge({ text }: { text: string }) {
-  const { ref, inView } = useInView(0.2);
-  return (
-    <div ref={ref} style={{ margin: '-32px 0 64px', paddingLeft: '0' }}>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={inView ? { opacity: 1 } : {}}
-        transition={{ duration: 1 }}
-        style={{
-          fontFamily: 'var(--serif)', fontSize: '15px', fontWeight: 300,
-          fontStyle: 'italic', color: 'var(--gold)', lineHeight: 1.6,
-          opacity: 0.65,
-        }}
-      >
-        {text}
-      </motion.p>
-    </div>
-  );
-}
-
-
-// ── Email Capture Wall ──
-
-function EmailCaptureWall({ onSubmit }: { onSubmit: (email: string) => Promise<boolean> }) {
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
-  const { ref, inView } = useInView(0.1);
-
-  const handleSubmit = async () => {
-    if (!email.trim() || loading || done) return;
-    setLoading(true);
-    const ok = await onSubmit(email.trim());
-    if (ok) setDone(true);
-    setLoading(false);
+  const fieldStyle: React.CSSProperties = {
+    flex: 1, width: '100%', background: 'transparent', border: 'none',
+    borderBottom: '1px solid rgba(201,168,76,0.2)', color: 'var(--white)',
+    fontFamily: 'var(--serif)', fontSize: '17px', fontWeight: 300,
+    padding: '0 0 10px', outline: 'none', caretColor: 'var(--gold)', transition: 'border-color 0.4s',
   };
-
-  if (done) return null;
 
   return (
     <motion.div
@@ -239,96 +102,217 @@ function EmailCaptureWall({ onSubmit }: { onSubmit: (email: string) => Promise<b
       initial={{ opacity: 0 }}
       animate={inView ? { opacity: 1 } : {}}
       transition={{ duration: 1 }}
-      style={{
-        margin: '64px 0',
-        padding: '48px 0',
-        borderTop: '1px solid var(--gold-line)',
-        borderBottom: '1px solid var(--gold-line)',
-        textAlign: 'center',
-      }}
+      style={{ maxWidth: '640px', margin: '0 auto', padding: '0 24px 80px' }}
     >
       <p style={{
-        fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
-        letterSpacing: '0.42em', color: 'var(--gold)', textTransform: 'uppercase',
-        marginBottom: '24px',
+        fontFamily: 'var(--serif)', fontSize: '15px', fontWeight: 300,
+        fontStyle: 'italic', color: 'var(--white-ghost)', lineHeight: 1.7,
+        textAlign: 'center', marginBottom: '40px',
       }}>
-        o mapa continua
+        Os mapeamentos unem tradições — Astrologia, Kabbalah, Jung, Freud, Solfeggio e Numerologia —
+        como espelhos, não verdades absolutas. A sombra é tão importante quanto a luz.
       </p>
-      <p style={{
-        fontFamily: 'var(--serif)', fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 300,
-        color: 'var(--white)', lineHeight: 1.4, marginBottom: '8px',
-      }}>
-        entramos no mapa.
-      </p>
-      <p style={{
-        fontFamily: 'var(--serif)', fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 300,
-        fontStyle: 'italic', color: 'var(--white-dim)', lineHeight: 1.4, marginBottom: '40px',
-      }}>
-        vamos até o fim.
-      </p>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '20px', maxWidth: '400px', margin: '0 auto' }}>
-        <div style={{ flex: 1 }}>
-          <p style={{
-            fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
-            letterSpacing: '0.38em', color: 'var(--gold)', textTransform: 'uppercase',
-            marginBottom: '14px', textAlign: 'left',
-          }}>
-            seu email
-          </p>
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') handleSubmit(); }}
-            placeholder="você@email.com"
-            style={{
-              width: '100%', background: 'transparent', border: 'none',
-              borderBottom: '1px solid rgba(201,168,76,0.3)',
-              color: 'var(--white)', fontFamily: 'var(--serif)',
-              fontSize: '18px', fontWeight: 300, padding: '0 0 10px',
-              outline: 'none', caretColor: 'var(--gold)',
-              transition: 'border-color 0.3s',
-            }}
-            onFocus={e => (e.target.style.borderBottomColor = 'var(--gold)')}
-            onBlur={e => (e.target.style.borderBottomColor = 'rgba(201,168,76,0.3)')}
-          />
-        </div>
-        <button
-          onClick={handleSubmit}
-          disabled={!email.trim() || loading}
-          style={{
-            background: 'transparent', border: 'none',
-            borderBottom: `1px solid ${email.trim() ? 'var(--gold)' : 'rgba(201,168,76,0.2)'}`,
-            fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 300,
-            letterSpacing: '0.32em', color: email.trim() ? 'var(--gold)' : 'rgba(201,168,76,0.3)',
-            textTransform: 'uppercase', padding: '0 0 10px', flexShrink: 0,
-            opacity: loading ? 0.4 : 1, transition: 'all 0.3s',
-          }}
-        >
-          {loading ? 'abrindo...' : 'revelar →'}
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '32px', flexWrap: 'wrap' }}>
+        {canShare && onShare && (
+          shareUrl ? (
+            <button onClick={() => navigator.clipboard.writeText(shareUrl)} style={btn} onMouseEnter={e => hover(e, true)} onMouseLeave={e => hover(e, false)}>
+              copiar link
+            </button>
+          ) : (
+            <button
+              onClick={onShare}
+              disabled={isSharing || isSaving}
+              style={{ ...btn, opacity: (isSharing || isSaving) ? 0.35 : 1 }}
+              onMouseEnter={e => { if (!isSharing && !isSaving) hover(e, true); }}
+              onMouseLeave={e => { if (!isSharing && !isSaving) hover(e, false); }}
+            >
+              {isSaving ? 'preparando...' : isSharing ? 'gerando...' : 'compartilhar'}
+            </button>
+          )
+        )}
+        <button onClick={onReset} style={btn} onMouseEnter={e => hover(e, true)} onMouseLeave={e => hover(e, false)}>
+          nova cartografia
         </button>
       </div>
-      <p style={{
-        fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200,
-        letterSpacing: '0.2em', color: 'rgba(232,228,218,0.2)',
-        textTransform: 'uppercase', marginTop: '20px',
-      }}>
-        enviamos o link da sua leitura por email
-      </p>
+
+      {shareUrl && (
+        <p style={{ fontFamily: 'var(--sans)', fontSize: '9px', color: 'var(--white-ghost)', marginTop: '16px', textAlign: 'center', wordBreak: 'break-all' }}>
+          {shareUrl}
+        </p>
+      )}
+
+      {onMeet && (
+        <div style={{ borderTop: '1px solid var(--gold-line)', marginTop: '40px', paddingTop: '32px' }}>
+          <p style={{ ...labelStyle, marginBottom: '20px', textAlign: 'center' }}>encontrar outra alma</p>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '20px', maxWidth: '460px', margin: '0 auto' }}>
+            <input
+              type="text" value={meetInput} onChange={e => setMeetInput(e.target.value)}
+              placeholder="cole o link de outro mapa" style={fieldStyle}
+              onFocus={e => (e.target.style.borderBottomColor = 'var(--gold)')}
+              onBlur={e => (e.target.style.borderBottomColor = 'rgba(201,168,76,0.2)')}
+            />
+            <button
+              onClick={() => {
+                if (!meetInput.trim()) return;
+                let token = meetInput.trim();
+                try { const url = new URL(token); const t = url.searchParams.get('token'); if (t) token = t; } catch { /* raw token */ }
+                onMeet(token);
+              }}
+              style={{ ...btn, flexShrink: 0 }}
+              onMouseEnter={e => hover(e, true)}
+              onMouseLeave={e => hover(e, false)}
+            >
+              cruzar mapas →
+            </button>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
 
-export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, isSaving, tier = 'session', onShare, onMeet, onEmailSubmit, readingId, onTierUpgrade }: RevelationProps) {
+// ── Map origin (expandable) ──
+
+function MapaOrigem({ soulMap }: { soulMap: SoulMap }) {
+  const [open, setOpen] = useState(false);
+  const { sunSign, element, ascendant, sephirah, archetype, psyche, frequency, numerology } = soulMap;
+  const bridges = computeBridges(soulMap);
+  const isPalm = soulMap.source === 'palm';
+
+  return (
+    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '0 24px' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          background: 'transparent', border: 'none',
+          fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200,
+          letterSpacing: '0.38em', color: 'rgba(201,168,76,0.4)',
+          textTransform: 'uppercase', padding: '0', transition: 'color 0.3s',
+          display: 'block', margin: '0 auto 48px',
+        }}
+        onMouseEnter={e => (e.currentTarget.style.color = 'var(--gold)')}
+        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(201,168,76,0.4)')}
+      >
+        {open ? '— fechar origem do mapa' : '+ ver origem do mapa'}
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.6 }}
+            style={{ overflow: 'hidden' }}
+          >
+            {/* Geometry */}
+            <div style={{ position: 'relative', marginBottom: '96px', height: 'min(320px, 40vh)' }}>
+              <div style={{ position: 'absolute', inset: 0, opacity: 0.15 }}>
+                <TreeOfLife activeSephirah={sephirah.name} />
+              </div>
+              <motion.div animate={{ rotate: -360 }} transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
+                style={{ position: 'absolute', inset: 0, opacity: 0.8 }}>
+                <ElementGeometry element={element} />
+              </motion.div>
+            </div>
+
+            {/* Astrologia */}
+            <RevealSection title={`${SIGN_NAMES_PT[sunSign] ?? sunSign}`} subtitle={`${ELEMENT_NAMES[element]} · ${element}`}>
+              <p style={{ marginBottom: '12px' }}>
+                Signo solar em {SIGN_NAMES_PT[sunSign] ?? sunSign}, elemento {ELEMENT_NAMES[element].toLowerCase()}, modalidade {soulMap.modality === 'cardinal' ? 'cardinal' : soulMap.modality === 'fixed' ? 'fixo' : 'mutável'}.
+              </p>
+              {ascendant && (
+                <p style={{ fontFamily: 'var(--sans)', fontSize: '9px', letterSpacing: '0.2em', color: 'var(--white-ghost)' }}>
+                  Ascendente em {SIGN_NAMES_PT[ascendant.sign]} — {ascendant.method === 'approximate' ? 'estimado por horário' : 'calculado'}
+                </p>
+              )}
+              {isPalm && soulMap.dominantLine && (
+                <p style={{ marginTop: '16px', color: 'var(--white-dim)' }}>
+                  Linha dominante: {LINE_NAMES_PT[soulMap.dominantLine]}
+                </p>
+              )}
+            </RevealSection>
+
+            {/* Kabbalah */}
+            <RevealSection title={sephirah.name} subtitle={`${sephirah.meaning} · ${sephirah.planet}`}>
+              <p>{sephirah.description}</p>
+              <p style={{ ...labelStyle, marginTop: '16px', fontSize: '8px', color: 'var(--white-ghost)' }}>
+                Sephirah {sephirah.number} · expressão {sephirah.expression === 'diurnal' ? 'diurna' : sephirah.expression === 'nocturnal' ? 'noturna' : 'singular'}
+              </p>
+            </RevealSection>
+
+            {/* Jung */}
+            <RevealSection title={archetype.titlePt} subtitle={archetype.title}>
+              <p style={{ marginBottom: '28px' }}>{archetype.description}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '36px' }}>
+                <div>
+                  <p style={{ ...labelStyle, marginBottom: '8px' }}>desejo central</p>
+                  <p style={{ color: 'var(--white)' }}>{archetype.coreDesire}</p>
+                </div>
+                <div>
+                  <p style={{ ...labelStyle, marginBottom: '8px' }}>medo central</p>
+                  <p style={{ color: 'var(--white)' }}>{archetype.coreFear}</p>
+                </div>
+              </div>
+              <p style={{ ...labelStyle, marginBottom: '20px', marginTop: '36px' }}>a sombra</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div style={{ borderLeft: '1px solid var(--gold-line)', paddingLeft: '16px' }}>
+                  <p style={{ fontFamily: 'var(--sans)', fontSize: '8px', letterSpacing: '0.3em', color: '#c94c4c', textTransform: 'uppercase', marginBottom: '6px', opacity: 0.7 }}>inflada — excesso</p>
+                  <p style={{ color: 'var(--white-dim)' }}>{archetype.shadow.inflated}</p>
+                </div>
+                <div style={{ borderLeft: '1px solid var(--gold-line)', paddingLeft: '16px' }}>
+                  <p style={{ fontFamily: 'var(--sans)', fontSize: '8px', letterSpacing: '0.3em', color: '#4c8bc9', textTransform: 'uppercase', marginBottom: '6px', opacity: 0.7 }}>deflacionada — falta</p>
+                  <p style={{ color: 'var(--white-dim)' }}>{archetype.shadow.deflated}</p>
+                </div>
+              </div>
+            </RevealSection>
+
+            {/* Solfeggio */}
+            <RevealSection title="Frequência de Ressonância" subtitle="solfeggio">
+              <FrequencyDisplay frequency={frequency} delay={0} />
+            </RevealSection>
+
+            {/* Numerologia */}
+            <RevealSection title={numerology.namePt} subtitle={`número ${numerology.number}`}>
+              <p style={{ marginBottom: '20px' }}>{numerology.description}</p>
+              <p style={{ ...labelStyle, marginBottom: '8px' }}>traços</p>
+              <p style={{ color: 'var(--white)', marginBottom: '20px' }}>{numerology.traits}</p>
+              <p style={{ ...labelStyle, marginBottom: '8px' }}>sombra</p>
+              <p style={{ color: 'var(--white-dim)' }}>{numerology.shadow}</p>
+            </RevealSection>
+
+            {/* Psique */}
+            <RevealSection title="Estrutura Psíquica" subtitle="id · ego · superego">
+              <p style={{ marginBottom: '28px' }}>{psyche.signature}</p>
+              <PsycheBar psyche={psyche} delay={0} />
+            </RevealSection>
+
+            {/* Síntese */}
+            <div style={{ margin: '0 0 96px', padding: '40px 0', borderTop: '1px solid var(--gold-line)', borderBottom: '1px solid var(--gold-line)' }}>
+              <p style={{ fontFamily: 'var(--serif)', fontSize: '17px', fontWeight: 300, fontStyle: 'italic', color: 'var(--white-dim)', lineHeight: 1.7, textAlign: 'center' }}>
+                {bridges.synthesis}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── Main Revelation ──
+
+export function Revelation({
+  soulMap, onReset, canShare, shareUrl, isSharing, isSaving,
+  tier = 'session', readingId, onShare, onMeet, onEmailSubmit, onTierUpgrade,
+}: RevelationProps) {
   const [meetInput, setMeetInput] = useState('');
   const [showFloat, setShowFloat] = useState(false);
-  const [journeyMode, setJourneyMode] = useState(false);
-  const { sunSign, element, ascendant, sephirah, archetype, psyche, frequency, numerology } = soulMap;
-  const isPalm = soulMap.source === 'palm';
-  const bridges = computeBridges(soulMap);
-  const audio = useAudio(frequency.hz);
+  const [cartaDone, setCartaDone] = useState(false);
+  const { sunSign, element, sephirah } = soulMap;
+  const audio = useAudio(soulMap.frequency.hz);
 
-  // Show floating share after user scrolls past first viewport
   useEffect(() => {
     const onScroll = () => { if (window.scrollY > window.innerHeight * 0.6) setShowFloat(true); };
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -336,90 +320,31 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
   }, []);
 
   const handleShare = async () => {
-    if (shareUrl) { navigator.clipboard.writeText(shareUrl); return; }
+    if (shareUrl) {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `Cartografia de ${soulMap.birthData.name}`,
+            text: `${SIGN_NAMES_PT[sunSign] ?? sunSign} · ${sephirah.name} · ${soulMap.archetype.titlePt}`,
+            url: shareUrl,
+          });
+          return;
+        } catch { /* cancelled */ }
+      }
+      navigator.clipboard.writeText(shareUrl);
+      return;
+    }
     onShare?.();
   };
 
-  const handleNativeShare = async () => {
-    const text = `Minha cartografia: ${soulMap.sunSign} · ${sephirah.name} · ${archetype.titlePt}`;
-    const url = shareUrl ?? window.location.href;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: `Cartografia de ${soulMap.birthData.name}`, text, url });
-        return;
-      } catch { /* user cancelled */ }
-    }
-    await navigator.clipboard.writeText(`${text}\n${url}`);
-  };
-
-  const fieldStyle: React.CSSProperties = {
-    flex: 1, width: '100%', background: 'transparent', border: 'none',
-    borderBottom: '1px solid rgba(201,168,76,0.2)',
-    color: 'var(--white)', fontFamily: 'var(--serif)', fontSize: '17px',
-    fontWeight: 300, padding: '0 0 10px', outline: 'none',
-    caretColor: 'var(--gold)', transition: 'border-color 0.4s',
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1.2 }}
-      style={{ minHeight: '100vh' }}
-    >
-      {/* ── Floating share button ── */}
-      {canShare && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={showFloat ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-          transition={{ duration: 0.6 }}
-          style={{
-            position: 'fixed', bottom: '32px', right: '32px', zIndex: 100,
-          }}
-        >
-          <button
-            onClick={shareUrl ? handleShare : handleNativeShare}
-            disabled={isSaving || isSharing}
-            style={{
-              background: 'rgba(4,4,10,0.9)',
-              border: '1px solid var(--gold-line)',
-              fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
-              letterSpacing: '0.35em', color: 'var(--gold)',
-              textTransform: 'uppercase', padding: '12px 20px',
-              backdropFilter: 'blur(12px)',
-              opacity: (isSaving || isSharing) ? 0.45 : 1,
-              transition: 'border-color 0.3s, color 0.3s, opacity 0.3s',
-            }}
-            onMouseEnter={e => { if (!isSaving && !isSharing) (e.currentTarget as HTMLElement).style.borderColor = 'var(--gold)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--gold-line)'; }}
-          >
-            {shareUrl ? 'link copiado ✓' : isSaving ? 'preparando...' : isSharing ? 'gerando...' : 'compartilhar mapa'}
-          </button>
-        </motion.div>
-      )}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2 }} style={{ minHeight: '100vh' }}>
 
-      {/* ── Journey + Audio controls ── */}
-      <div style={{
-        position: 'fixed', top: '24px', left: '24px', zIndex: 100,
-        display: 'flex', gap: '12px', alignItems: 'center',
-      }}>
-        <button
-          onClick={() => setJourneyMode(j => !j)}
-          title={journeyMode ? 'modo scroll' : 'modo jornada'}
-          style={{
-            background: journeyMode ? 'rgba(201,168,76,0.12)' : 'rgba(4,4,10,0.8)',
-            border: '1px solid var(--gold-line)',
-            fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200,
-            letterSpacing: '0.3em', color: 'var(--gold)',
-            textTransform: 'uppercase', padding: '8px 14px',
-            backdropFilter: 'blur(12px)', transition: 'background 0.3s',
-          }}
-        >
-          {journeyMode ? '· · ·' : '— — —'}
-        </button>
+      {/* ── Controls (audio) ── */}
+      <div style={{ position: 'fixed', top: '24px', left: '24px', zIndex: 100 }}>
         <button
           onClick={audio.toggle}
-          title={audio.playing ? 'silêncio' : `${frequency.hz} Hz`}
+          title={audio.playing ? `silêncio` : `${soulMap.frequency.hz} Hz`}
           style={{
             background: audio.playing ? 'rgba(201,168,76,0.12)' : 'rgba(4,4,10,0.8)',
             border: '1px solid var(--gold-line)',
@@ -429,227 +354,118 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
             backdropFilter: 'blur(12px)', transition: 'background 0.3s',
           }}
         >
-          {audio.playing ? `♪ ${frequency.hz}hz` : '♩'}
+          {audio.playing ? `♪ ${soulMap.frequency.hz}hz` : '♩'}
         </button>
       </div>
 
-      {/* ── First viewport: name alone ── */}
+      {/* ── Floating share ── */}
+      {canShare && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={showFloat ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
+          transition={{ duration: 0.6 }}
+          style={{ position: 'fixed', bottom: '32px', right: '32px', zIndex: 100 }}
+        >
+          <button
+            onClick={handleShare}
+            disabled={isSaving || isSharing}
+            style={{
+              background: 'rgba(4,4,10,0.9)', border: '1px solid var(--gold-line)',
+              fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+              letterSpacing: '0.35em', color: 'var(--gold)', textTransform: 'uppercase',
+              padding: '12px 20px', backdropFilter: 'blur(12px)',
+              opacity: (isSaving || isSharing) ? 0.45 : 1, transition: 'all 0.3s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--gold)')}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--gold-line)')}
+          >
+            {shareUrl ? 'link copiado ✓' : isSaving ? 'preparando...' : isSharing ? 'gerando...' : 'compartilhar mapa'}
+          </button>
+        </motion.div>
+      )}
+
+      {/* ── First viewport: name + sign ── */}
       <div style={{
         minHeight: '100svh', display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         padding: '40px 24px', position: 'relative',
       }}>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 120, repeat: Infinity, ease: 'linear' }}
-            style={{ width: 'min(600px, 95vw)', height: 'min(600px, 95vw)', opacity: 0.13 }}
-          >
+          <motion.div animate={{ rotate: 360 }} transition={{ duration: 120, repeat: Infinity, ease: 'linear' }}
+            style={{ width: 'min(600px, 95vw)', height: 'min(600px, 95vw)', opacity: 0.13 }}>
             <ElementGeometry element={element} />
           </motion.div>
         </div>
 
         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.4 }}
-            style={{ ...labelStyle, marginBottom: '28px' }}
-          >
+          <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.4 }}
+            style={{ ...labelStyle, marginBottom: '28px' }}>
             cartografia da alma
           </motion.p>
-
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.4, delay: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.4, delay: 0.6 }}
             style={{
               fontFamily: 'var(--serif)',
-              fontSize: 'clamp(52px, 9vw, 120px)',
-              fontWeight: 300, lineHeight: 1.0,
-              color: 'var(--white)', marginBottom: '28px',
-              letterSpacing: '-0.01em',
+              fontSize: 'clamp(52px, 9vw, 100px)',
+              fontWeight: 300, lineHeight: 1, letterSpacing: '-0.01em',
+              color: 'var(--white)', margin: '0 0 20px',
             }}
           >
             {soulMap.birthData.name}
           </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1.2 }}
-            style={{
-              fontFamily: 'var(--sans)', fontSize: '10px', fontWeight: 200,
-              letterSpacing: '0.4em', color: 'var(--gold)', textTransform: 'uppercase',
-            }}
-          >
-            {SIGN_NAMES_PT[sunSign]} · {ELEMENT_NAMES[element]}
-            {isPalm ? ' · via palma' : ascendant ? ` · ascendente ${SIGN_NAMES_PT[ascendant.sign]}` : ''}
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 1 }}
+            style={{ ...labelStyle, fontSize: '10px' }}>
+            {SIGN_NAMES_PT[sunSign] ?? sunSign} · {sephirah.name} · {soulMap.archetype.titlePt}
           </motion.p>
         </div>
 
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.5, 0] }}
-          transition={{ duration: 2.5, delay: 2, repeat: Infinity, ease: 'easeInOut' }}
-          style={{
-            position: 'absolute', bottom: '40px',
-            width: '1px', height: '48px',
-            background: 'linear-gradient(to bottom, transparent, var(--gold))',
-          }}
+          initial={{ opacity: 0 }} animate={{ opacity: [0, 0.5, 0] }}
+          transition={{ duration: 2.5, delay: 2.5, repeat: Infinity }}
+          style={{ position: 'absolute', bottom: '40px', width: '1px', height: '48px', background: 'linear-gradient(to bottom, transparent, var(--gold))' }}
         />
       </div>
 
-      {/* ── Sections ── */}
-      <div style={{
-        maxWidth: '600px', margin: '0 auto',
-        padding: journeyMode ? '0 24px' : '80px 24px 64px',
-        ...(journeyMode ? {
-          scrollSnapType: 'y mandatory',
-          overflowY: 'auto',
-          height: '100svh',
-        } : {}),
-      }}>
+      {/* ── A Carta ── */}
+      <div style={{ paddingTop: '80px' }}>
+        <CartaSection
+          soulMap={soulMap}
+          tier={tier}
+          onEmailSubmit={onEmailSubmit}
+          onComplete={() => setCartaDone(true)}
+        />
+      </div>
 
-        {/* ── Sacred Geometry ── */}
-        <div style={{ position: 'relative', marginBottom: '96px', height: 'min(360px, 48vh)' }}>
-          <div style={{ position: 'absolute', inset: 0, opacity: 0.18 }}>
-            <TreeOfLife activeSephirah={sephirah.name} />
-          </div>
+      {/* ── Oracle (appears after carta is done) ── */}
+      <AnimatePresence>
+        {cartaDone && (
           <motion.div
-            animate={{ rotate: -360 }}
-            transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
-            style={{ position: 'absolute', inset: 0, opacity: 0.85 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.2 }}
+            style={{ maxWidth: '640px', margin: '0 auto', padding: '0 24px' }}
           >
-            <ElementGeometry element={element} />
+            <OracleSection
+              soulMap={soulMap}
+              tier={tier}
+              readingId={readingId}
+              onTierUpgrade={onTierUpgrade}
+            />
           </motion.div>
-        </div>
-
-        {/* ── Section 1: Sephirah ── */}
-        <RevealSection journey={journeyMode} title={sephirah.name} subtitle={`${sephirah.meaning} · ${sephirah.planet}`}>
-          <p>{sephirah.description}</p>
-          <p style={{ ...labelStyle, marginTop: '16px', fontSize: '8px', color: 'var(--white-ghost)' }}>
-            Sephirah {sephirah.number} na Árvore da Vida · Expressão {
-              sephirah.expression === 'diurnal' ? 'diurna' :
-              sephirah.expression === 'nocturnal' ? 'noturna' : 'singular'
-            }
-          </p>
-          {soulMap.sephirahExpressionPalmDerived && (
-            <p style={{ fontFamily: 'var(--serif)', fontSize: '14px', fontStyle: 'italic', color: 'var(--white-ghost)', marginTop: '8px' }}>
-              Expressão canônica: singular · Via palma:{' '}
-              {soulMap.sephirahExpressionPalmDerived === 'diurnal' ? 'diurna' : 'noturna'}
-            </p>
-          )}
-        </RevealSection>
-
-        <Bridge text={bridges.sephirahToArchetype} />
-
-        {/* ── Section 2: Archetype + Shadow ── */}
-        <RevealSection journey={journeyMode} title={archetype.titlePt} subtitle={archetype.title}>
-          <p style={{ marginBottom: '28px' }}>{archetype.description}</p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '36px' }}>
-            <div>
-              <p style={{ ...labelStyle, marginBottom: '8px' }}>desejo central</p>
-              <p style={{ color: 'var(--white)' }}>{archetype.coreDesire}</p>
-            </div>
-            <div>
-              <p style={{ ...labelStyle, marginBottom: '8px' }}>medo central</p>
-              <p style={{ color: 'var(--white)' }}>{archetype.coreFear}</p>
-            </div>
-          </div>
-
-          {/* Shadow */}
-          <p style={{ ...labelStyle, marginBottom: '20px', marginTop: '36px' }}>a sombra</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div style={{ borderLeft: '1px solid var(--gold-line)', paddingLeft: '16px' }}>
-              <p style={{ fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200, letterSpacing: '0.3em', color: '#c94c4c', textTransform: 'uppercase', marginBottom: '6px', opacity: 0.7 }}>
-                inflada — excesso
-              </p>
-              <p style={{ color: 'var(--white-dim)' }}>{archetype.shadow.inflated}</p>
-            </div>
-            <div style={{ borderLeft: '1px solid var(--gold-line)', paddingLeft: '16px' }}>
-              <p style={{ fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200, letterSpacing: '0.3em', color: '#4c8bc9', textTransform: 'uppercase', marginBottom: '6px', opacity: 0.7 }}>
-                deflacionada — falta
-              </p>
-              <p style={{ color: 'var(--white-dim)' }}>{archetype.shadow.deflated}</p>
-            </div>
-          </div>
-        </RevealSection>
-
-        <Bridge text={bridges.archetypeToFrequency} />
-
-        {/* ── Email capture wall (session tier only) ── */}
-        {tier === 'session' && onEmailSubmit && (
-          <EmailCaptureWall onSubmit={onEmailSubmit} />
         )}
+      </AnimatePresence>
 
-        {/* ── Sections 3-6: visible for email+ tier ── */}
-        {tier !== 'session' && (
-          <>
+      {/* ── Mapa origem (expansível) ── */}
+      {cartaDone && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.5 }}>
+          <div style={{ width: '1px', height: '80px', background: 'linear-gradient(to bottom, transparent, var(--gold-line))', margin: '0 auto' }} />
+          <MapaOrigem soulMap={soulMap} />
+        </motion.div>
+      )}
 
-        {/* ── Section 3: Frequency ── */}
-        <RevealSection journey={journeyMode} title="Frequência de Ressonância" subtitle="solfeggio">
-          <FrequencyDisplay frequency={frequency} delay={0} />
-        </RevealSection>
-
-        <Bridge text={bridges.frequencyToNumerology} />
-
-        {/* ── Section 4: Numerology ── */}
-        <RevealSection
-          title={`${numerology.number} · ${numerology.namePt}`}
-          subtitle={`número de expressão${numerology.isMasterNumber ? ' · mestre' : ''}`}
-        >
-          <p style={{ marginBottom: '24px' }}>{numerology.description}</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            <div>
-              <p style={{ ...labelStyle, marginBottom: '8px' }}>traços</p>
-              <p style={{ color: 'var(--white)' }}>{numerology.traits}</p>
-            </div>
-            <div>
-              <p style={{ ...labelStyle, marginBottom: '8px' }}>sombra</p>
-              <p style={{ color: 'var(--white-dim)' }}>{numerology.shadow}</p>
-            </div>
-          </div>
-        </RevealSection>
-
-        <Bridge text={bridges.numerologyToAscendant} />
-
-        {/* ── Section 5: Ascendant or Dominant Line ── */}
-        {isPalm && soulMap.dominantLine ? (
-          <RevealSection journey={journeyMode} title={LINE_NAMES_PT[soulMap.dominantLine]} subtitle="linha dominante">
-            <p>{DOMINANT_LINE_DESCRIPTIONS[soulMap.dominantLine]}</p>
-          </RevealSection>
-        ) : ascendant ? (
-          <RevealSection journey={journeyMode} title={`Ascendente em ${SIGN_NAMES_PT[ascendant.sign]}`} subtitle="signo ascendente — aproximado">
-            <p>
-              O ascendente representa a máscara que você apresenta ao mundo — a primeira impressão,
-              o filtro pelo qual sua essência solar se expressa. Com ascendente em{' '}
-              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>{SIGN_NAMES_PT[ascendant.sign]}</em>,
-              sua presença carrega as qualidades deste signo antes que os outros vejam seu Sol em{' '}
-              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>{SIGN_NAMES_PT[sunSign]}</em>.
-            </p>
-            <p style={{ fontFamily: 'var(--serif)', fontSize: '14px', fontStyle: 'italic', color: 'var(--white-ghost)', marginTop: '12px' }}>
-              Cálculo aproximado baseado no horário informado.
-            </p>
-          </RevealSection>
-        ) : null}
-
-        {/* ── Section 6: Psyche ── */}
-        <RevealSection journey={journeyMode} title="Estrutura Psíquica" subtitle="id · ego · superego">
-          <p style={{ marginBottom: '28px' }}>{psyche.signature}</p>
-          <PsycheBar psyche={psyche} delay={0} />
-        </RevealSection>
-
-          </>
-        )} {/* end tier !== session */}
-
-        {/* ── Synthesis ── */}
-        <SynthesisBlock text={bridges.synthesis} />
-
-        {/* ── Footer ── */}
-        <FooterBlock
-          isPalm={isPalm}
+      {/* ── Footer ── */}
+      {cartaDone && (
+        <Footer
           canShare={canShare}
           shareUrl={shareUrl}
           isSharing={isSharing}
@@ -659,13 +475,9 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, is
           onReset={onReset}
           meetInput={meetInput}
           setMeetInput={setMeetInput}
-          fieldStyle={fieldStyle}
         />
+      )}
 
-        {/* ── Oracle ── */}
-        <OracleSection soulMap={soulMap} tier={tier} readingId={readingId} onTierUpgrade={onTierUpgrade} />
-
-      </div> {/* sections wrapper */}
     </motion.div>
   );
 }
