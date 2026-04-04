@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/oracle.ts": {
+      "maxDuration": 30
+    }
+  }
+}
