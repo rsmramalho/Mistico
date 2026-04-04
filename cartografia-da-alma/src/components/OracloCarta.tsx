@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { getOracleIdentity } from '../engine/oracle-identities';
 import type { SoulMap } from '../types/soul-map';
 
 // ═══════════════════════════════════════
@@ -11,21 +12,13 @@ interface OracleCartaProps {
   cardId: string;
   soulMap: SoulMap;
   onResult: (question: string, answer: string) => void;
+  onSkipOracle?: () => void;
   used: boolean;
   question?: string;
   answer?: string;
 }
 
-const labelStyle: React.CSSProperties = {
-  fontFamily: 'var(--sans)',
-  fontSize: '9px',
-  fontWeight: 200,
-  letterSpacing: '0.38em',
-  color: 'var(--gold)',
-  textTransform: 'uppercase',
-  display: 'block',
-  marginBottom: '14px',
-};
+type OracleMode = 'choice' | 'asking' | 'loading' | 'answered' | 'error';
 
 const fieldStyle: React.CSSProperties = {
   width: '100%',
@@ -60,17 +53,51 @@ const answerStyle: React.CSSProperties = {
   color: 'var(--white-dim)',
 };
 
+const choiceButtonStyle: React.CSSProperties = {
+  background: 'transparent',
+  border: 'none',
+  borderBottom: '1px solid var(--gold)',
+  fontFamily: 'var(--sans)',
+  fontSize: '10px',
+  fontWeight: 300,
+  letterSpacing: '0.32em',
+  color: 'var(--gold)',
+  textTransform: 'uppercase',
+  padding: '0 0 6px',
+  whiteSpace: 'nowrap',
+  transition: 'color 0.3s, letter-spacing 0.3s',
+};
+
+function applyButtonHover(e: React.MouseEvent) {
+  const el = e.target as HTMLElement;
+  el.style.color = 'var(--white)';
+  el.style.letterSpacing = '0.42em';
+}
+
+function removeButtonHover(e: React.MouseEvent) {
+  const el = e.target as HTMLElement;
+  el.style.color = 'var(--gold)';
+  el.style.letterSpacing = '0.32em';
+}
+
 export function OracloCarta({
   cardId,
   soulMap,
   onResult,
+  onSkipOracle,
   used,
   question: prevQuestion,
   answer: prevAnswer,
 }: OracleCartaProps) {
+  const [mode, setMode] = useState<OracleMode>('choice');
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [localAnswer, setLocalAnswer] = useState('');
+  const [localQuestion, setLocalQuestion] = useState('');
+
+  const identity = getOracleIdentity(cardId);
+
+  // Cards without oracle (e.g. frequency) render nothing
+  if (!identity) return null;
 
   // ── Already used: show Q&A ──
   if (used && prevQuestion && prevAnswer) {
@@ -82,14 +109,14 @@ export function OracloCarta({
     );
   }
 
-  const canSubmit = input.trim().length > 0 && !loading;
+  const canSubmit = input.trim().length > 0 && mode === 'asking';
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
 
     const q = input.trim();
-    setLoading(true);
-    setError(false);
+    setLocalQuestion(q);
+    setMode('loading');
 
     try {
       const res = await fetch('/api/oracle-carta', {
@@ -101,10 +128,11 @@ export function OracloCarta({
       if (!res.ok) throw new Error('oracle failed');
 
       const data = (await res.json()) as { answer: string };
+      setLocalAnswer(data.answer);
+      setMode('answered');
       onResult(q, data.answer);
     } catch {
-      setError(true);
-      setLoading(false);
+      setMode('error');
     }
   };
 
@@ -115,30 +143,137 @@ export function OracloCarta({
     }
   };
 
-  // ── Loading state ──
-  if (loading) {
-    return (
-      <motion.p
-        animate={{ opacity: [0.4, 1, 0.4] }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+  // ── Oracle identity header (only in non-used states) ──
+  const identityHeader = (
+    <div style={{ marginBottom: '20px' }}>
+      <p
         style={{
           fontFamily: 'var(--sans)',
-          fontSize: '9px',
-          fontWeight: 200,
-          letterSpacing: '0.38em',
+          fontSize: '11px',
+          fontWeight: 300,
+          letterSpacing: '0.35em',
           color: 'var(--gold)',
           textTransform: 'uppercase',
+          margin: '0 0 6px',
         }}
       >
-        o or&aacute;culo contempla...
-      </motion.p>
+        {identity.name}
+      </p>
+      <p
+        style={{
+          fontFamily: 'var(--serif)',
+          fontSize: '14px',
+          fontWeight: 300,
+          fontStyle: 'italic',
+          color: 'var(--white-ghost)',
+          margin: 0,
+        }}
+      >
+        {identity.domain}
+      </p>
+    </div>
+  );
+
+  // ── Loading state ──
+  if (mode === 'loading') {
+    return (
+      <div>
+        {identityHeader}
+        <motion.p
+          animate={{ opacity: [0.4, 1, 0.4] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+          style={{
+            fontFamily: 'var(--sans)',
+            fontSize: '9px',
+            fontWeight: 200,
+            letterSpacing: '0.38em',
+            color: 'var(--gold)',
+            textTransform: 'uppercase',
+          }}
+        >
+          o or&aacute;culo contempla...
+        </motion.p>
+      </div>
     );
   }
 
   // ── Error state ──
-  if (error) {
+  if (mode === 'error') {
     return (
-      <p
+      <div>
+        {identityHeader}
+        <p
+          style={{
+            fontFamily: 'var(--sans)',
+            fontSize: '9px',
+            fontWeight: 200,
+            letterSpacing: '0.38em',
+            color: 'var(--gold)',
+            textTransform: 'uppercase',
+            opacity: 0.6,
+          }}
+        >
+          o or&aacute;culo est&aacute; em sil&ecirc;ncio
+        </p>
+      </div>
+    );
+  }
+
+  // ── Answered state ──
+  if (mode === 'answered') {
+    return (
+      <div>
+        {identityHeader}
+        <p style={ghostLabelStyle}>{localQuestion}</p>
+        <p style={{ ...answerStyle, marginBottom: '28px' }}>{localAnswer}</p>
+        {onSkipOracle && (
+          <button
+            onClick={onSkipOracle}
+            style={choiceButtonStyle}
+            onMouseEnter={applyButtonHover}
+            onMouseLeave={removeButtonHover}
+          >
+            continuar a jornada &rarr;
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // ── Choice state (initial) ──
+  if (mode === 'choice') {
+    return (
+      <div>
+        {identityHeader}
+        <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setMode('asking')}
+            style={choiceButtonStyle}
+            onMouseEnter={applyButtonHover}
+            onMouseLeave={removeButtonHover}
+          >
+            perguntar ao or&aacute;culo
+          </button>
+          {onSkipOracle && (
+            <button
+              onClick={onSkipOracle}
+              style={choiceButtonStyle}
+              onMouseEnter={applyButtonHover}
+              onMouseLeave={removeButtonHover}
+            >
+              continuar a jornada &rarr;
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Asking state (input visible) ──
+  return (
+    <div>
+      {identityHeader}
+      <label
         style={{
           fontFamily: 'var(--sans)',
           fontSize: '9px',
@@ -146,27 +281,24 @@ export function OracloCarta({
           letterSpacing: '0.38em',
           color: 'var(--gold)',
           textTransform: 'uppercase',
-          opacity: 0.6,
+          display: 'block',
+          marginBottom: '14px',
         }}
       >
-        o or&aacute;culo est&aacute; em sil&ecirc;ncio
-      </p>
-    );
-  }
-
-  // ── Input state ──
-  return (
-    <div>
-      <label style={labelStyle}>uma pergunta para o or&aacute;culo</label>
+        {identity.inputLabel}
+      </label>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '24px' }}>
         <input
           type="text"
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
+          placeholder={identity.placeholder}
           style={fieldStyle}
           onFocus={e => (e.target.style.borderBottomColor = 'var(--gold)')}
-          onBlur={e => (e.target.style.borderBottomColor = 'rgba(201,168,76,0.2)')}
+          onBlur={e =>
+            (e.target.style.borderBottomColor = 'rgba(201,168,76,0.2)')
+          }
         />
         <button
           onClick={handleSubmit}
@@ -187,16 +319,10 @@ export function OracloCarta({
             transition: 'color 0.3s, border-color 0.3s, letter-spacing 0.3s',
           }}
           onMouseEnter={e => {
-            if (canSubmit) {
-              (e.target as HTMLElement).style.color = 'var(--white)';
-              (e.target as HTMLElement).style.letterSpacing = '0.42em';
-            }
+            if (canSubmit) applyButtonHover(e);
           }}
           onMouseLeave={e => {
-            if (canSubmit) {
-              (e.target as HTMLElement).style.color = 'var(--gold)';
-              (e.target as HTMLElement).style.letterSpacing = '0.32em';
-            }
+            if (canSubmit) removeButtonHover(e);
           }}
         >
           perguntar

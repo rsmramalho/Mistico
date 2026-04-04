@@ -204,6 +204,7 @@ export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
       cardId={currentCard.id}
       soulMap={soulMap}
       onResult={handleOracleResult}
+      onSkipOracle={advanceCard}
       used={currentCard.oracleUsed}
       question={currentCard.oracleQuestion}
       answer={currentCard.oracleAnswer}

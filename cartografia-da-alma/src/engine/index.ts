@@ -52,3 +52,4 @@ export { getHandElement, getSignFromMount, getPalmExpression, getPalmSoulMap } f
 export { getSoulMateReading } from './soul-mate';
 export { buildSystemPrompt, askOracle } from './oracle';
 export { CARTA_VARIATIONS, getVariation } from './variations';
+export { ORACLE_IDENTITIES, getOracleIdentity } from './oracle-identities';
