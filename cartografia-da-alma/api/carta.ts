@@ -84,12 +84,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }),
     });
 
-    const data = await response.json() as { content?: Array<{ type: string; text?: string }> };
+    const data = await response.json() as { content?: Array<{ type: string; text?: string }>; error?: unknown };
+    if (!response.ok) return res.status(response.status).json({ upstream_error: data });
     const carta = data.content?.find(b => b.type === 'text')?.text ?? '';
-
     return res.status(200).json({ carta });
   } catch (err) {
-    console.error('Carta error:', err);
-    return res.status(500).json({ error: 'carta unavailable' });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('Carta error:', msg);
+    return res.status(500).json({ error: msg, has_key: !!process.env.ANTHROPIC_API_KEY });
   }
 }
