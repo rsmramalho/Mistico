@@ -8,6 +8,7 @@ import { SriYantra } from '../geometry/SriYantra';
 import { SephirahGlyph, ElementGlyph, ArchetypeGlyph } from '../geometry/glyphs';
 import { FrequencyWave } from '../geometry/FrequencyWave';
 import { getSignData } from '../engine/astrology';
+import { getAllProvenance, getMapSeal } from '../engine/provenance';
 
 // ── Props ──
 
@@ -98,6 +99,163 @@ function WordReveal({
         </motion.span>
       ))}
     </span>
+  );
+}
+
+// ── Provenance Seal ──
+
+function ProvenanceSeal({ soulMap, synthesisEnd }: { soulMap: SoulMap; synthesisEnd: number }) {
+  const [open, setOpen] = useState(false);
+  const seal = getMapSeal(soulMap);
+  const allProvenance = getAllProvenance(soulMap);
+  const delay = synthesisEnd + 0.5;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1, delay }}
+      style={{ margin: '24px 0 0', textAlign: 'center' }}
+    >
+      {/* Seal text */}
+      <p
+        style={{
+          fontFamily: 'var(--sans)',
+          fontSize: '8px',
+          fontWeight: 200,
+          letterSpacing: '0.3em',
+          color: 'var(--white-ghost)',
+          textTransform: 'uppercase',
+          margin: '0 0 8px',
+        }}
+      >
+        selo de proveniência
+      </p>
+      <p
+        style={{
+          fontFamily: 'var(--serif)',
+          fontSize: '13px',
+          fontWeight: 300,
+          fontStyle: 'italic',
+          color: 'var(--gold)',
+          margin: '0 0 16px',
+          lineHeight: 1.6,
+          maxWidth: '520px',
+          marginLeft: 'auto',
+          marginRight: 'auto',
+        }}
+      >
+        {seal}
+      </p>
+
+      {/* Expand full chain */}
+      <button
+        type="button"
+        onClick={() => setOpen(prev => !prev)}
+        style={{
+          background: 'transparent',
+          border: 'none',
+          fontFamily: 'var(--sans)',
+          fontSize: '8px',
+          fontWeight: 200,
+          letterSpacing: '0.3em',
+          color: 'var(--white-ghost)',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+          padding: '4px 0',
+          transition: 'color 0.3s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.color = 'var(--gold)'; }}
+        onMouseLeave={e => { e.currentTarget.style.color = 'var(--white-ghost)'; }}
+      >
+        {open ? 'ocultar rastreio completo' : 'ver rastreio completo'}
+      </button>
+
+      {open && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          transition={{ duration: 0.4 }}
+          style={{
+            overflow: 'hidden',
+            marginTop: '20px',
+            textAlign: 'left',
+            maxWidth: '520px',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+          }}
+        >
+          {allProvenance.map((prov, pi) => (
+            <motion.div
+              key={prov.cardId}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: pi * 0.1 }}
+              style={{ marginBottom: '24px' }}
+            >
+              <p
+                style={{
+                  fontFamily: 'var(--sans)',
+                  fontSize: '8px',
+                  fontWeight: 200,
+                  letterSpacing: '0.35em',
+                  color: 'var(--gold)',
+                  textTransform: 'uppercase',
+                  margin: '0 0 8px',
+                }}
+              >
+                {prov.title}
+              </p>
+              <div style={{ paddingLeft: '10px', borderLeft: '1px solid var(--gold-line)' }}>
+                {prov.steps.map((step, si) => (
+                  <div key={si} style={{ marginBottom: si < prov.steps.length - 1 ? '8px' : 0 }}>
+                    <p
+                      style={{
+                        fontFamily: 'var(--sans)',
+                        fontSize: '8px',
+                        fontWeight: 200,
+                        letterSpacing: '0.25em',
+                        color: 'var(--white-ghost)',
+                        textTransform: 'uppercase',
+                        margin: '0 0 2px',
+                      }}
+                    >
+                      {step.from}
+                    </p>
+                    <p
+                      style={{
+                        fontFamily: 'var(--serif)',
+                        fontSize: '13px',
+                        fontWeight: 300,
+                        color: 'var(--white-dim)',
+                        margin: 0,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      → {step.to}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <p
+                style={{
+                  fontFamily: 'var(--serif)',
+                  fontSize: '12px',
+                  fontWeight: 300,
+                  fontStyle: 'italic',
+                  color: 'var(--gold)',
+                  margin: '6px 0 0',
+                  lineHeight: 1.5,
+                  opacity: 0.7,
+                }}
+              >
+                {prov.anchor}
+              </p>
+            </motion.div>
+          ))}
+        </motion.div>
+      )}
+    </motion.div>
   );
 }
 
@@ -476,6 +634,9 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
             ))
           ) : null}
         </div>
+
+        {/* ── Provenance seal ── */}
+        <ProvenanceSeal soulMap={soulMap} synthesisEnd={synthesisEnd} />
 
         {/* ── Divider before actions ── */}
         <GoldLine />

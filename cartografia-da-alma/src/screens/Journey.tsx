@@ -12,6 +12,8 @@ import { CartaKabbalah } from '../components/CartaKabbalah';
 import { CartaSombra } from '../components/CartaSombra';
 import { CartaFrequencia } from '../components/CartaFrequencia';
 import { CartaNumerologia } from '../components/CartaNumerologia';
+import { CadeiaRaciocinio } from '../components/CadeiaRaciocinio';
+import { getCardProvenance } from '../engine/provenance';
 
 import { Hexagram } from '../geometry/Hexagram';
 import { FlowerOfLife } from '../geometry/FlowerOfLife';
@@ -118,18 +120,33 @@ function getVariationText(cardId: CardId, soulMap: SoulMap, variation: 0 | 1 | 2
 // ── Card body content ──
 
 function getCardContent(cardId: CardId, soulMap: SoulMap): React.ReactNode {
+  const provenance = getCardProvenance(cardId, soulMap);
+
+  let body: React.ReactNode;
   switch (cardId) {
     case 'astrology':
-      return <CartaAstrologia soulMap={soulMap} />;
+      body = <CartaAstrologia soulMap={soulMap} />;
+      break;
     case 'kabbalah':
-      return <CartaKabbalah soulMap={soulMap} />;
+      body = <CartaKabbalah soulMap={soulMap} />;
+      break;
     case 'shadow':
-      return <CartaSombra soulMap={soulMap} />;
+      body = <CartaSombra soulMap={soulMap} />;
+      break;
     case 'frequency':
-      return <CartaFrequencia soulMap={soulMap} />;
+      body = <CartaFrequencia soulMap={soulMap} />;
+      break;
     case 'numerology':
-      return <CartaNumerologia soulMap={soulMap} />;
+      body = <CartaNumerologia soulMap={soulMap} />;
+      break;
   }
+
+  return (
+    <>
+      {body}
+      {provenance && <CadeiaRaciocinio provenance={provenance} />}
+    </>
+  );
 }
 
 // ── Transitions (ROADMAP-V2) ──
