@@ -143,3 +143,43 @@ export async function revokeShareLink(linkId: string): Promise<void> {
 
   if (error) throw new Error(`Failed to revoke share link: ${error.message}`);
 }
+
+// ── Capture email + upgrade tier ──
+
+export async function captureEmail(
+  readingId: string,
+  email: string,
+): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    // Insert into email_captures
+    await supabase.from('email_captures').insert({ email, reading_id: readingId });
+
+    // Update atom_item tier
+    await supabase
+      .from('atom_items')
+      .update({ email, tier: 'email' })
+      .eq('id', readingId);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ── Upgrade to oracle tier (called after payment webhook) ──
+
+export async function upgradeToOracle(readingId: string): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    await supabase
+      .from('atom_items')
+      .update({ paid: true, tier: 'oracle' })
+      .eq('id', readingId);
+    return true;
+  } catch {
+    return false;
+  }
+}

@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { BirthData, PalmData, SoulMap, SoulMateReading } from '../types/soul-map';
+import type { ReadingTier } from '../types/database';
 import { getSoulMap, getPalmSoulMap, getSoulMateReading } from '../engine';
-import { saveReading, getReadingByToken, createShareLink } from '../lib/readings';
+import { saveReading, getReadingByToken, createShareLink, captureEmail } from '../lib/readings';
 import { isSupabaseConfigured } from '../lib/supabase';
 
 type AppScreen = 'landing' | 'gateway' | 'entry' | 'palmEntry' | 'loading' | 'revelation' | 'meetLoading' | 'soulMate';
@@ -14,12 +15,13 @@ export function useSoulMap() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [tier, setTier] = useState<ReadingTier>('session');
+  const [emailCaptured, setEmailCaptured] = useState(false);
 
   // ── Resolve ?token=xxx or ?meet=tokenA,tokenB on mount ──
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
-    // Soul Mate via URL
     const meetTokens = params.get('meet');
     if (meetTokens) {
       const [tokenA, tokenB] = meetTokens.split(',');
@@ -34,7 +36,7 @@ export function useSoulMap() {
             setScreen('gateway');
           }
         }).catch(() => setScreen('gateway'));
-        return; // don't process single token
+        return;
       }
     }
 
@@ -46,13 +48,12 @@ export function useSoulMap() {
       if (row) {
         setSoulMap(row.body);
         setReadingId(row.id);
+        setTier(row.tier ?? 'email'); // shared links are at least email tier
         setScreen('revelation');
       } else {
         setScreen('gateway');
       }
-    }).catch(() => {
-      setScreen('gateway');
-    });
+    }).catch(() => setScreen('gateway'));
   }, []);
 
   // ── Persist reading to Supabase ──
@@ -67,7 +68,6 @@ export function useSoulMap() {
       }
       return null;
     } catch {
-      // Supabase save failed — app still works client-side
       return null;
     } finally {
       setIsSaving(false);
@@ -77,6 +77,8 @@ export function useSoulMap() {
   const generate = useCallback((birthData: BirthData) => {
     setShareUrl(null);
     setReadingId(null);
+    setTier('session');
+    setEmailCaptured(false);
     const map = getSoulMap(birthData);
     setSoulMap(map);
     setScreen('loading');
@@ -87,6 +89,8 @@ export function useSoulMap() {
   const generateFromPalm = useCallback((palmData: PalmData) => {
     setShareUrl(null);
     setReadingId(null);
+    setTier('session');
+    setEmailCaptured(false);
     const map = getPalmSoulMap(palmData);
     setSoulMap(map);
     setScreen('loading');
@@ -94,13 +98,44 @@ export function useSoulMap() {
     setTimeout(() => setScreen('revelation'), 7000);
   }, [persistReading]);
 
+  // ── Capture email + upgrade to email tier ──
+  const submitEmail = useCallback(async (email: string): Promise<boolean> => {
+    if (emailCaptured) return true;
+    setEmailCaptured(true);
+
+    // Upgrade tier locally immediately (optimistic)
+    setTier('email');
+
+    // Persist to Supabase if we have a readingId
+    if (readingId) {
+      await captureEmail(readingId, email);
+    }
+
+    // Send email with share link (fire and forget)
+    if (soulMap) {
+      const shareLink = shareUrl ?? `${window.location.origin}${window.location.pathname}${readingId ? `?token=${readingId}` : ''}`;
+      const signName = soulMap.sunSign;
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: email,
+          shareUrl: shareLink,
+          signName,
+          name: soulMap.birthData.name,
+        }),
+      }).catch(() => { /* silent */ });
+    }
+
+    return true;
+  }, [emailCaptured, readingId, shareUrl, soulMap]);
+
   // ── Share ──
   const share = useCallback(async () => {
     if (isSharing || isSaving) return null;
     setIsSharing(true);
     try {
       let id = readingId;
-      // If save failed earlier, retry before creating share link
       if (!id && soulMap && isSupabaseConfigured) {
         id = await persistReading(soulMap);
       }
@@ -125,10 +160,7 @@ export function useSoulMap() {
     setScreen('meetLoading');
     try {
       const otherRow = await getReadingByToken(otherToken);
-      if (!otherRow) {
-        setScreen('revelation'); // go back if token invalid
-        return;
-      }
+      if (!otherRow) { setScreen('revelation'); return; }
       const mateReading = getSoulMateReading(soulMap, otherRow.body);
       setSoulMateReading(mateReading);
       setScreen('soulMate');
@@ -147,6 +179,8 @@ export function useSoulMap() {
     setSoulMateReading(null);
     setReadingId(null);
     setShareUrl(null);
+    setTier('session');
+    setEmailCaptured(false);
     if (window.location.search) {
       window.history.replaceState({}, '', window.location.pathname);
     }
@@ -155,7 +189,8 @@ export function useSoulMap() {
 
   return {
     screen, soulMap, soulMateReading, readingId, shareUrl, isSharing, isSaving,
-    generate, generateFromPalm, share, meetAnotherSoul,
+    tier, emailCaptured,
+    generate, generateFromPalm, share, submitEmail, meetAnotherSoul,
     goToLanding, goToGateway, goToEntry, goToPalmEntry, reset,
     canShare: isSupabaseConfigured,
   };

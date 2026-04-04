@@ -5,6 +5,8 @@
 
 import type { SoulMap } from './soul-map';
 
+export type ReadingTier = 'session' | 'email' | 'oracle';
+
 // ── atom_items row ──
 
 export interface AtomItemRow {
@@ -19,6 +21,9 @@ export interface AtomItemRow {
   title: string | null;
   body: SoulMap;
   user_id: string | null;
+  email: string | null;
+  paid: boolean;
+  tier: ReadingTier;
   created_at: string;
   updated_at: string;
 }
@@ -31,4 +36,14 @@ export interface ShareLinkRow {
   item_id: string;
   created_at: string;
   expires_at: string | null;
+}
+
+// ── email_captures row ──
+
+export interface EmailCaptureRow {
+  id: string;
+  email: string;
+  reading_id: string | null;
+  source: string;
+  created_at: string;
 }
