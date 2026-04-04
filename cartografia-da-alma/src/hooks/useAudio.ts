@@ -48,7 +48,7 @@ export function useAudio(hz: number) {
 
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 2); // fade in 2s
+    gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 3); // fade in 3s
     gain.connect(ctx.destination);
 
     const osc = ctx.createOscillator();

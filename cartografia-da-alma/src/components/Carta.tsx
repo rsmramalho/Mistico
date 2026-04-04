@@ -55,14 +55,14 @@ export function Carta({
   onContinue,
   showContinue,
   progress,
-  minPause = 3,
+  minPause = 4,
   fundoEscuro = false,
 }: CartaProps) {
   const words = useMemo(() => variation.split(' '), [variation]);
   const variationDuration = words.length * 0.14 + 0.8; // word animation starts at t=0.8
   const bodyDelay = variationDuration;
-  const oracleDelay = bodyDelay + 2.5;
-  const continueDelay = oracle ? oracleDelay + 2.0 : bodyDelay + 2.0;
+  const oracleDelay = bodyDelay + 4.0;
+  const continueDelay = oracle ? oracleDelay + 1.5 : bodyDelay + 4.0;
 
   // Track whether minPause has elapsed since body appeared
   const [continueEnabled, setContinueEnabled] = useState(false);
@@ -189,11 +189,11 @@ export function Carta({
             ))}
           </p>
 
-          {/* Body — paragraph by paragraph stagger 0.4s */}
+          {/* Body — fade in with breathing pace */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1.4, delay: bodyDelay + 0.5, staggerChildren: 2.5 }}
+            transition={{ duration: 1.4, delay: bodyDelay + 1.2 }}
           >
             {body}
           </motion.div>
@@ -215,7 +215,7 @@ export function Carta({
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: continueEnabled ? 1 : 0.2 }}
-              transition={{ duration: 0.8, delay: continueDelay }}
+              transition={{ duration: 1.2, delay: continueDelay }}
               style={{ marginTop: '48px', textAlign: 'center' }}
             >
               <button
