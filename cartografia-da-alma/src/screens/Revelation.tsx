@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { SoulMap, Element, LineName } from '../types/soul-map';
 import { RevealSection } from '../components/RevealSection';
@@ -202,17 +202,9 @@ function Bridge({ text }: { text: string }) {
 
 export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, onShare, onMeet }: RevelationProps) {
   const [meetInput, setMeetInput] = useState('');
-  const [showFloat, setShowFloat] = useState(false);
   const { sunSign, element, ascendant, sephirah, archetype, psyche, frequency, numerology } = soulMap;
   const isPalm = soulMap.source === 'palm';
   const bridges = computeBridges(soulMap);
-
-  // Show floating share after user scrolls past first viewport
-  useEffect(() => {
-    const onScroll = () => { if (window.scrollY > window.innerHeight * 0.6) setShowFloat(true); };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   const handleShare = async () => {
     if (shareUrl) { navigator.clipboard.writeText(shareUrl); return; }
@@ -235,33 +227,28 @@ export function Revelation({ soulMap, onReset, canShare, shareUrl, isSharing, on
       style={{ minHeight: '100vh' }}
     >
       {/* ── Floating share button ── */}
-      {canShare && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={showFloat ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-          transition={{ duration: 0.6 }}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 1 }}
+        style={{ position: 'fixed', bottom: '28px', right: '20px', zIndex: 100 }}
+      >
+        <button
+          onClick={handleShare}
+          disabled={isSharing}
           style={{
-            position: 'fixed', bottom: '32px', right: '32px', zIndex: 100,
+            background: 'rgba(7,7,15,0.95)',
+            border: '1px solid var(--gold)',
+            fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+            letterSpacing: '0.35em', color: 'var(--gold)',
+            textTransform: 'uppercase', padding: '14px 22px',
+            backdropFilter: 'blur(16px)',
+            opacity: isSharing ? 0.5 : 1,
           }}
         >
-          <button
-            onClick={handleShare}
-            style={{
-              background: 'rgba(4,4,10,0.9)',
-              border: '1px solid var(--gold-line)',
-              fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
-              letterSpacing: '0.35em', color: 'var(--gold)',
-              textTransform: 'uppercase', padding: '12px 20px',
-              backdropFilter: 'blur(12px)',
-              transition: 'border-color 0.3s, color 0.3s',
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--gold)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--gold-line)'; }}
-          >
-            {shareUrl ? 'link copiado ✓' : isSharing ? 'gerando...' : 'compartilhar mapa'}
-          </button>
-        </motion.div>
-      )}
+          {shareUrl ? 'link copiado ✓' : isSharing ? 'gerando...' : 'compartilhar mapa'}
+        </button>
+      </motion.div>
 
       {/* ── First viewport: name alone ── */}
       <div style={{
