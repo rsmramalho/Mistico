@@ -20,7 +20,7 @@ import { TreeOfLife } from '../geometry/TreeOfLife';
 
 // ═══════════════════════════════════════
 // Cartografia da Alma — Journey
-// Orchestrates the 6-card sequence
+// Orchestrates the 5-card sequence
 // ═══════════════════════════════════════
 
 interface JourneyProps {
@@ -51,8 +51,6 @@ function getGeometry(cardId: CardId, soulMap: SoulMap): React.ReactNode {
       return <FlowerOfLife />;
     case 'numerology':
       return <FlowerOfLife />;
-    case 'palm':
-      return <SriYantra />;
   }
 }
 
@@ -64,7 +62,26 @@ const CARD_LABELS: Record<CardId, string> = {
   shadow: 'a sombra',
   frequency: 'frequência',
   numerology: 'numerologia',
-  palm: 'palma',
+};
+
+// ── minPause per card (ROADMAP-V2) ──
+
+const CARD_MIN_PAUSE: Record<CardId, number> = {
+  astrology: 3,
+  kabbalah: 3,
+  shadow: 5,    // denser card
+  frequency: 4,
+  numerology: 3,
+};
+
+// ── fundoEscuro per card ──
+
+const CARD_FUNDO_ESCURO: Record<CardId, boolean> = {
+  astrology: false,
+  kabbalah: false,
+  shadow: true,
+  frequency: false,
+  numerology: false,
 };
 
 // ── Variation key mapping ──
@@ -91,8 +108,6 @@ function getVariationText(cardId: CardId, soulMap: SoulMap, variation: 0 | 1 | 2
       return `A frequência do seu campo vibra a ${soulMap.frequency.hz}Hz — ${soulMap.frequency.keywordPt}.`;
     case 'numerology':
       return `O número que carrega seu nome é ${soulMap.numerology.number} — ${soulMap.numerology.namePt}.`;
-    case 'palm':
-      return 'As linhas da mão contam o que a data de nascimento não alcança.';
     default:
       return '';
   }
@@ -112,36 +127,26 @@ function getCardContent(cardId: CardId, soulMap: SoulMap): React.ReactNode {
       return <CartaFrequencia soulMap={soulMap} />;
     case 'numerology':
       return <CartaNumerologia soulMap={soulMap} />;
-    case 'palm':
-      return (
-        <div style={{
-          fontFamily: 'var(--serif)',
-          fontSize: '18px',
-          color: 'var(--white-dim)',
-        }}>
-          Leitura da palma em breve.
-        </div>
-      );
   }
 }
 
-// ── Transitions ──
+// ── Transitions (ROADMAP-V2) ──
 
 const cardExit = {
   opacity: 0,
-  y: -20,
-  transition: { duration: 0.6, ease: 'easeIn' as const },
+  y: -24,
+  transition: { duration: 0.5, ease: 'easeIn' as const },
 };
 
 const cardEnter = {
   opacity: 0,
-  y: 30,
+  y: 40,
 };
 
 const cardVisible = {
   opacity: 1,
   y: 0,
-  transition: { duration: 0.8, delay: 0.2, ease: 'easeOut' as const },
+  transition: { duration: 0.9, delay: 0.35 + 0.1, ease: 'easeOut' as const },
 };
 
 // ═══════════════════════════════════════
@@ -181,6 +186,8 @@ export function Journey({ soulMap, onComplete }: JourneyProps) {
   const geometry = getGeometry(currentCard.id, soulMap);
   const label = CARD_LABELS[currentCard.id];
   const progress = `${currentIndex + 1} / ${totalCards}`;
+  const minPause = CARD_MIN_PAUSE[currentCard.id];
+  const fundoEscuro = CARD_FUNDO_ESCURO[currentCard.id];
 
   const bodyContent = currentCard.bodyRevealed
     ? getCardContent(currentCard.id, soulMap)
@@ -217,6 +224,8 @@ export function Journey({ soulMap, onComplete }: JourneyProps) {
           onContinue={advanceCard}
           showContinue={showContinue}
           progress={progress}
+          minPause={minPause}
+          fundoEscuro={fundoEscuro}
         />
       </motion.div>
     </AnimatePresence>

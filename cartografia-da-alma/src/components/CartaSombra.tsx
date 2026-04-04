@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import type { SoulMap } from '../types/soul-map';
+import { ArchetypeGlyph } from '../geometry/glyphs';
 
 const fadeBlock = (i: number) => ({
   initial: { opacity: 0, y: 12 },
@@ -44,6 +45,9 @@ export function CartaSombra({ soulMap }: Props) {
       {/* Block 1 — Archetype */}
       <motion.div {...fadeBlock(0)}>
         <div style={labelStyle}>arquetipo</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+          <ArchetypeGlyph name={archetype.name} size={56} opacity={0.5} />
+        </div>
         <p style={{
           fontFamily: 'var(--serif)',
           fontSize: '22px',

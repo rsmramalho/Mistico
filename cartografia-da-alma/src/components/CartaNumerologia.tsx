@@ -43,16 +43,43 @@ export function CartaNumerologia({ soulMap }: Props) {
     <div>
       {/* Block 1 — Number */}
       <motion.div {...fadeBlock(0)}>
-        <p style={{
-          fontFamily: 'var(--serif)',
-          fontSize: '64px',
-          fontWeight: 300,
-          color: 'var(--gold)',
-          lineHeight: 1.1,
-          margin: '0 0 8px 0',
-        }}>
-          {numerology.number}
-        </p>
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          <p style={{
+            fontFamily: 'var(--serif)',
+            fontSize: '64px',
+            fontWeight: 300,
+            color: 'var(--gold)',
+            lineHeight: 1.1,
+            margin: '0 0 8px 0',
+          }}>
+            {numerology.number}
+          </p>
+          {numerology.isMasterNumber && (
+            <svg
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -55%)',
+                pointerEvents: 'none',
+              }}
+              width={88}
+              height={88}
+              viewBox="0 0 88 88"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx={44}
+                cy={44}
+                r={40}
+                fill="none"
+                stroke="var(--gold)"
+                strokeWidth={1}
+                opacity={0.35}
+              />
+            </svg>
+          )}
+        </div>
         {numerology.isMasterNumber && (
           <div style={{
             ...labelStyle,

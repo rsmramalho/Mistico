@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import type { SoulMap } from '../types/soul-map';
+import type { SoulMap, SephirahName } from '../types/soul-map';
+import { SephirahGlyph } from '../geometry/glyphs';
 
 const fadeBlock = (i: number) => ({
   initial: { opacity: 0, y: 12 },
@@ -45,6 +46,9 @@ export function CartaKabbalah({ soulMap }: Props) {
       {/* Block 1 — Sephirah */}
       <motion.div {...fadeBlock(blockIndex++)}>
         <div style={labelStyle}>sephirah</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+          <SephirahGlyph name={sephirah.name} size={48} opacity={0.6} animated />
+        </div>
         <p style={{
           fontFamily: 'var(--serif)',
           fontSize: '22px',
@@ -66,9 +70,23 @@ export function CartaKabbalah({ soulMap }: Props) {
           <div style={goldLine} />
           <motion.div {...fadeBlock(blockIndex++)}>
             <div style={labelStyle}>caminhos adjacentes</div>
-            <p style={bodyStyle}>
-              {sephirah.paths.join(' \u00b7 ')}
-            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginTop: '8px' }}>
+              {sephirah.paths.map((path) => (
+                <div key={path} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <SephirahGlyph name={path as SephirahName} size={20} opacity={0.3} />
+                  <span style={{
+                    fontFamily: 'var(--sans)',
+                    fontSize: '8px',
+                    fontWeight: 200,
+                    letterSpacing: '0.2em',
+                    color: 'var(--white-dim)',
+                    textTransform: 'uppercase',
+                  }}>
+                    {path}
+                  </span>
+                </div>
+              ))}
+            </div>
           </motion.div>
         </>
       )}

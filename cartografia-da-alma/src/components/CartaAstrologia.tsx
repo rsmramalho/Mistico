@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import type { SoulMap, Element } from '../types/soul-map';
 import { getSignData } from '../engine/astrology';
+import { ElementGlyph, SephirahGlyph } from '../geometry/glyphs';
 
 const ELEMENT_PT: Record<Element, string> = {
   fire: 'Fogo',
@@ -51,7 +52,10 @@ export function CartaAstrologia({ soulMap }: Props) {
     <div>
       {/* Block 1 — Element Quality */}
       <motion.div {...fadeBlock(0)}>
-        <div style={labelStyle}>elemento</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={labelStyle}>elemento</div>
+          <ElementGlyph element={soulMap.element} size={32} opacity={0.5} />
+        </div>
         <p style={bodyStyle}>
           {ELEMENT_PT[soulMap.element]} — {signData.elementQuality}
         </p>
@@ -74,7 +78,10 @@ export function CartaAstrologia({ soulMap }: Props) {
 
       {/* Block 3 — Expression */}
       <motion.div {...fadeBlock(2)}>
-        <div style={labelStyle}>expressao na arvore</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={labelStyle}>expressao na arvore</div>
+          <SephirahGlyph name={soulMap.sephirah.name} size={28} opacity={0.4} />
+        </div>
         <p style={bodyStyle}>
           {soulMap.sephirah.description}
         </p>

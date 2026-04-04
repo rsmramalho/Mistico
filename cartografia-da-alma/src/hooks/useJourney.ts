@@ -7,7 +7,7 @@ import { getVariation } from '../engine/variations';
 // Card-by-card state manager
 // ═══════════════════════════════════════
 
-export type CardId = 'astrology' | 'kabbalah' | 'shadow' | 'frequency' | 'numerology' | 'palm';
+export type CardId = 'astrology' | 'kabbalah' | 'shadow' | 'frequency' | 'numerology';
 
 export interface CardState {
   id: CardId;
@@ -28,7 +28,7 @@ export interface JourneyState {
   finished: boolean;              // all cards completed → show mapa final
 }
 
-const CARD_ORDER: CardId[] = ['astrology', 'kabbalah', 'shadow', 'frequency', 'numerology', 'palm'];
+const CARD_ORDER: CardId[] = ['astrology', 'kabbalah', 'shadow', 'frequency', 'numerology'];
 
 export function useJourney(soulMap: SoulMap) {
   const [seed] = useState(() => Math.floor(Math.random() * 1000));
@@ -72,13 +72,6 @@ export function useJourney(soulMap: SoulMap) {
     }
   }, [currentIndex]);
 
-  // Skip palm card (it's optional)
-  const skipPalm = useCallback(() => {
-    if (currentCard?.id === 'palm') {
-      advanceCard();
-    }
-  }, [currentCard, advanceCard]);
-
   return {
     soulMap,
     seed,
@@ -89,7 +82,6 @@ export function useJourney(soulMap: SoulMap) {
     revealBody,
     setOracleResult,
     advanceCard,
-    skipPalm,
     totalCards: CARD_ORDER.length,
   };
 }
