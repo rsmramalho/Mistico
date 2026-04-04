@@ -180,7 +180,7 @@ export function Entry({ onSubmit, onBack }: EntryProps) {
           {...fade(1.2)}
           style={{ marginTop: '48px', fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200, letterSpacing: '0.2em', color: 'rgba(232,228,218,0.18)', textTransform: 'uppercase' }}
         >
-          seus dados permanecem no seu navegador
+          cartografia gerada por ia · leitura salva por 12 meses
         </motion.p>
       </div>
     </motion.div>

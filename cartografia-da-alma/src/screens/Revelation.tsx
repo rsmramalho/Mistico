@@ -164,7 +164,7 @@ function FooterBlock({ isPalm, canShare, shareUrl, isSharing, isSaving, onShare,
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '20px', maxWidth: '460px', margin: '0 auto' }}>
               <input
                 type="text" value={meetInput} onChange={e => setMeetInput(e.target.value)}
-                placeholder="cole o link ou token" style={fieldStyle}
+                placeholder="cartografia-da-alma.vercel.app?token=..." style={fieldStyle}
                 onFocus={e => (e.target.style.borderBottomColor = 'var(--gold)')}
                 onBlur={e => (e.target.style.borderBottomColor = 'rgba(201,168,76,0.2)')}
               />

@@ -95,9 +95,6 @@ export function useSoulMap() {
   }, [persistReading]);
 
   // ── Share ──
-  const soulMapRef = useState<SoulMap | null>(null);
-  void soulMapRef; // used via closure below
-
   const share = useCallback(async () => {
     if (isSharing || isSaving) return null;
     setIsSharing(true);
