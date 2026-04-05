@@ -12,6 +12,8 @@ import { Journey } from './screens/Journey';
 import { MapaFinal } from './screens/MapaFinal';
 import { NotFound } from './screens/NotFound';
 import { About } from './screens/About';
+import { BetaBanner } from './components/BetaBanner';
+import { useTracking } from './hooks/useTracking';
 
 function Cursor() {
   const curRef = useRef<HTMLDivElement>(null);
@@ -95,10 +97,14 @@ export default function App() {
     goToAbout,
   } = useSoulMap();
 
+  // Analytics tracking
+  useTracking();
+
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ background: '#07070f' }}>
       <Cursor />
       <CosmosBackground />
+      <BetaBanner />
       <div className="relative z-10">
         <AnimatePresence mode="wait">
           {screen === 'landing'    && <Landing key="landing" onEnter={goToGateway} onAbout={goToAbout} />}

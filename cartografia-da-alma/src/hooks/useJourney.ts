@@ -79,7 +79,9 @@ export function useJourney(soulMap: SoulMap, tier: ReadingTier = 'session') {
   }, [currentIndex]);
 
   // Paywall: card is gated if index >= FREE_CARD_LIMIT and tier is 'session'
-  const isGated = tier === 'session' && currentIndex >= FREE_CARD_LIMIT;
+  // Beta mode: VITE_BETA_MODE=true disables all gates
+  const isBeta = import.meta.env.VITE_BETA_MODE === 'true';
+  const isGated = !isBeta && tier === 'session' && currentIndex >= FREE_CARD_LIMIT;
 
   return {
     soulMap,

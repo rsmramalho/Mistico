@@ -516,10 +516,10 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
           <button
             type="button"
             onClick={() => {
-              if (tier === 'oracle') {
+              const isBeta = import.meta.env.VITE_BETA_MODE === 'true';
+              if (isBeta || tier === 'oracle') {
                 setShowMeetInput(prev => !prev);
               } else {
-                // Open payment for Soul Mate
                 const kiwifyUrl = import.meta.env.VITE_KIWIFY_SOULMATE_URL;
                 const stripeUrl = import.meta.env.VITE_STRIPE_SOULMATE_URL;
                 if (kiwifyUrl) {
@@ -527,7 +527,6 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
                 } else if (stripeUrl) {
                   window.open(`${stripeUrl}${readingId ? `?client_reference_id=${readingId}` : ''}`, '_blank');
                 } else {
-                  // Fallback: Stripe API checkout
                   fetch('/api/create-checkout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -542,7 +541,7 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            {tier === 'oracle' ? 'cruzar com outra alma' : 'cruzar com outra alma — R$29'}
+            cruzar com outra alma
           </button>
           <button
             type="button"
