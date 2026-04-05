@@ -1,11 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { SoulMap, Element } from '../types/soul-map';
 import type { CardId } from '../hooks/useJourney';
 import { useJourney } from '../hooks/useJourney';
 import { useAudio } from '../hooks/useAudio';
+import { useSoundEffects } from '../hooks/useSoundEffects';
 import { CARTA_VARIATIONS, type CartaVariations } from '../engine/variations';
 import { Carta } from '../components/Carta';
+import { CartaReveal } from '../components/CartaReveal';
 import { JourneyTimeline } from '../components/JourneyTimeline';
 import { OracloCarta } from '../components/OracloCarta';
 import { CartaAstrologia } from '../components/CartaAstrologia';
@@ -67,6 +69,14 @@ const CARD_LABELS: Record<CardId, string> = {
   shadow: 'a sombra',
   frequency: 'frequência',
   numerology: 'numerologia',
+};
+
+const CARD_ICONS: Record<CardId, string> = {
+  astrology: '♈',
+  kabbalah: '✡',
+  shadow: '☯',
+  frequency: '♪',
+  numerology: '①',
 };
 
 // ── minPause per card (ROADMAP-V2) ──
@@ -187,6 +197,26 @@ export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
 
   // Audio — plays the frequency for this person
   const audio = useAudio(soulMap.frequency.hz);
+  const sfx = useSoundEffects();
+
+  // Card reveal ceremony state
+  const [revealing, setRevealing] = useState(true); // starts with first card reveal
+  const [revealedCards, setRevealedCards] = useState<Set<CardId>>(new Set());
+
+  const handleRevealComplete = useCallback(() => {
+    if (currentCard) {
+      setRevealedCards(prev => new Set(prev).add(currentCard.id));
+    }
+    setRevealing(false);
+  }, [currentCard]);
+
+  // Trigger reveal ceremony when card changes
+  useEffect(() => {
+    if (!currentCard) return;
+    if (revealedCards.has(currentCard.id)) return;
+    setRevealing(true);
+    sfx.enable(); // enable sfx after first interaction
+  }, [currentCard?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Stop audio when journey finishes
   useEffect(() => {
@@ -239,6 +269,18 @@ export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
 
   return (
     <>
+      {/* ── Card opening ceremony ── */}
+      {revealing && currentCard && !revealedCards.has(currentCard.id) && (
+        <CartaReveal
+          label={CARD_LABELS[currentCard.id]}
+          icon={CARD_ICONS[currentCard.id]}
+          onComplete={handleRevealComplete}
+          onFlip={sfx.flip}
+          onReveal={sfx.reveal}
+          frequencyHz={soulMap.frequency.hz}
+        />
+      )}
+
       <JourneyTimeline cards={cards} currentIndex={currentIndex} />
       <AnimatePresence mode="wait">
         <motion.div

@@ -7,8 +7,9 @@ import { Metatron } from '../geometry/Metatron';
 import { SriYantra } from '../geometry/SriYantra';
 import { ElementGlyph } from '../geometry/glyphs';
 import { FrequencyWave } from '../geometry/FrequencyWave';
-// getSignData removed — no longer used in simplified MapaFinal
+import { PsycheBar } from '../components/PsycheBar';
 import { computeBridges } from '../engine/bridges';
+import type { BridgeHighlight } from '../engine/bridges';
 
 // ── Props ──
 
@@ -378,11 +379,83 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
           ) : null}
         </div>
 
-        {/* ── Provenance — one-line seal, collapsible ── */}
+        {/* ── Psyche — visual bar ── */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: synthesisEnd + 0.5 }}
+          transition={{ duration: 1, delay: synthesisEnd + 0.3 }}
+          style={{ margin: '8px 0 0' }}
+        >
+          <p style={{
+            fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200,
+            letterSpacing: '0.35em', color: 'var(--gold)', textTransform: 'uppercase',
+            margin: '0 0 12px', textAlign: 'center',
+          }}>
+            estrutura psíquica
+          </p>
+          <PsycheBar psyche={soulMap.psyche} delay={synthesisEnd + 0.5} />
+          <p style={{
+            fontFamily: 'var(--serif)', fontSize: '14px', fontWeight: 300,
+            fontStyle: 'italic', color: 'var(--white-dim)', textAlign: 'center',
+            marginTop: '10px', lineHeight: 1.6,
+          }}>
+            {soulMap.psyche.signature}
+          </p>
+        </motion.div>
+
+        {/* ── Resonances — cross-system connections ── */}
+        {bridges.highlights.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: synthesisEnd + 0.8 }}
+            style={{ margin: '24px 0 0' }}
+          >
+            <GoldLine />
+            <p style={{
+              fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200,
+              letterSpacing: '0.35em', color: 'var(--gold)', textTransform: 'uppercase',
+              margin: '0 0 16px', textAlign: 'center',
+            }}>
+              conexões entre os sistemas
+            </p>
+            <div style={{ maxWidth: '520px', margin: '0 auto' }}>
+              {bridges.highlights.map((h: BridgeHighlight, i: number) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: synthesisEnd + 1.0 + i * 0.25 }}
+                  style={{
+                    padding: '12px 0 12px 14px',
+                    borderLeft: '2px solid var(--gold)',
+                    marginBottom: '12px',
+                  }}
+                >
+                  <p style={{
+                    fontFamily: 'var(--sans)', fontSize: '8px', fontWeight: 200,
+                    letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase',
+                    margin: '0 0 4px',
+                  }}>
+                    {h.systemA} · {h.systemB}
+                  </p>
+                  <p style={{
+                    fontFamily: 'var(--serif)', fontSize: '15px', fontWeight: 300,
+                    color: 'var(--white-dim)', lineHeight: 1.6, margin: 0,
+                  }}>
+                    {h.resonance}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Provenance seal ── */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: synthesisEnd + 1.5 }}
           style={{ textAlign: 'center', margin: '24px 0 0' }}
         >
           <p style={{
