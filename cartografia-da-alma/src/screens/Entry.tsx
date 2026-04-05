@@ -162,11 +162,11 @@ export function Entry({ onSubmit, onBack }: EntryProps) {
                   style={{
                     background: 'transparent', border: 'none',
                     fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
-                    letterSpacing: '0.25em', color: 'rgba(232,228,218,0.3)',
+                    letterSpacing: '0.25em', color: 'var(--white-ghost)',
                     textTransform: 'uppercase', transition: 'color 0.3s',
                   }}
                   onMouseEnter={e => ((e.target as HTMLElement).style.color = 'var(--white-dim)')}
-                  onMouseLeave={e => ((e.target as HTMLElement).style.color = 'rgba(232,228,218,0.3)')}
+                  onMouseLeave={e => ((e.target as HTMLElement).style.color = 'var(--white-ghost)')}
                 >
                   ← voltar
                 </button>
@@ -178,7 +178,7 @@ export function Entry({ onSubmit, onBack }: EntryProps) {
 
         <motion.p
           {...fade(1.2)}
-          style={{ marginTop: '48px', fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200, letterSpacing: '0.2em', color: 'rgba(232,228,218,0.18)', textTransform: 'uppercase' }}
+          style={{ marginTop: '48px', fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200, letterSpacing: '0.2em', color: 'var(--white-ghost)', textTransform: 'uppercase' }}
         >
           cartografia gerada por ia · leitura salva por 12 meses
         </motion.p>

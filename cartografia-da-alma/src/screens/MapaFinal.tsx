@@ -17,10 +17,12 @@ import type { BridgeHighlight } from '../engine/bridges';
 interface MapaFinalProps {
   soulMap: SoulMap;
   onShare: () => void;
-  onMeet: () => void;
+  onMeet: (token: string) => void;
   onReset: () => void;
   shareUrl?: string | null;
   isSharing?: boolean;
+  shareError?: boolean;
+  shareCopied?: boolean;
 }
 
 // ── PT maps ──
@@ -263,9 +265,11 @@ function ProvenanceSeal({ soulMap, synthesisEnd }: { soulMap: SoulMap; synthesis
 
 // ── Component ──
 
-export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isSharing }: MapaFinalProps) {
+export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isSharing, shareError, shareCopied }: MapaFinalProps) {
   const [synthesis, setSynthesis] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [meetInput, setMeetInput] = useState('');
+  const [showMeetInput, setShowMeetInput] = useState(false);
 
   const signPT = SIGN_PT[soulMap.sunSign] ?? soulMap.sunSign;
   const elementPT = ELEMENT_PT[soulMap.element];
@@ -323,9 +327,13 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
 
   const shareLabel = isSharing
     ? 'gerando...'
-    : shareUrl
-      ? 'copiar link'
-      : 'compartilhar meu mapa';
+    : shareCopied
+      ? 'link copiado ✓'
+      : shareError
+        ? 'erro — tentar novamente'
+        : shareUrl
+          ? 'copiar link'
+          : 'compartilhar meu mapa';
 
   // ── Styles ──
 
@@ -740,7 +748,7 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
           </button>
           <button
             type="button"
-            onClick={onMeet}
+            onClick={() => setShowMeetInput(prev => !prev)}
             style={actionStyle}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
@@ -757,6 +765,54 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
             nova cartografia
           </button>
         </motion.div>
+
+        {/* ── Meet input (toggled) ── */}
+        {showMeetInput && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            transition={{ duration: 0.4 }}
+            style={{ overflow: 'hidden', marginTop: '24px' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '16px', maxWidth: '480px', margin: '0 auto' }}>
+              <input
+                type="text"
+                value={meetInput}
+                onChange={e => setMeetInput(e.target.value)}
+                placeholder="cole o link de outro mapa"
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: '1px solid var(--gold-line)',
+                  color: 'var(--white)',
+                  fontFamily: 'var(--serif)',
+                  fontSize: '16px',
+                  fontWeight: 300,
+                  padding: '0 0 8px',
+                  outline: 'none',
+                  caretColor: 'var(--gold)',
+                }}
+                onFocus={e => { e.target.style.borderBottomColor = 'var(--gold)'; }}
+                onBlur={e => { e.target.style.borderBottomColor = 'var(--gold-line)'; }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (!meetInput.trim()) return;
+                  let token = meetInput.trim();
+                  try { const url = new URL(token); const t = url.searchParams.get('token'); if (t) token = t; } catch { /* raw token */ }
+                  onMeet(token);
+                }}
+                style={{ ...actionStyle, flexShrink: 0 }}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                cruzar mapas →
+              </button>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* ── Responsive: single column on mobile ── */}

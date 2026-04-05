@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { SoulMap, Element } from '../types/soul-map';
 import type { CardId } from '../hooks/useJourney';
 import { useJourney } from '../hooks/useJourney';
+import { useAudio } from '../hooks/useAudio';
 import { CARTA_VARIATIONS, type CartaVariations } from '../engine/variations';
 import { Carta } from '../components/Carta';
 import { JourneyTimeline } from '../components/JourneyTimeline';
@@ -184,10 +185,13 @@ export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
     advanceCard,
   } = journey;
 
-  // Call onComplete when journey finishes
+  // Audio — plays the frequency for this person
+  const audio = useAudio(soulMap.frequency.hz);
+
+  // Stop audio when journey finishes
   useEffect(() => {
-    if (finished) onComplete();
-  }, [finished, onComplete]);
+    if (finished) { audio.stop(); onComplete(); }
+  }, [finished, onComplete, audio]);
 
   // Auto-reveal body after variation text animation finishes
   useEffect(() => {
@@ -255,6 +259,8 @@ export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
             progress={progress}
             minPause={minPause}
             fundoEscuro={fundoEscuro}
+            audioPlaying={audio.playing}
+            onAudioToggle={audio.toggle}
           />
         </motion.div>
       </AnimatePresence>

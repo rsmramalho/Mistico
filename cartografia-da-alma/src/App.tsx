@@ -86,7 +86,7 @@ function Gateway({ onBirth, onPalm }: { onBirth: () => void; onPalm: () => void 
 export default function App() {
   const {
     screen, soulMap, viewerMap, soulMateReading, soulMateShareUrl,
-    readingId, shareUrl, isSharing, isSaving, canShare, tier,
+    readingId, shareUrl, isSharing, isSaving, shareError, shareCopied, canShare, tier,
     generate, generateFromPalm, share, submitEmail,
     meetAnotherSoul, meetFromViewer, saveOracleAnswer,
     goToGateway, goToEntry, goToPalmEntry, goToMapaFinal, reset,
@@ -111,10 +111,12 @@ export default function App() {
               key="mapaFinal"
               soulMap={soulMap}
               onShare={share}
-              onMeet={() => { /* TODO: meet flow from mapa final */ }}
+              onMeet={meetAnotherSoul}
               onReset={reset}
               shareUrl={shareUrl}
               isSharing={isSharing}
+              shareError={shareError}
+              shareCopied={shareCopied}
             />
           )}
           {screen === 'viewer'     && viewerMap && (
@@ -122,7 +124,7 @@ export default function App() {
               key="viewer"
               soulMap={viewerMap}
               onShare={() => {}}
-              onMeet={meetFromViewer}
+              onMeet={() => meetFromViewer()}
               onReset={reset}
             />
           )}

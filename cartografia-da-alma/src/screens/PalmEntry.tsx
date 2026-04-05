@@ -581,13 +581,13 @@ export function PalmEntry({ onSubmit, onBack }: PalmEntryProps) {
               fontSize: '9px',
               fontWeight: 200,
               letterSpacing: '0.25em',
-              color: 'rgba(232,228,218,0.3)',
+              color: 'var(--white-ghost)',
               textTransform: 'uppercase',
               transition: 'color 0.3s',
               cursor: 'pointer',
             }}
             onMouseEnter={e => ((e.target as HTMLElement).style.color = 'var(--white-dim)')}
-            onMouseLeave={e => ((e.target as HTMLElement).style.color = 'rgba(232,228,218,0.3)')}
+            onMouseLeave={e => ((e.target as HTMLElement).style.color = 'var(--white-ghost)')}
           >
             ← voltar
           </button>
@@ -601,11 +601,11 @@ export function PalmEntry({ onSubmit, onBack }: PalmEntryProps) {
             fontSize: '9px',
             fontWeight: 200,
             letterSpacing: '0.2em',
-            color: 'rgba(232,228,218,0.18)',
+            color: 'var(--white-ghost)',
             textTransform: 'uppercase',
           }}
         >
-          seus dados permanecem no seu navegador
+          cartografia gerada por ia · leitura salva por 12 meses
         </motion.p>
       </div>
     </motion.div>

@@ -155,21 +155,30 @@ export function useSoulMap() {
   }, [emailCaptured, readingId, shareUrl, soulMap]);
 
   // ── Share my map ──
+  const [shareError, setShareError] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+
   const share = useCallback(async () => {
     if (isSharing || isSaving) return null;
     setIsSharing(true);
+    setShareError(false);
     try {
       let id = readingId;
       if (!id && soulMap && isSupabaseConfigured) id = await persistReading(soulMap);
-      if (!id) return null;
+      if (!id) { setShareError(true); return null; }
       const link = await createShareLink(id);
       if (link) {
         const url = `${window.location.origin}${window.location.pathname}?token=${link.token}`;
         setShareUrl(url);
+        navigator.clipboard.writeText(url).then(() => {
+          setShareCopied(true);
+          setTimeout(() => setShareCopied(false), 2500);
+        }).catch(() => {});
         return url;
       }
+      setShareError(true);
       return null;
-    } catch { return null; }
+    } catch { setShareError(true); return null; }
     finally { setIsSharing(false); }
   }, [readingId, isSharing, isSaving, soulMap, persistReading]);
 
@@ -189,7 +198,7 @@ export function useSoulMap() {
     setScreen('meetLoading');
     try {
       const otherRow = await getReadingByToken(otherToken);
-      if (!otherRow) { setScreen('revelation'); return; }
+      if (!otherRow) { setScreen('mapaFinal'); return; }
       const mateReading = getSoulMateReading(soulMap, otherRow.body);
       setSoulMateReading(mateReading);
       // Build meet URL
@@ -198,7 +207,7 @@ export function useSoulMap() {
         setSoulMateShareUrl(meetUrl);
       }
       setScreen('soulMate');
-    } catch { setScreen('revelation'); }
+    } catch { setScreen('mapaFinal'); }
   }, [soulMap, readingId]);
 
   // ── Save oracle answer to SoulMap + Supabase ──
@@ -248,6 +257,7 @@ export function useSoulMap() {
     screen, soulMap, viewerMap, viewerReadingId,
     soulMateReading, soulMateShareUrl,
     readingId, shareUrl, isSharing, isSaving,
+    shareError, shareCopied,
     tier, emailCaptured, invitedByToken,
     generate, generateFromPalm, share, submitEmail,
     meetAnotherSoul, meetFromViewer, saveOracleAnswer,

@@ -26,6 +26,8 @@ interface CartaProps {
   progress: string;
   minPause?: number;        // minimum seconds before "continuar" is clickable (default 3)
   fundoEscuro?: boolean;    // darker background for shadow card (#050508)
+  audioPlaying?: boolean;
+  onAudioToggle?: () => void;
 }
 
 const labelStyle: React.CSSProperties = {
@@ -57,6 +59,8 @@ export function Carta({
   progress,
   minPause = 4,
   fundoEscuro = false,
+  audioPlaying = false,
+  onAudioToggle,
 }: CartaProps) {
   const words = useMemo(() => variation.split(' '), [variation]);
   const variationDuration = words.length * 0.14 + 0.8; // word animation starts at t=0.8
@@ -136,14 +140,38 @@ export function Carta({
           >
             {label}
           </motion.span>
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            style={progressStyle}
-          >
-            {progress}
-          </motion.span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {onAudioToggle && (
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1, delay: 0.3 }}
+                onClick={onAudioToggle}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontFamily: 'var(--sans)',
+                  fontSize: '9px',
+                  fontWeight: 200,
+                  letterSpacing: '0.2em',
+                  color: audioPlaying ? 'var(--gold)' : 'var(--white-ghost)',
+                  textTransform: 'uppercase',
+                  padding: 0,
+                  transition: 'color 0.3s',
+                }}
+              >
+                {audioPlaying ? '♪ on' : '♪ off'}
+              </motion.button>
+            )}
+            <motion.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.3 }}
+              style={progressStyle}
+            >
+              {progress}
+            </motion.span>
+          </div>
         </div>
 
         {/* ── Geometry background ── */}

@@ -69,7 +69,8 @@ REGRAS DA CARTA:
 8. O último parágrafo não conclui. Uma frase que abre, não fecha.
 9. Português brasileiro. Sem "jornada", "despertar", "vibração", "universo conspira".
 10. Denso mas respirável. Cada frase ganha o espaço que ocupa.
-11. Esta carta é para ${s.birthData.name} especificamente — não é descrição genérica de ${s.sunSign}.`;
+11. Esta carta é para ${s.birthData.name} especificamente — não é descrição genérica de ${s.sunSign}.
+12. Seed de variação: ${Date.now() % 10000}. Use este seed para variar o ângulo de entrada e a ênfase — mantenha a precisão, varie a perspectiva.`;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -96,6 +97,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 1200,
+        temperature: 0.85,
         messages: [{ role: 'user', content: buildPrompt(soulMap, synthesis, bridges) }],
       }),
     });
