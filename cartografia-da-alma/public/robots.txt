@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://cartografia-da-alma.vercel.app/sitemap.xml

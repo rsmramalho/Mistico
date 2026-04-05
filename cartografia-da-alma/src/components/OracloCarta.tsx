@@ -93,7 +93,7 @@ export function OracloCarta({
   answer: prevAnswer,
   tier = 'email',
   readingId,
-  onTierUpgrade,
+  onTierUpgrade: _onTierUpgrade,
 }: OracleCartaProps) {
   const [mode, setMode] = useState<OracleMode>('choice');
   const [input, setInput] = useState('');
