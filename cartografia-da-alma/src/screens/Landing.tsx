@@ -5,6 +5,7 @@ import { Metatron } from '../geometry/Metatron';
 
 interface LandingProps {
   onEnter: () => void;
+  onAbout?: () => void;
 }
 
 /* ─── helpers ─── */
@@ -515,7 +516,7 @@ function SectionCTA({ onEnter }: { onEnter: () => void }) {
 
 /* ─── Landing ─── */
 
-export function Landing({ onEnter }: LandingProps) {
+export function Landing({ onEnter, onAbout }: LandingProps) {
   return (
     <motion.div
       key="landing"
@@ -534,6 +535,23 @@ export function Landing({ onEnter }: LandingProps) {
       <SectionJornada />
       <SectionOraculo />
       <SectionCTA onEnter={onEnter} />
+      {onAbout && (
+        <div style={{ textAlign: 'center', padding: '0 0 32px' }}>
+          <button
+            onClick={onAbout}
+            style={{
+              background: 'transparent', border: 'none',
+              fontFamily: 'var(--sans)', fontSize: '9px', fontWeight: 200,
+              letterSpacing: '0.3em', color: 'var(--white-ghost)', textTransform: 'uppercase',
+              transition: 'color 0.3s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--gold)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--white-ghost)'; }}
+          >
+            as seis tradições — sobre
+          </button>
+        </div>
+      )}
     </motion.div>
   );
 }

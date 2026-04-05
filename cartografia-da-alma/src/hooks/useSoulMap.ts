@@ -8,7 +8,7 @@ import { isSupabaseConfigured } from '../lib/supabase';
 export type AppScreen =
   | 'landing' | 'gateway' | 'entry' | 'palmEntry'
   | 'loading' | 'journey' | 'mapaFinal' | 'revelation' | 'viewer'
-  | 'meetLoading' | 'soulMate';
+  | 'meetLoading' | 'soulMate' | 'notFound' | 'about';
 
 export function useSoulMap() {
   const [screen, setScreen]                     = useState<AppScreen>('landing');
@@ -72,10 +72,10 @@ export function useSoulMap() {
           setViewerReadingId(row.id);
           setScreen('viewer');
         } else {
-          setScreen('gateway');
+          setScreen('notFound');
         }
       })
-      .catch(() => setScreen('gateway'));
+      .catch(() => setScreen('notFound'));
   }, []);
 
   // ── Persist reading ──
@@ -244,6 +244,7 @@ export function useSoulMap() {
   const goToEntry     = useCallback(() => setScreen('entry'), []);
   const goToPalmEntry = useCallback(() => setScreen('palmEntry'), []);
   const goToMapaFinal = useCallback(() => setScreen('mapaFinal'), []);
+  const goToAbout     = useCallback(() => setScreen('about'), []);
 
   const reset = useCallback(() => {
     setSoulMap(null);
@@ -268,7 +269,7 @@ export function useSoulMap() {
     tier, emailCaptured, invitedByToken,
     generate, generateFromPalm, share, submitEmail,
     meetAnotherSoul, meetFromViewer, saveOracleAnswer,
-    goToLanding, goToGateway, goToEntry, goToPalmEntry, goToMapaFinal, reset,
+    goToLanding, goToGateway, goToEntry, goToPalmEntry, goToMapaFinal, goToAbout, reset,
     canShare: isSupabaseConfigured,
   };
 }

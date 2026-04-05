@@ -10,6 +10,8 @@ import { SoulMateRevelation } from './screens/SoulMateRevelation';
 import { Landing } from './screens/Landing';
 import { Journey } from './screens/Journey';
 import { MapaFinal } from './screens/MapaFinal';
+import { NotFound } from './screens/NotFound';
+import { About } from './screens/About';
 
 function Cursor() {
   const curRef = useRef<HTMLDivElement>(null);
@@ -90,6 +92,7 @@ export default function App() {
     generate, generateFromPalm, share, submitEmail,
     meetAnotherSoul, meetFromViewer, saveOracleAnswer,
     goToGateway, goToEntry, goToPalmEntry, goToMapaFinal, reset,
+    goToAbout,
   } = useSoulMap();
 
   return (
@@ -98,7 +101,7 @@ export default function App() {
       <CosmosBackground />
       <div className="relative z-10">
         <AnimatePresence mode="wait">
-          {screen === 'landing'    && <Landing key="landing" onEnter={goToGateway} />}
+          {screen === 'landing'    && <Landing key="landing" onEnter={goToGateway} onAbout={goToAbout} />}
           {screen === 'gateway'    && <Gateway key="gateway" onBirth={goToEntry} onPalm={goToPalmEntry} />}
           {screen === 'entry'      && <Entry key="entry" onSubmit={generate} onBack={reset} />}
           {screen === 'palmEntry'  && <PalmEntry key="palmEntry" onSubmit={generateFromPalm} onBack={reset} />}
@@ -156,6 +159,8 @@ export default function App() {
               onReset={reset}
             />
           )}
+          {screen === 'notFound' && <NotFound key="notFound" onHome={reset} />}
+          {screen === 'about'    && <About key="about" onBack={reset} />}
         </AnimatePresence>
       </div>
     </div>

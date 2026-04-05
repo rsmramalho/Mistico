@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { SoulMap, Element } from '../types/soul-map';
 import { FlowerOfLife } from '../geometry/FlowerOfLife';
@@ -9,6 +9,7 @@ import { ElementGlyph } from '../geometry/glyphs';
 import { FrequencyWave } from '../geometry/FrequencyWave';
 import { PsycheBar } from '../components/PsycheBar';
 import { computeBridges } from '../engine/bridges';
+import { useExport } from '../hooks/useExport';
 import type { BridgeHighlight } from '../engine/bridges';
 
 // ── Props ──
@@ -109,6 +110,8 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
   const [synthesis, setSynthesis] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [meetInput, setMeetInput] = useState('');
+  const { exportPNG, exporting } = useExport();
+  const mapRef = useRef<HTMLDivElement | null>(null);
   const [showMeetInput, setShowMeetInput] = useState(false);
 
   const signPT = SIGN_PT[soulMap.sunSign] ?? soulMap.sunSign;
@@ -242,6 +245,7 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
 
       {/* ── Scrollable content ── */}
       <div
+        ref={mapRef}
         style={{
           position: 'relative',
           zIndex: 1,
@@ -539,6 +543,20 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
             onMouseLeave={handleMouseLeave}
           >
             {tier === 'oracle' ? 'cruzar com outra alma' : 'cruzar com outra alma — R$29'}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const signSlug = (signPT ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+              const nameSlug = soulMap.birthData.name.split(' ')[0].toLowerCase();
+              exportPNG(mapRef.current, `cartografia-${nameSlug}-${signSlug}.png`);
+            }}
+            disabled={exporting}
+            style={{ ...actionStyle, opacity: exporting ? 0.5 : 1 }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            {exporting ? 'gerando imagem...' : 'salvar como imagem'}
           </button>
           <button
             type="button"
