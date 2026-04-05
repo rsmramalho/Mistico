@@ -117,6 +117,8 @@ export default function App() {
               isSharing={isSharing}
               shareError={shareError}
               shareCopied={shareCopied}
+              tier={tier}
+              readingId={readingId}
             />
           )}
           {screen === 'viewer'     && viewerMap && (

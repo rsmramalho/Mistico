@@ -22,6 +22,8 @@ interface MapaFinalProps {
   isSharing?: boolean;
   shareError?: boolean;
   shareCopied?: boolean;
+  tier?: import('../types/database').ReadingTier;
+  readingId?: string | null;
 }
 
 // ── PT maps ──
@@ -103,7 +105,7 @@ function WordReveal({
 
 // ── Component ──
 
-export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isSharing, shareError, shareCopied }: MapaFinalProps) {
+export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isSharing, shareError, shareCopied, tier = 'session', readingId }: MapaFinalProps) {
   const [synthesis, setSynthesis] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [meetInput, setMeetInput] = useState('');
@@ -493,12 +495,34 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
           </button>
           <button
             type="button"
-            onClick={() => setShowMeetInput(prev => !prev)}
+            onClick={() => {
+              if (tier === 'oracle') {
+                setShowMeetInput(prev => !prev);
+              } else {
+                // Open payment for Soul Mate
+                const kiwifyUrl = import.meta.env.VITE_KIWIFY_SOULMATE_URL;
+                const stripeUrl = import.meta.env.VITE_STRIPE_SOULMATE_URL;
+                if (kiwifyUrl) {
+                  window.open(`${kiwifyUrl}${readingId ? `?custom_field_1=${readingId}` : ''}`, '_blank');
+                } else if (stripeUrl) {
+                  window.open(`${stripeUrl}${readingId ? `?client_reference_id=${readingId}` : ''}`, '_blank');
+                } else {
+                  // Fallback: Stripe API checkout
+                  fetch('/api/create-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ readingId, product: 'soulmate' }),
+                  })
+                    .then(r => r.json())
+                    .then(data => { if (data.url) window.open(data.url, '_blank'); });
+                }
+              }
+            }}
             style={actionStyle}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            cruzar com outra alma
+            {tier === 'oracle' ? 'cruzar com outra alma' : 'cruzar com outra alma — R$29'}
           </button>
           <button
             type="button"
