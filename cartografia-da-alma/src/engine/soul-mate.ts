@@ -10,6 +10,7 @@ import type {
   NumerologyResult,
   SoulMap,
   SoulMateReading,
+  CompatibilityResult,
 } from '../types/soul-map';
 import { getNumberMeaning } from './numerology';
 
@@ -212,6 +213,136 @@ export function getMeetingNumber(numA: NumerologyResult, numB: NumerologyResult)
   return getNumberMeaning(reduced);
 }
 
+// ── Compatibility Score ──
+
+export function getCompatibilityScore(a: SoulMap, b: SoulMap): CompatibilityResult {
+  const matches: string[] = [];
+  const tensions: string[] = [];
+  let score = 0;
+
+  // 1. Element (max 25)
+  const elKey = normalizeElementPair(a.element, b.element);
+  const elDyn = ELEMENT_DYNAMICS[elKey];
+  if (a.element === b.element) {
+    score += 25;
+    matches.push(`Mesmo elemento: ${ELEMENT_PT[a.element]} — ${elDyn?.nature ?? 'amplificação'}`);
+  } else if (elDyn?.nature === 'Catálise ativa' || elDyn?.nature === 'Catálise receptiva') {
+    score += 18;
+    matches.push(`Elementos complementares: ${elDyn.name} — ${elDyn.nature.toLowerCase()}`);
+  } else if (elDyn?.nature === 'Tensão criativa') {
+    score += 12;
+    tensions.push(`Elementos em tensão criativa: ${elDyn.name}`);
+  } else {
+    score += 6;
+    tensions.push(`Elementos em tensão transformadora: ${elDyn?.name ?? 'desconhecido'}`);
+  }
+
+  // 2. Frequency (max 25)
+  const maxHz = Math.max(a.frequency.hz, b.frequency.hz);
+  const minHz = Math.min(a.frequency.hz, b.frequency.hz);
+  const ratio = minHz === 0 ? Infinity : maxHz / minHz;
+  if (ratio === 1) {
+    score += 25;
+    matches.push(`Mesma frequência: ${a.frequency.hz} Hz — uníssono`);
+  } else if (ratio >= 1.4 && ratio <= 1.6) {
+    score += 20;
+    matches.push(`Frequências em quinta: ${a.frequency.hz} Hz × ${b.frequency.hz} Hz — harmonia forte`);
+  } else if (ratio > 1.25 && ratio < 1.4) {
+    score += 15;
+    matches.push(`Frequências em quarta: harmonia aberta`);
+  } else if (ratio >= 1.15 && ratio <= 1.25) {
+    score += 12;
+  } else if (ratio >= 1.9 && ratio <= 2.1) {
+    score += 18;
+    matches.push(`Frequências em oitava: complemento harmônico`);
+  } else {
+    score += 5;
+    tensions.push(`Frequências em intervalo livre: ${a.frequency.hz} Hz × ${b.frequency.hz} Hz — tensão harmônica`);
+  }
+
+  // 3. Archetype (max 20)
+  const arcSame = a.archetype.name === b.archetype.name;
+  const COMPLEMENTARY_ARCHETYPES: Record<string, string[]> = {
+    Hero: ['Sage', 'Caregiver'], Sage: ['Hero', 'Explorer'],
+    Lover: ['Magician', 'Mystic'], Magician: ['Lover', 'Rebel'],
+    Caregiver: ['Hero', 'Rebel'], Ruler: ['Diplomat', 'Elder'],
+    Diplomat: ['Ruler', 'Jester'], Jester: ['Diplomat', 'Explorer'],
+    Explorer: ['Sage', 'Jester'], Elder: ['Ruler', 'Mystic'],
+    Rebel: ['Magician', 'Caregiver'], Mystic: ['Lover', 'Elder'],
+  };
+  const complementary = COMPLEMENTARY_ARCHETYPES[a.archetype.name]?.includes(b.archetype.name);
+  if (arcSame) {
+    score += 15;
+    matches.push(`Mesmo arquétipo: ${a.archetype.titlePt} — espelho direto`);
+  } else if (complementary) {
+    score += 20;
+    matches.push(`Arquétipos complementares: ${a.archetype.titlePt} × ${b.archetype.titlePt}`);
+  } else {
+    score += 6;
+    tensions.push(`Arquétipos em projeção: ${a.archetype.titlePt} × ${b.archetype.titlePt}`);
+  }
+
+  // 4. Tikkun distance (max 15)
+  const tikkunDist = Math.abs(a.sephirah.number - b.sephirah.number);
+  if (tikkunDist === 0) {
+    score += 15;
+    matches.push(`Mesma Sephirah: ${a.sephirah.name} — ressonância`);
+  } else if (tikkunDist === 1) {
+    score += 12;
+    matches.push(`Sephiroth vizinhas: ${a.sephirah.name} → ${b.sephirah.name}`);
+  } else if (tikkunDist === 2) {
+    score += 8;
+  } else {
+    score += 4;
+    tensions.push(`Sephiroth distantes: ${a.sephirah.name} → ${b.sephirah.name} — peregrinação`);
+  }
+
+  // 5. Numerology (max 15)
+  const numSum = a.numerology.number + b.numerology.number;
+  const meetNum = reduceToSingleOrMaster(numSum);
+  const numHarmonic = meetNum === 11 || meetNum === 22 || meetNum === 33;
+  const numSame = a.numerology.number === b.numerology.number;
+  if (numHarmonic) {
+    score += 15;
+    matches.push(`Número mestre do encontro: ${meetNum}`);
+  } else if (numSame) {
+    score += 13;
+    matches.push(`Mesmo número de expressão: ${a.numerology.number}`);
+  } else if (Math.abs(a.numerology.number - b.numerology.number) <= 2) {
+    score += 10;
+  } else {
+    score += 5;
+    tensions.push(`Números distantes: ${a.numerology.number} × ${b.numerology.number}`);
+  }
+
+  // Cap at 100
+  score = Math.min(100, score);
+
+  // Summary
+  let summary: string;
+  if (score >= 80) {
+    summary = 'Ressonância profunda — os sistemas convergem. O encontro amplifica o que já existe em cada um.';
+  } else if (score >= 60) {
+    summary = 'Ressonância com tensão criativa — o que é diferente é o que mais ensina.';
+  } else if (score >= 40) {
+    summary = 'Tensão produtiva — o encontro exige trabalho consciente. O que resiste é o que transforma.';
+  } else {
+    summary = 'Territórios distantes — o encontro percorre grande distância. Tikkun profundo.';
+  }
+
+  // Keep top 4 matches and tensions
+  return {
+    score,
+    matches: matches.slice(0, 4),
+    tensions: tensions.slice(0, 4),
+    summary,
+  };
+}
+
+const ELEMENT_PT: Record<string, string> = {
+  fire: 'Fogo', earth: 'Terra', air: 'Ar', water: 'Água',
+};
+
 // ── Soul Mate Reading (main aggregator) ──
 
 export function getSoulMateReading(readingA: SoulMap, readingB: SoulMap): SoulMateReading {
@@ -221,6 +352,7 @@ export function getSoulMateReading(readingA: SoulMap, readingB: SoulMap): SoulMa
   const frequencyHarmony = getFrequencyHarmony(readingA.frequency.hz, readingB.frequency.hz);
   const combinedPsyche = getCombinedPsyche(readingA.psyche, readingB.psyche);
   const meetingNumber = getMeetingNumber(readingA.numerology, readingB.numerology);
+  const compatibility = getCompatibilityScore(readingA, readingB);
 
   return {
     readingA,
@@ -231,5 +363,6 @@ export function getSoulMateReading(readingA: SoulMap, readingB: SoulMap): SoulMa
     frequencyHarmony,
     combinedPsyche,
     meetingNumber,
+    compatibility,
   };
 }

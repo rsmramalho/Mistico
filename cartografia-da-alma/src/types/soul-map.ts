@@ -184,6 +184,13 @@ export interface FrequencyHarmony {
   description: string;
 }
 
+export interface CompatibilityResult {
+  score: number;
+  matches: string[];
+  tensions: string[];
+  summary: string;
+}
+
 export interface SoulMateReading {
   readingA: SoulMap;
   readingB: SoulMap;
@@ -193,6 +200,7 @@ export interface SoulMateReading {
   frequencyHarmony: FrequencyHarmony;
   combinedPsyche: PsycheDistribution;
   meetingNumber: NumerologyResult;
+  compatibility: CompatibilityResult;
 }
 
 // ── Oracle ──
