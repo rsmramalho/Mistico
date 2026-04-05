@@ -2,6 +2,18 @@
   "functions": {
     "api/oracle.ts": {
       "maxDuration": 30
+    },
+    "api/carta.ts": {
+      "maxDuration": 30
+    },
+    "api/cron/nurture.ts": {
+      "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/nurture",
+      "schedule": "0 10 * * *"
+    }
+  ]
 }
