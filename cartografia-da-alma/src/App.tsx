@@ -104,7 +104,7 @@ export default function App() {
           {screen === 'palmEntry'  && <PalmEntry key="palmEntry" onSubmit={generateFromPalm} onBack={reset} />}
           {screen === 'loading'    && <Loading key="loading" soulMap={soulMap} />}
           {screen === 'journey'    && soulMap && (
-            <Journey key="journey" soulMap={soulMap} onComplete={goToMapaFinal} onOracleAnswer={saveOracleAnswer} tier={tier} onEmailSubmit={submitEmail} />
+            <Journey key="journey" soulMap={soulMap} onComplete={goToMapaFinal} onOracleAnswer={saveOracleAnswer} tier={tier} readingId={readingId} onEmailSubmit={submitEmail} />
           )}
           {screen === 'mapaFinal'  && soulMap && (
             <MapaFinal

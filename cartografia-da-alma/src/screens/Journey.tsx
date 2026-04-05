@@ -35,6 +35,7 @@ interface JourneyProps {
   onComplete: () => void;
   onOracleAnswer?: (cardId: string, question: string, answer: string) => void;
   tier?: import('../types/database').ReadingTier;
+  readingId?: string | null;
   onEmailSubmit?: (email: string) => Promise<boolean>;
 }
 
@@ -184,7 +185,7 @@ const cardVisible = {
 
 // ═══════════════════════════════════════
 
-export function Journey({ soulMap, onComplete, onOracleAnswer, tier = 'session', onEmailSubmit }: JourneyProps) {
+export function Journey({ soulMap, onComplete, onOracleAnswer, tier = 'session', readingId, onEmailSubmit }: JourneyProps) {
   const journey = useJourney(soulMap, tier);
   const {
     seed,
@@ -278,6 +279,8 @@ export function Journey({ soulMap, onComplete, onOracleAnswer, tier = 'session',
       used={currentCard.oracleUsed}
       question={currentCard.oracleQuestion}
       answer={currentCard.oracleAnswer}
+      tier={tier}
+      readingId={readingId}
     />
   );
 

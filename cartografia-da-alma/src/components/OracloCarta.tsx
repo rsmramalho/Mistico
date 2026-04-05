@@ -16,6 +16,9 @@ interface OracleCartaProps {
   used: boolean;
   question?: string;
   answer?: string;
+  tier?: import('../types/database').ReadingTier;
+  readingId?: string | null;
+  onTierUpgrade?: () => void;
 }
 
 type OracleMode = 'choice' | 'asking' | 'loading' | 'answered' | 'error';
@@ -88,6 +91,9 @@ export function OracloCarta({
   used,
   question: prevQuestion,
   answer: prevAnswer,
+  tier = 'email',
+  readingId,
+  onTierUpgrade,
 }: OracleCartaProps) {
   const [mode, setMode] = useState<OracleMode>('choice');
   const [input, setInput] = useState('');
@@ -221,11 +227,41 @@ export function OracloCarta({
 
   // ── Answered state ──
   if (mode === 'answered') {
+    const showUpgrade = tier === 'email';
     return (
       <div>
         {identityHeader}
         <p style={ghostLabelStyle}>{localQuestion}</p>
         <p style={{ ...answerStyle, marginBottom: '28px' }}>{localAnswer}</p>
+
+        {showUpgrade && (
+          <div style={{ borderTop: '1px solid var(--gold-line)', paddingTop: '20px', marginBottom: '20px' }}>
+            <p style={{
+              fontFamily: 'var(--serif)', fontSize: '14px', fontWeight: 300,
+              fontStyle: 'italic', color: 'var(--white-dim)', lineHeight: 1.6, marginBottom: '16px',
+            }}>
+              o oráculo tem mais a dizer — 14 perguntas restantes aguardam.
+            </p>
+            <button
+              onClick={() => {
+                const kiwifyUrl = import.meta.env.VITE_KIWIFY_ORACLE_URL;
+                const stripeUrl = import.meta.env.VITE_STRIPE_ORACLE_URL;
+                const url = kiwifyUrl
+                  ? `${kiwifyUrl}${readingId ? `?custom_field_1=${readingId}` : ''}`
+                  : stripeUrl
+                    ? `${stripeUrl}${readingId ? `?client_reference_id=${readingId}` : ''}`
+                    : '#';
+                window.open(url, '_blank');
+              }}
+              style={{ ...choiceButtonStyle, marginRight: '24px' }}
+              onMouseEnter={applyButtonHover}
+              onMouseLeave={removeButtonHover}
+            >
+              oráculo completo — R$19
+            </button>
+          </div>
+        )}
+
         {onSkipOracle && (
           <button
             onClick={onSkipOracle}
