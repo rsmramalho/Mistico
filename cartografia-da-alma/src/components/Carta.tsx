@@ -103,6 +103,19 @@ export function Carta({
         />
       )}
 
+      {/* Atmospheric texture — warm ambient glow */}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: fundoEscuro
+            ? 'radial-gradient(ellipse at 50% 30%, rgba(120,60,30,0.06) 0%, transparent 70%)'
+            : 'radial-gradient(ellipse at 50% 20%, rgba(201,168,76,0.04) 0%, transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(140,100,50,0.03) 0%, transparent 50%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
