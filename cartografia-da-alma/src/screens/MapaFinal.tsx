@@ -330,11 +330,27 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
           </div>
         </motion.div>
 
+        {/* ── Revelation phrase — unique to this combination ── */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.5, delay: 2.2 }}
+          style={{ textAlign: 'center', margin: '24px 0' }}
+        >
+          <p style={{
+            fontFamily: 'var(--serif)', fontSize: '22px', fontWeight: 300,
+            fontStyle: 'italic', color: 'var(--gold)', lineHeight: 1.6,
+            maxWidth: '480px', margin: '0 auto',
+          }}>
+            {soulMap.archetype.titlePt} em {soulMap.sephirah.name}, vibrando a {soulMap.frequency.hz} Hz — esta combinação não se repete.
+          </p>
+        </motion.div>
+
         {/* ── Divider before synthesis ── */}
         <motion.div
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
-          transition={{ duration: 0.8, delay: 2.5 }}
+          transition={{ duration: 0.8, delay: 2.8 }}
           style={{ transformOrigin: 'left' }}
         >
           <GoldLine />

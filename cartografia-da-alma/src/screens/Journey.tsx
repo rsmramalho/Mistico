@@ -293,6 +293,7 @@ export function Journey({ soulMap, onComplete, onOracleAnswer, tier = 'session',
         <CartaReveal
           label={CARD_LABELS[currentCard.id]}
           icon={CARD_ICONS[currentCard.id]}
+          cardIndex={currentIndex}
           onComplete={handleRevealComplete}
           onFlip={sfx.flip}
           onReveal={sfx.reveal}

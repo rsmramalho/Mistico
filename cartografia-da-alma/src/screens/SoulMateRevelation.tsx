@@ -178,9 +178,15 @@ export function SoulMateRevelation({ reading, onReset, shareUrl }: SoulMateRevel
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
-      style={{ minHeight: '100vh', padding: '80px 24px 64px' }}
+      style={{ minHeight: '100vh', padding: '80px 24px 64px', position: 'relative' }}
     >
-      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+      {/* Background atmosphere */}
+      <div style={{
+        position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
+        background: 'radial-gradient(ellipse at 30% 30%, rgba(201,76,76,0.03) 0%, transparent 50%), radial-gradient(ellipse at 70% 70%, rgba(76,139,201,0.03) 0%, transparent 50%)',
+      }} />
+
+      <div style={{ maxWidth: '600px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
 
         {/* ── Header: names + score ── */}
         <motion.div {...fade(0.2)} style={{ textAlign: 'center', marginBottom: '48px' }}>
