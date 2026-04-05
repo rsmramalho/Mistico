@@ -16,6 +16,7 @@ import { CartaSombra } from '../components/CartaSombra';
 import { CartaFrequencia } from '../components/CartaFrequencia';
 import { CartaNumerologia } from '../components/CartaNumerologia';
 import { CadeiaRaciocinio } from '../components/CadeiaRaciocinio';
+import { PaywallOverlay } from '../components/PaywallOverlay';
 import { getCardProvenance } from '../engine/provenance';
 
 import { Hexagram } from '../geometry/Hexagram';
@@ -33,6 +34,8 @@ interface JourneyProps {
   soulMap: SoulMap;
   onComplete: () => void;
   onOracleAnswer?: (cardId: string, question: string, answer: string) => void;
+  tier?: import('../types/database').ReadingTier;
+  onEmailSubmit?: (email: string) => Promise<boolean>;
 }
 
 // ── Geometry per element ──
@@ -181,8 +184,8 @@ const cardVisible = {
 
 // ═══════════════════════════════════════
 
-export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
-  const journey = useJourney(soulMap);
+export function Journey({ soulMap, onComplete, onOracleAnswer, tier = 'session', onEmailSubmit }: JourneyProps) {
+  const journey = useJourney(soulMap, tier);
   const {
     seed,
     cards,
@@ -190,6 +193,7 @@ export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
     currentIndex,
     totalCards,
     finished,
+    isGated,
     revealBody,
     setOracleResult,
     advanceCard,
@@ -244,16 +248,28 @@ export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
   const minPause = CARD_MIN_PAUSE[currentCard.id];
   const fundoEscuro = CARD_FUNDO_ESCURO[currentCard.id];
 
-  const bodyContent = currentCard.bodyRevealed
-    ? getCardContent(currentCard.id, soulMap, seed)
-    : null;
+  // If gated, show paywall instead of body
+  const microReveal = isGated && currentCard.id === 'shadow'
+    ? soulMap.archetype.shadow.inflated.split('.')[0] + '.'
+    : '';
+
+  const bodyContent = isGated
+    ? (
+      <PaywallOverlay
+        microReveal={microReveal || `${soulMap.archetype.titlePt} carrega algo que ainda não foi nomeado.`}
+        onEmailSubmit={async (email) => { if (onEmailSubmit) await onEmailSubmit(email); }}
+      />
+    )
+    : currentCard.bodyRevealed
+      ? getCardContent(currentCard.id, soulMap, seed)
+      : null;
 
   const handleOracleResult = (question: string, answer: string) => {
     setOracleResult(question, answer);
     onOracleAnswer?.(currentCard.id, question, answer);
   };
 
-  const oracleContent = currentCard.bodyRevealed ? (
+  const oracleContent = (isGated || !currentCard.bodyRevealed) ? null : (
     <OracloCarta
       cardId={currentCard.id}
       soulMap={soulMap}
@@ -263,9 +279,9 @@ export function Journey({ soulMap, onComplete, onOracleAnswer }: JourneyProps) {
       question={currentCard.oracleQuestion}
       answer={currentCard.oracleAnswer}
     />
-  ) : null;
+  );
 
-  const showContinue = currentCard.bodyRevealed;
+  const showContinue = currentCard.bodyRevealed && !isGated;
 
   return (
     <>

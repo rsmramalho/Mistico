@@ -1,13 +1,19 @@
 import { useState, useCallback } from 'react';
 import type { SoulMap } from '../types/soul-map';
+import type { ReadingTier } from '../types/database';
 import { getVariation } from '../engine/variations';
 
 // ═══════════════════════════════════════
 // Cartografia da Alma — Journey Hook (V2)
 // Card-by-card state manager
+// Tier-aware: session=2 cards, email=all, oracle=all+3q
 // ═══════════════════════════════════════
 
 export type CardId = 'astrology' | 'kabbalah' | 'shadow' | 'frequency' | 'numerology';
+
+// Cards 0-1 (astrology, kabbalah) are always free
+// Card 2+ (shadow, frequency, numerology) require email tier
+const FREE_CARD_LIMIT = 2;
 
 export interface CardState {
   id: CardId;
@@ -30,7 +36,7 @@ export interface JourneyState {
 
 const CARD_ORDER: CardId[] = ['astrology', 'kabbalah', 'shadow', 'frequency', 'numerology'];
 
-export function useJourney(soulMap: SoulMap) {
+export function useJourney(soulMap: SoulMap, tier: ReadingTier = 'session') {
   const [seed] = useState(() => Math.floor(Math.random() * 1000));
 
   const [cards, setCards] = useState<CardState[]>(() =>
@@ -72,6 +78,9 @@ export function useJourney(soulMap: SoulMap) {
     }
   }, [currentIndex]);
 
+  // Paywall: card is gated if index >= FREE_CARD_LIMIT and tier is 'session'
+  const isGated = tier === 'session' && currentIndex >= FREE_CARD_LIMIT;
+
   return {
     soulMap,
     seed,
@@ -79,6 +88,7 @@ export function useJourney(soulMap: SoulMap) {
     currentIndex,
     currentCard,
     finished,
+    isGated,
     revealBody,
     setOracleResult,
     advanceCard,

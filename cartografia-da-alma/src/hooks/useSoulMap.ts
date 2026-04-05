@@ -142,17 +142,24 @@ export function useSoulMap() {
     if (emailCaptured) return true;
     setEmailCaptured(true);
     setTier('email');
+
+    // Call capture-email API (handles Supabase update + Resend email)
+    fetch('/api/capture-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        readingId,
+        email,
+        name: soulMap?.birthData.name,
+        signName: soulMap?.sunSign,
+      }),
+    }).catch(() => {});
+
+    // Also update local Supabase if available
     if (readingId) await captureEmail(readingId, email);
-    if (soulMap) {
-      const link = shareUrl ?? `${window.location.origin}${window.location.pathname}${readingId ? `?token=${readingId}` : ''}`;
-      fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: email, shareUrl: link, signName: soulMap.sunSign, name: soulMap.birthData.name }),
-      }).catch(() => {});
-    }
+
     return true;
-  }, [emailCaptured, readingId, shareUrl, soulMap]);
+  }, [emailCaptured, readingId, soulMap]);
 
   // ── Share my map ──
   const [shareError, setShareError] = useState(false);
