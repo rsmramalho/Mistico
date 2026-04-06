@@ -29,7 +29,7 @@ export function useSoulMap() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
-    // ?test=mapa — skip to MapaInterativo with mock data
+    // ?test=mapa — skip to MapaInterativo with mock data (persisted)
     if (params.get('test') === 'mapa') {
       const testMap = getSoulMap({
         name: 'Ana Beatriz Moreira',
@@ -38,6 +38,18 @@ export function useSoulMap() {
       setSoulMap(testMap);
       window.history.replaceState({}, '', window.location.pathname);
       setScreen('mapaFinal');
+      persistReading(testMap);
+      return;
+    }
+
+    // ?test=almas — skip to SoulMateRevelation with two mock maps
+    if (params.get('test') === 'almas') {
+      const mapA = getSoulMap({ name: 'Ana Beatriz', date: new Date(1994, 6, 15) });
+      const mapB = getSoulMap({ name: 'Lucas Andrade', date: new Date(1991, 2, 22) });
+      setSoulMap(mapA);
+      setSoulMateReading(getSoulMateReading(mapA, mapB));
+      window.history.replaceState({}, '', window.location.pathname);
+      setScreen('soulMate');
       return;
     }
 
