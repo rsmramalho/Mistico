@@ -951,8 +951,11 @@ export function MapaInterativo({
                     setMeetError(null);
                     setMeetLoading(true);
                     let token = meetInput.trim();
+                    console.log('[cruzar] raw input:', token);
                     try { const url = new URL(token); const t = url.searchParams.get('token'); if (t) token = t; } catch { /* raw */ }
+                    console.log('[cruzar] extracted token:', token);
                     const err = await onMeet(token);
+                    console.log('[cruzar] result:', err ?? 'success');
                     if (err) setMeetError(err);
                     setMeetLoading(false);
                   }}

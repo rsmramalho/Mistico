@@ -11,7 +11,9 @@ export type AppScreen =
   | 'meetLoading' | 'soulMate' | 'notFound' | 'about';
 
 export function useSoulMap() {
-  const [screen, setScreen]                     = useState<AppScreen>('landing');
+  const [screenRaw, setScreenRaw]               = useState<AppScreen>('landing');
+  const setScreen = (s: AppScreen) => { console.log('[screen]', screenRaw, '→', s, new Error().stack?.split('\n')[2]?.trim()); setScreenRaw(s); };
+  const screen = screenRaw;
   const [soulMap, setSoulMap]                   = useState<SoulMap | null>(null);
   const [viewerMap, setViewerMap]               = useState<SoulMap | null>(null);   // map being viewed (not owned)
   const [viewerReadingId, setViewerReadingId]   = useState<string | null>(null);
