@@ -29,6 +29,18 @@ export function useSoulMap() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
+    // ?test=mapa — skip to MapaInterativo with mock data
+    if (params.get('test') === 'mapa') {
+      const testMap = getSoulMap({
+        name: 'Ana Beatriz Moreira',
+        date: new Date(1994, 6, 15), // 15 Jul 1994 → Cancer (water)
+      });
+      setSoulMap(testMap);
+      window.history.replaceState({}, '', window.location.pathname);
+      setScreen('mapaFinal');
+      return;
+    }
+
     // ?meet=tokenA,tokenB — Soul Mate result
     const meetTokens = params.get('meet');
     if (meetTokens) {
