@@ -10,6 +10,7 @@ import { SoulMateRevelation } from './screens/SoulMateRevelation';
 import { Landing } from './screens/Landing';
 import { Journey } from './screens/Journey';
 import { MapaFinal } from './screens/MapaFinal';
+import { MapaInterativo } from './screens/MapaInterativo';
 import { NotFound } from './screens/NotFound';
 import { About } from './screens/About';
 import { BetaBanner } from './components/BetaBanner';
@@ -116,8 +117,8 @@ export default function App() {
             <Journey key="journey" soulMap={soulMap} onComplete={goToMapaFinal} onOracleAnswer={saveOracleAnswer} tier={tier} readingId={readingId} onEmailSubmit={submitEmail} />
           )}
           {screen === 'mapaFinal'  && soulMap && (
-            <MapaFinal
-              key="mapaFinal"
+            <MapaInterativo
+              key="mapaInterativo"
               soulMap={soulMap}
               onShare={share}
               onMeet={meetAnotherSoul}
