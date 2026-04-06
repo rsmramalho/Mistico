@@ -17,9 +17,10 @@ export function useExport() {
 
     try {
       const { default: html2canvas } = await import('html2canvas');
+      const dpr = window.devicePixelRatio || 1;
       const canvas = await html2canvas(element, {
         backgroundColor: '#07070f',
-        scale: 2,
+        scale: Math.max(3, 2 * dpr),
         useCORS: true,
         logging: false,
       });

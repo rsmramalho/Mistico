@@ -17,7 +17,7 @@ import type { BridgeHighlight } from '../engine/bridges';
 interface MapaFinalProps {
   soulMap: SoulMap;
   onShare: () => void;
-  onMeet: (token: string) => void;
+  onMeet: (token: string) => Promise<string | null>;
   onReset: () => void;
   shareUrl?: string | null;
   isSharing?: boolean;
@@ -113,6 +113,8 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
   const { exportPNG, exporting } = useExport();
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [showMeetInput, setShowMeetInput] = useState(false);
+  const [meetError, setMeetError] = useState<string | null>(null);
+  const [meetLoading, setMeetLoading] = useState(false);
 
   const signPT = SIGN_PT[soulMap.sunSign] ?? soulMap.sunSign;
   const elementPT = ELEMENT_PT[soulMap.element];
@@ -576,6 +578,15 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
             transition={{ duration: 0.4 }}
             style={{ overflow: 'hidden', marginTop: '24px' }}
           >
+            {meetError && (
+              <p style={{
+                fontFamily: 'var(--sans)', fontSize: '10px', fontWeight: 300,
+                letterSpacing: '0.2em', color: '#e85d5d', textAlign: 'center',
+                marginBottom: '12px',
+              }}>
+                {meetError}
+              </p>
+            )}
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '16px', maxWidth: '480px', margin: '0 auto' }}>
               <input
                 type="text"
@@ -600,17 +611,22 @@ export function MapaFinal({ soulMap, onShare, onMeet, onReset, shareUrl, isShari
               />
               <button
                 type="button"
-                onClick={() => {
-                  if (!meetInput.trim()) return;
+                disabled={meetLoading}
+                onClick={async () => {
+                  if (!meetInput.trim() || meetLoading) return;
+                  setMeetError(null);
+                  setMeetLoading(true);
                   let token = meetInput.trim();
                   try { const url = new URL(token); const t = url.searchParams.get('token'); if (t) token = t; } catch { /* raw token */ }
-                  onMeet(token);
+                  const err = await onMeet(token);
+                  if (err) setMeetError(err);
+                  setMeetLoading(false);
                 }}
-                style={{ ...actionStyle, flexShrink: 0 }}
+                style={{ ...actionStyle, flexShrink: 0, opacity: meetLoading ? 0.5 : 1 }}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
               >
-                cruzar mapas →
+                {meetLoading ? 'buscando...' : 'cruzar mapas →'}
               </button>
             </div>
           </motion.div>

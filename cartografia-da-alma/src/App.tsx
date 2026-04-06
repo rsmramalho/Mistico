@@ -135,7 +135,7 @@ export default function App() {
               key="viewer"
               soulMap={viewerMap}
               onShare={() => {}}
-              onMeet={() => meetFromViewer()}
+              onMeet={async () => { meetFromViewer(); return null; }}
               onReset={reset}
             />
           )}

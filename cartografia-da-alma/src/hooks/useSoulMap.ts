@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import type { BirthData, PalmData, SoulMap, SoulMateReading } from '../types/soul-map';
 import type { ReadingTier } from '../types/database';
 import { getSoulMap, getPalmSoulMap, getSoulMateReading } from '../engine';
-import { saveReading, getReadingByToken, createShareLink, captureEmail } from '../lib/readings';
+import { saveReading, getReading, getReadingByToken, createShareLink, captureEmail } from '../lib/readings';
 import { isSupabaseConfigured } from '../lib/supabase';
 
 export type AppScreen =
@@ -107,7 +107,8 @@ export function useSoulMap() {
       // If invited to Soul Mate, auto-compute after saving
       if (invitedByToken) {
         try {
-          const otherRow = await getReadingByToken(invitedByToken);
+          // Try as share token first, then as reading ID (meetFromViewer passes ID)
+          const otherRow = await getReadingByToken(invitedByToken) ?? await getReading(invitedByToken);
           if (otherRow && id) {
             const mateReading = getSoulMateReading(map, otherRow.body);
             setSoulMateReading(mateReading);
@@ -200,12 +201,13 @@ export function useSoulMap() {
   }, [viewerReadingId]);
 
   // ── Meet from Revelation footer (manual token entry) ──
-  const meetAnotherSoul = useCallback(async (otherToken: string) => {
-    if (!soulMap) return;
+  const meetAnotherSoul = useCallback(async (otherToken: string): Promise<string | null> => {
+    if (!soulMap) return 'mapa não encontrado';
+    if (!isSupabaseConfigured) return 'banco de dados não configurado — compartilhe os mapas primeiro';
     setScreen('meetLoading');
     try {
-      const otherRow = await getReadingByToken(otherToken);
-      if (!otherRow) { setScreen('mapaFinal'); return; }
+      const otherRow = await getReadingByToken(otherToken) ?? await getReading(otherToken);
+      if (!otherRow) { setScreen('mapaFinal'); return 'token inválido ou mapa não encontrado'; }
       const mateReading = getSoulMateReading(soulMap, otherRow.body);
       setSoulMateReading(mateReading);
       // Build meet URL
@@ -214,7 +216,8 @@ export function useSoulMap() {
         setSoulMateShareUrl(meetUrl);
       }
       setScreen('soulMate');
-    } catch { setScreen('mapaFinal'); }
+      return null; // success
+    } catch { setScreen('mapaFinal'); return 'erro ao buscar o mapa'; }
   }, [soulMap, readingId]);
 
   // ── Save oracle answer to SoulMap + Supabase ──
