@@ -212,7 +212,6 @@ const actionBtn: React.CSSProperties = {
 export function MapaInterativo({
   soulMap, onShare, onMeet, onReset,
   shareUrl, isSharing, shareError, shareCopied,
-  tier = 'session', readingId,
 }: MapaInterativoProps) {
 
   // ── Derived data ──
@@ -890,17 +889,7 @@ export function MapaInterativo({
               {shareLabel}
             </button>
             <button type="button"
-              onClick={() => {
-                const isBeta = import.meta.env.VITE_BETA_MODE === 'true';
-                if (isBeta || tier === 'oracle') {
-                  setShowMeetInput(prev => !prev);
-                } else {
-                  const kiwifyUrl = import.meta.env.VITE_KIWIFY_SOULMATE_URL;
-                  const stripeUrl = import.meta.env.VITE_STRIPE_SOULMATE_URL;
-                  if (kiwifyUrl) window.open(`${kiwifyUrl}${readingId ? `?custom_field_1=${readingId}` : ''}`, '_blank');
-                  else if (stripeUrl) window.open(`${stripeUrl}${readingId ? `?client_reference_id=${readingId}` : ''}`, '_blank');
-                }
-              }}
+              onClick={() => setShowMeetInput(prev => !prev)}
               style={actionBtn}
               onMouseEnter={onEnter} onMouseLeave={onLeave}
             >
