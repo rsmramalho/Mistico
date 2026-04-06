@@ -102,6 +102,9 @@ export function useSoulMap() {
         if (row) {
           setViewerMap(row.body);
           setViewerReadingId(row.id);
+          // Also set soulMap + readingId so meetAnotherSoul works from viewer
+          setSoulMap(row.body);
+          setReadingId(row.id);
           setScreen('viewer');
         } else {
           setScreen('notFound');

@@ -9,7 +9,6 @@ import { Revelation } from './screens/Revelation';
 import { SoulMateRevelation } from './screens/SoulMateRevelation';
 import { Landing } from './screens/Landing';
 import { Journey } from './screens/Journey';
-import { MapaFinal } from './screens/MapaFinal';
 import { MapaInterativo } from './screens/MapaInterativo';
 import { NotFound } from './screens/NotFound';
 import { About } from './screens/About';
@@ -93,7 +92,7 @@ export default function App() {
     screen, soulMap, viewerMap, soulMateReading, soulMateShareUrl,
     readingId, shareUrl, isSharing, isSaving, shareError, shareCopied, canShare, tier,
     generate, generateFromPalm, share, submitEmail,
-    meetAnotherSoul, meetFromViewer, saveOracleAnswer,
+    meetAnotherSoul, saveOracleAnswer,
     goToGateway, goToEntry, goToPalmEntry, goToMapaFinal, reset,
     goToAbout,
   } = useSoulMap();
@@ -132,12 +131,16 @@ export default function App() {
             />
           )}
           {screen === 'viewer'     && viewerMap && (
-            <MapaFinal
+            <MapaInterativo
               key="viewer"
               soulMap={viewerMap}
-              onShare={() => {}}
-              onMeet={async () => { meetFromViewer(); return null; }}
+              onShare={share}
+              onMeet={meetAnotherSoul}
               onReset={reset}
+              shareUrl={shareUrl}
+              isSharing={isSharing}
+              shareError={shareError}
+              shareCopied={shareCopied}
             />
           )}
           {screen === 'revelation' && soulMap && (
