@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Palma</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:       #070605;
+  --bg2:      #0f0c09;
+  --gold:     #c49b3c;
+  --gold2:    rgba(196,155,60,0.15);
+  --teal:     #3d8b78;
+  --teal2:    rgba(61,139,120,0.15);
+  --rose:     #9b5a6a;
+  --text:     #e8dece;
+  --muted:    #6e6050;
+  --serif:    'Cormorant Garamond', Georgia, serif;
+  --sans:     'DM Sans', system-ui, sans-serif;
+}
+
+html { height:100%; background:var(--bg); }
+body {
+  min-height:100%; background:var(--bg); color:var(--text);
+  font-family:var(--sans); overflow-x:hidden;
+  cursor:default;
+}
+
+/* ═══════ SCREENS ═══════ */
+.screen {
+  min-height:100dvh; width:100%;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:2rem 1.5rem;
+  position:relative;
+  opacity:0; visibility:hidden;
+  transition:opacity .7s ease, visibility .7s;
+}
+.screen.active { opacity:1; visibility:visible; }
+
+/* ═══════ AMBIENT ═══════ */
+.orb {
+  position:fixed; border-radius:50%;
+  pointer-events:none; z-index:0;
+  filter:blur(120px);
+}
+.orb-a { width:600px; height:600px; top:-200px; right:-200px; background:rgba(196,155,60,.05); animation:drift 25s ease-in-out infinite alternate; }
+.orb-b { width:500px; height:500px; bottom:-150px; left:-150px; background:rgba(61,139,120,.04); animation:drift 30s ease-in-out infinite alternate-reverse; }
+@keyframes drift {
+  from { transform:translate(0,0) scale(1); }
+  to   { transform:translate(40px,40px) scale(1.15); }
+}
+
+.grain {
+  position:fixed; inset:0; pointer-events:none; z-index:999; opacity:.35;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='.08'/%3E%3C/svg%3E");
+}
+
+/* ═══════ NAV ═══════ */
+#backBtn {
+  position:fixed; top:1.4rem; left:1.4rem; z-index:100;
+  background:none; border:none; cursor:pointer;
+  font-family:var(--sans); font-size:11px; font-weight:500;
+  letter-spacing:2px; text-transform:uppercase; color:var(--muted);
+  display:none; align-items:center; gap:6px;
+  transition:color .2s;
+}
+#backBtn:hover { color:var(--text); }
+#backBtn.show { display:flex; }
+
+/* ═══════ LANDING ═══════ */
+#landing { text-align:center; gap:0; }
+
+.sigil-wrap { margin-bottom:2.5rem; opacity:0; animation:rise 1.2s ease .1s forwards; }
+.sigil-wrap svg { width:72px; height:72px; }
+
+.land-title {
+  font-family:var(--serif); font-weight:300;
+  font-size:clamp(68px,14vw,110px); letter-spacing:12px;
+  line-height:1; color:var(--text);
+  opacity:0; animation:rise 1.2s ease .3s forwards;
+}
+.land-sub {
+  font-family:var(--serif); font-style:italic;
+  font-size:clamp(14px,2vw,17px); color:var(--muted);
+  margin-top:.6rem; letter-spacing:.5px;
+  opacity:0; animation:rise 1.2s ease .5s forwards;
+}
+.land-btns {
+  margin-top:3.5rem; display:flex; flex-direction:column;
+  align-items:center; gap:.8rem;
+  opacity:0; animation:rise 1.2s ease .7s forwards;
+}
+
+.btn {
+  font-family:var(--sans); font-size:11px; font-weight:500;
+  letter-spacing:2.5px; text-transform:uppercase;
+  padding:13px 36px; border-radius:1px; cursor:pointer;
+  transition:all .3s ease; border:1px solid;
+  background:transparent;
+}
+.btn-gold {
+  border-color:rgba(196,155,60,.4); color:var(--gold);
+}
+.btn-gold:hover {
+  background:rgba(196,155,60,.08); border-color:var(--gold);
+  box-shadow:0 0 30px rgba(196,155,60,.1);
+}
+.btn-ghost {
+  border-color:rgba(255,255,255,.08); color:var(--muted);
+}
+.btn-ghost:hover { border-color:rgba(255,255,255,.2); color:var(--text); }
+
+/* ═══════ CAPTURE ═══════ */
+#capture { gap:1.2rem; }
+
+.step-label {
+  font-family:var(--sans); font-size:10px; font-weight:500;
+  letter-spacing:3px; text-transform:uppercase; color:var(--muted);
+}
+.step-title {
+  font-family:var(--serif); font-size:clamp(22px,4vw,30px);
+  font-weight:300; font-style:italic; color:var(--text);
+  text-align:center;
+}
+
+/* drop circle */
+.drop-zone {
+  width:min(280px,80vw); height:min(280px,80vw);
+  border-radius:50%; border:1px solid rgba(196,155,60,.2);
+  position:relative; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:.8rem;
+  background:radial-gradient(circle at 50% 60%, rgba(196,155,60,.04), transparent 70%);
+  transition:all .4s ease; overflow:hidden;
+}
+.drop-zone:hover {
+  border-color:rgba(196,155,60,.45);
+  background:radial-gradient(circle at 50% 60%, rgba(196,155,60,.08), transparent 70%);
+}
+.drop-zone input {
+  position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;
+}
+.drop-zone .hand-icon { width:56px; opacity:.25; transition:opacity .3s; }
+.drop-zone:hover .hand-icon { opacity:.5; }
+.drop-zone .drop-hint {
+  font-family:var(--sans); font-size:10px; font-weight:500;
+  letter-spacing:1.5px; text-transform:uppercase; color:var(--muted);
+}
+
+/* preview inside circle */
+.drop-zone canvas.preview-canvas {
+  position:absolute; inset:0; width:100%; height:100%;
+  border-radius:50%; object-fit:cover;
+}
+
+.capture-actions {
+  display:flex; flex-direction:column; align-items:center; gap:.6rem;
+}
+.cam-btn {
+  display:flex; align-items:center; gap:7px;
+  font-family:var(--sans); font-size:11px; letter-spacing:1px;
+  text-transform:uppercase; color:var(--muted);
+  background:none; border:1px solid rgba(255,255,255,.07);
+  padding:9px 18px; cursor:pointer; border-radius:1px;
+  transition:all .2s;
+}
+.cam-btn:hover { color:var(--text); border-color:rgba(255,255,255,.18); }
+
+#goScan {
+  display:none; margin-top:.4rem;
+}
+
+/* ═══════ SCANNING ═══════ */
+#scanning { gap:1.5rem; }
+
+.scan-circle {
+  width:min(300px,82vw); height:min(300px,82vw);
+  border-radius:50%; overflow:hidden; position:relative;
+  border:1px solid rgba(196,155,60,.15);
+  box-shadow:0 0 60px rgba(196,155,60,.06);
+}
+#scanCanvas { width:100%; height:100%; display:block; }
+
+.scan-track {
+  width:min(300px,82vw); height:2px;
+  background:rgba(255,255,255,.04); border-radius:2px; overflow:hidden;
+}
+.scan-fill {
+  height:100%; width:0%;
+  background:linear-gradient(90deg, transparent, var(--gold), transparent);
+  border-radius:2px; transition:width .05s linear;
+}
+
+.scan-status {
+  font-family:var(--sans); font-size:10px; font-weight:500;
+  letter-spacing:3px; text-transform:uppercase; color:var(--gold);
+  text-align:center; min-height:16px;
+}
+
+/* ═══════ READING ═══════ */
+#reading { gap:1.2rem; max-width:520px; }
+
+.reading-palm-mini {
+  width:80px; height:80px; border-radius:50%; overflow:hidden;
+  border:1px solid rgba(196,155,60,.3);
+  box-shadow:0 0 20px rgba(196,155,60,.1);
+}
+.reading-palm-mini canvas { width:100%; height:100%; display:block; }
+
+.lines-sig {
+  display:flex; align-items:center; gap:3px; justify-content:center;
+}
+.sig-dot {
+  border-radius:50%;
+  background:var(--gold); opacity:.5;
+  transition:all .4s ease;
+}
+
+.reading-body {
+  font-family:var(--serif); font-size:clamp(17px,2.8vw,21px);
+  font-weight:300; font-style:italic;
+  color:var(--text); line-height:1.9;
+  text-align:center; min-height:130px;
+  display:flex; align-items:center; justify-content:center;
+}
+.blink { display:inline-block; width:1px; height:1em; background:var(--gold); margin-left:2px; animation:blink 1s step-end infinite; }
+
+.reading-actions { display:flex; flex-direction:column; align-items:center; gap:.5rem; }
+.add-partner {
+  font-family:var(--sans); font-size:10px; font-weight:500;
+  letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--teal); background:none; border:none; cursor:pointer;
+  display:flex; align-items:center; gap:6px;
+  opacity:0; transition:opacity .5s;
+}
+.add-partner.show { opacity:1; }
+.add-partner:hover { color:#5bbfa8; }
+
+/* ═══════ SOUL MATE ═══════ */
+#soulmate { gap:1.4rem; max-width:520px; }
+
+.palms-row {
+  display:flex; align-items:center; gap:1.2rem;
+}
+.palm-slot {
+  width:90px; height:90px; border-radius:50%; overflow:hidden; position:relative;
+  flex-shrink:0;
+}
+.palm-slot canvas { width:100%; height:100%; display:block; }
+.palm-slot .slot-ring {
+  position:absolute; inset:0; border-radius:50%;
+  border:1px solid;
+  pointer-events:none;
+}
+.palm-slot.p1 .slot-ring { border-color:rgba(196,155,60,.5); }
+.palm-slot.p2 .slot-ring { border-color:rgba(61,139,120,.5); }
+
+.infinity {
+  font-family:var(--serif); font-size:36px; color:var(--muted);
+  animation:pulse 2s ease infinite;
+}
+@keyframes pulse { 0%,100%{opacity:.3;transform:scale(1);} 50%{opacity:.8;transform:scale(1.1);} }
+
+/* merge canvas */
+#mergeWrap {
+  width:min(300px,82vw); height:min(160px,44vw);
+  position:relative; border-radius:8px; overflow:hidden;
+  background:var(--bg2); opacity:0; transition:opacity .8s;
+}
+#mergeCanvas { width:100%; height:100%; display:block; }
+
+.compat-row {
+  display:flex; align-items:baseline; gap:.5rem; justify-content:center;
+}
+.compat-num {
+  font-family:var(--serif); font-size:56px; font-weight:300;
+  color:var(--text); line-height:1;
+}
+.compat-pct {
+  font-family:var(--sans); font-size:14px; color:var(--muted);
+  font-weight:300;
+}
+
+.compat-bar-wrap {
+  width:min(320px,88vw); height:2px;
+  background:rgba(255,255,255,.05); border-radius:2px; overflow:hidden;
+}
+.compat-bar-fill {
+  height:100%; width:0%; border-radius:2px;
+  background:linear-gradient(90deg, var(--gold), var(--teal));
+  transition:width 2.2s cubic-bezier(.16,1,.3,1);
+}
+
+.mate-reading {
+  font-family:var(--serif); font-size:clamp(15px,2.5vw,18px);
+  font-weight:300; font-style:italic; color:var(--text);
+  line-height:1.85; text-align:center; min-height:90px;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* ═══════ UTILITY ═══════ */
+@keyframes rise {
+  from { opacity:0; transform:translateY(18px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes blink { 50%{opacity:0;} }
+
+/* mobile */
+@media(max-width:500px) {
+  .land-title { letter-spacing:8px; }
+  .drop-zone { width:75vw; height:75vw; }
+  .scan-circle { width:78vw; height:78vw; }
+  .scan-track { width:78vw; }
+}
+</style>
+</head>
+<body>
+
+<div class="orb orb-a"></div>
+<div class="orb orb-b"></div>
+<div class="grain"></div>
+
+<button id="backBtn" onclick="goBack()">← voltar</button>
+
+<!-- ══ LANDING ══ -->
+<div class="screen active" id="landing">
+  <div class="sigil-wrap">
+    <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="36" cy="36" r="34" stroke="rgba(196,155,60,.3)" stroke-width=".6"/>
+      <circle cx="36" cy="36" r="24" stroke="rgba(196,155,60,.18)" stroke-width=".6"/>
+      <line x1="36" y1="2"  x2="36" y2="70" stroke="rgba(196,155,60,.15)" stroke-width=".6"/>
+      <line x1="2"  y1="36" x2="70" y2="36" stroke="rgba(196,155,60,.15)" stroke-width=".6"/>
+      <!-- palm lines -->
+      <path d="M20 52 Q26 32 36 24 Q46 32 52 52" stroke="rgba(196,155,60,.55)" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+      <path d="M25 46 Q31 28 36 22" stroke="rgba(196,155,60,.35)" stroke-width=".8" fill="none" stroke-linecap="round"/>
+      <path d="M38 46 Q44 36 50 32" stroke="rgba(196,155,60,.25)" stroke-width=".7" fill="none" stroke-linecap="round"/>
+      <circle cx="36" cy="36" r="2.5" fill="rgba(196,155,60,.7)"/>
+    </svg>
+  </div>
+  <div class="land-title">Palma</div>
+  <div class="land-sub">o que a mão guarda</div>
+  <div class="land-btns">
+    <button class="btn btn-gold" onclick="initSolo()">ler minha palma</button>
+    <button class="btn btn-ghost" onclick="initDuo()">duas almas — comparar palmas</button>
+  </div>
+</div>
+
+<!-- ══ CAPTURE ══ -->
+<div class="screen" id="capture">
+  <div class="step-label" id="captureLabel">sua palma</div>
+  <div class="step-title" id="captureTitle">abra a mão — mostre as linhas</div>
+
+  <div class="drop-zone" id="dropZone">
+    <input type="file" id="fileInput" accept="image/*" onchange="onFile(event)">
+    <!-- Hand SVG icon -->
+    <svg class="hand-icon" viewBox="0 0 70 85" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M25 65 L25 18 Q25 12 31 12 Q37 12 37 18 L37 40" stroke="rgba(196,155,60,.7)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M37 40 L37 14 Q37 8 43 8 Q49 8 49 14 L49 40" stroke="rgba(196,155,60,.7)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M49 40 L49 18 Q49 12 55 12 Q61 12 61 18 L61 44" stroke="rgba(196,155,60,.7)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M13 48 Q9 48 9 54 L9 64 Q9 76 25 76 L57 76 Q66 76 68 68 L68 44 Q68 38 61 38" stroke="rgba(196,155,60,.7)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <!-- palm lines -->
+      <path d="M22 62 Q28 48 37 42" stroke="rgba(196,155,60,.4)" stroke-width=".8" fill="none"/>
+      <path d="M26 58 Q34 50 42 44" stroke="rgba(196,155,60,.3)" stroke-width=".7" fill="none"/>
+    </svg>
+    <div class="drop-hint">toque para escolher foto</div>
+    <canvas id="previewCanvas" class="preview-canvas" style="display:none"></canvas>
+  </div>
+
+  <div class="capture-actions">
+    <button class="cam-btn" onclick="openCamera()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="13" r="4"/>
+        <path d="M5 7h1l2-3h8l2 3h1a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2z"/>
+      </svg>
+      câmera
+    </button>
+    <button class="btn btn-gold" id="goScan" onclick="startScan()">iniciar leitura</button>
+  </div>
+</div>
+
+<!-- ══ SCANNING ══ -->
+<div class="screen" id="scanning">
+  <div class="step-label">lendo as linhas</div>
+  <div class="scan-circle">
+    <canvas id="scanCanvas"></canvas>
+  </div>
+  <div class="scan-track"><div class="scan-fill" id="scanFill"></div></div>
+  <div class="scan-status" id="scanStatus">analisando</div>
+</div>
+
+<!-- ══ READING ══ -->
+<div class="screen" id="reading">
+  <div class="reading-palm-mini">
+    <canvas id="thumbCanvas"></canvas>
+  </div>
+  <div class="lines-sig" id="linesSig"></div>
+  <div class="reading-body">
+    <span id="readingTxt"></span><span class="blink" id="blinker"></span>
+  </div>
+  <div class="reading-actions">
+    <button class="btn btn-gold" id="readingCta" style="display:none" onclick="onReadingCta()">—</button>
+    <button class="add-partner" id="addPartnerBtn" onclick="addPartner()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+      </svg>
+      adicionar a palma de outra pessoa
+    </button>
+  </div>
+</div>
+
+<!-- ══ SOUL MATE ══ -->
+<div class="screen" id="soulmate">
+  <div class="step-label">almas cruzadas</div>
+
+  <div class="palms-row">
+    <div class="palm-slot p1" id="slot1">
+      <canvas id="slotCanvas1"></canvas>
+      <div class="slot-ring"></div>
+    </div>
+    <div class="infinity">∞</div>
+    <div class="palm-slot p2" id="slot2">
+      <canvas id="slotCanvas2"></canvas>
+      <div class="slot-ring"></div>
+    </div>
+  </div>
+
+  <div id="mergeWrap">
+    <canvas id="mergeCanvas"></canvas>
+  </div>
+
+  <div class="compat-bar-wrap">
+    <div class="compat-bar-fill" id="compatFill"></div>
+  </div>
+  <div class="compat-row">
+    <div class="compat-num" id="compatNum">0</div>
+    <div class="compat-pct">% compatibilidade</div>
+  </div>
+
+  <div class="mate-reading">
+    <span id="mateTxt"></span><span class="blink" id="blinkerMate"></span>
+  </div>
+</div>
+
+<script>
+// ═══════════════════ STATE ═══════════════════
+const S = {
+  mode: 'solo',        // solo | duo
+  captureIdx: 1,
+  palmURL: [null, null],
+  palmCanvas: [null, null],  // offscreen canvas with lines drawn
+  lineData: [[], []],
+  lineCount: [0, 0],
+  reading: ['', ''],
+};
+
+// ═══════════════════ NAV ═══════════════════
+const screens = ['landing','capture','scanning','reading','soulmate'];
+
+function show(id) {
+  screens.forEach(s => {
+    const el = document.getElementById(s);
+    el.classList.toggle('active', s === id);
+  });
+  document.getElementById('backBtn').classList.toggle('show', id !== 'landing');
+}
+
+function goBack() {
+  const active = document.querySelector('.screen.active');
+  const id = active?.id;
+  const map = { capture:'landing', scanning:'capture', reading:'capture', soulmate:'reading' };
+  if (map[id]) {
+    if (map[id] === 'landing') resetAll();
+    show(map[id]);
+  }
+}
+
+function resetAll() {
+  S.mode = 'solo'; S.captureIdx = 1;
+  S.palmURL = [null,null]; S.palmCanvas = [null,null];
+  S.lineData = [[],[]]; S.lineCount = [0,0]; S.reading = ['',''];
+  resetCapture();
+}
+
+// ═══════════════════ CAPTURE ═══════════════════
+function initSolo() { S.mode='solo'; S.captureIdx=1; resetCapture(); show('capture'); }
+
+function initDuo() {
+  S.mode='duo'; S.captureIdx=1;
+  resetCapture();
+  document.getElementById('captureLabel').textContent = 'primeira palma';
+  document.getElementById('captureTitle').textContent = 'mostre sua mão';
+  show('capture');
+}
+
+function resetCapture() {
+  const dz = document.getElementById('dropZone');
+  dz.querySelector('.hand-icon').style.display = 'block';
+  dz.querySelector('.drop-hint').style.display = 'block';
+  document.getElementById('previewCanvas').style.display = 'none';
+  document.getElementById('goScan').style.display = 'none';
+  document.getElementById('captureLabel').textContent = 'sua palma';
+  document.getElementById('captureTitle').textContent = 'abra a mão — mostre as linhas';
+  document.getElementById('fileInput').value = '';
+  // re-enable click
+  document.getElementById('dropZone').onclick = null;
+}
+
+function openCamera() {
+  const input = document.getElementById('fileInput');
+  input.removeAttribute('capture');
+  input.setAttribute('capture','environment');
+  input.click();
+}
+
+function onFile(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => loadPalmURL(e.target.result);
+  reader.readAsDataURL(file);
+}
+
+function loadPalmURL(url) {
+  const idx = S.captureIdx - 1;
+  S.palmURL[idx] = url;
+
+  // Draw preview in drop zone circle
+  const img = new Image();
+  img.onload = () => {
+    const pc = document.getElementById('previewCanvas');
+    const sz = document.getElementById('dropZone').offsetWidth;
+    pc.width = sz; pc.height = sz;
+    const ctx = pc.getContext('2d');
+    // crop to circle
+    ctx.clearRect(0,0,sz,sz);
+    const min = Math.min(img.width, img.height);
+    const sx = (img.width - min) / 2;
+    const sy = (img.height - min) / 2;
+    ctx.drawImage(img, sx, sy, min, min, 0, 0, sz, sz);
+
+    document.getElementById('dropZone').querySelector('.hand-icon').style.display = 'none';
+    document.getElementById('dropZone').querySelector('.drop-hint').style.display = 'none';
+    pc.style.display = 'block';
+    document.getElementById('goScan').style.display = 'block';
+    // disable re-click on zone
+    document.getElementById('dropZone').querySelector('input').style.pointerEvents = 'none';
+  };
+  img.src = url;
+}
+
+// ═══════════════════ SCAN ═══════════════════
+function startScan() {
+  show('scanning');
+  document.getElementById('scanStatus').textContent = 'analisando';
+  document.getElementById('scanFill').style.width = '0%';
+
+  const idx = S.captureIdx - 1;
+  const img = new Image();
+  img.onload = () => runScan(img, idx);
+  img.src = S.palmURL[idx];
+}
+
+function runScan(img, idx) {
+  const canvas = document.getElementById('scanCanvas');
+  const SZ = 600;
+  canvas.width = SZ; canvas.height = SZ;
+  const ctx = canvas.getContext('2d');
+
+  // crop-square draw
+  const min = Math.min(img.width, img.height);
+  const sx = (img.width - min) / 2;
+  const sy = (img.height - min) / 2;
+  ctx.drawImage(img, sx, sy, min, min, 0, 0, SZ, SZ);
+
+  // detect palm lines via edge/dark pixel analysis
+  const raw = ctx.getImageData(0, 0, SZ, SZ);
+  const lines = detectLines(raw);
+  S.lineData[idx] = lines;
+  S.lineCount[idx] = Math.max(6, Math.min(18, Math.floor(lines.length / 60)));
+
+  // save offscreen canvas (palm + lines drawn)
+  const offscreen = document.createElement('canvas');
+  offscreen.width = SZ; offscreen.height = SZ;
+  S.palmCanvas[idx] = offscreen;
+
+  // run animated scan
+  animateScan(canvas, ctx, img, sx, sy, min, SZ, lines, () => {
+    // copy final frame to offscreen
+    const oc = S.palmCanvas[idx].getContext('2d');
+    oc.drawImage(canvas, 0, 0);
+    // proceed
+    fetchReading(idx);
+  });
+}
+
+function detectLines(imgData) {
+  const { data, width, height } = imgData;
+  const pts = [];
+  for (let y = 5; y < height - 5; y += 3) {
+    for (let x = 5; x < width - 5; x += 3) {
+      const i = (y * width + x) * 4;
+      const lum = data[i]*.3 + data[i+1]*.59 + data[i+2]*.11;
+      if (lum < 120) {
+        // edge check: is there a lighter neighbor?
+        const i2 = ((y-3)*width+x)*4;
+        const lum2 = data[i2]*.3 + data[i2+1]*.59 + data[i2+2]*.11;
+        if (lum2 - lum > 22) {
+          pts.push({x, y});
+        }
+      }
+    }
+  }
+  return pts;
+}
+
+function animateScan(canvas, ctx, img, sx, sy, min, SZ, lines, onDone) {
+  let scanY = 0;
+  const speed = 4;
+  const revealed = new Set();
+
+  function frame() {
+    // redraw image
+    ctx.drawImage(img, sx, sy, min, min, 0, 0, SZ, SZ);
+
+    // overlay subtle dark vignette
+    const vig = ctx.createRadialGradient(SZ/2, SZ/2, SZ*.3, SZ/2, SZ/2, SZ*.7);
+    vig.addColorStop(0, 'transparent');
+    vig.addColorStop(1, 'rgba(7,6,5,.5)');
+    ctx.fillStyle = vig;
+    ctx.fillRect(0,0,SZ,SZ);
+
+    // collect newly revealed line points
+    lines.forEach(pt => {
+      if (pt.y <= scanY && !revealed.has(pt)) {
+        if (Math.random() < 0.35) revealed.add(pt);
+      }
+    });
+
+    // draw revealed points
+    revealed.forEach(pt => {
+      ctx.shadowColor = 'rgba(196,155,60,.9)';
+      ctx.shadowBlur = 5;
+      ctx.fillStyle = `rgba(196,155,60,${.35 + Math.random()*.3})`;
+      ctx.fillRect(pt.x, pt.y, 1.8, 1.8);
+    });
+    ctx.shadowBlur = 0;
+
+    // scan glow band
+    const grd = ctx.createLinearGradient(0, scanY-40, 0, scanY+40);
+    grd.addColorStop(0,   'rgba(196,155,60,0)');
+    grd.addColorStop(.35, 'rgba(196,155,60,.12)');
+    grd.addColorStop(.5,  'rgba(196,155,60,.45)');
+    grd.addColorStop(.65, 'rgba(196,155,60,.12)');
+    grd.addColorStop(1,   'rgba(196,155,60,0)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, scanY-40, SZ, 80);
+
+    // bright line
+    ctx.strokeStyle = 'rgba(255,220,120,.7)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0,scanY); ctx.lineTo(SZ,scanY); ctx.stroke();
+
+    // horizontal noise sparks on line
+    for (let i=0; i<6; i++) {
+      const px = Math.random()*SZ;
+      ctx.fillStyle = 'rgba(255,230,140,.8)';
+      ctx.fillRect(px, scanY, 2, 1);
+    }
+
+    // progress
+    document.getElementById('scanFill').style.width = ((scanY/SZ)*100) + '%';
+
+    // status label cycling
+    const labels = ['analisando','lendo linhas','mapeando','calculando'];
+    document.getElementById('scanStatus').textContent = labels[Math.floor((scanY/SZ)*labels.length)] || labels[labels.length-1];
+
+    scanY += speed;
+    if (scanY < SZ + 40) {
+      requestAnimationFrame(frame);
+    } else {
+      // flash all lines once
+      ctx.drawImage(img, sx, sy, min, min, 0, 0, SZ, SZ);
+      lines.forEach(pt => {
+        if (Math.random() < .25) {
+          ctx.shadowColor = 'rgba(196,155,60,.8)';
+          ctx.shadowBlur = 4;
+          ctx.fillStyle = 'rgba(196,155,60,.55)';
+          ctx.fillRect(pt.x, pt.y, 2, 2);
+        }
+      });
+      ctx.shadowBlur = 0;
+      document.getElementById('scanFill').style.width = '100%';
+      document.getElementById('scanStatus').textContent = 'leitura concluída';
+      setTimeout(onDone, 700);
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+// ═══════════════════ READING ═══════════════════
+async function fetchReading(idx) {
+  const char = palmChar(idx);
+  const prompt = idx === 0
+    ? `Leitura de alma em português. Baseado no perfil: "${char}". 4 frases curtas, poéticas, específicas. Sem clichê. Fale sobre como esta pessoa ama, o que ela carrega, o que ela protege. Tom: íntimo, honesto.`
+    : `Segunda leitura de alma. Perfil: "${char}". 4 frases. Como esta pessoa se relaciona com o tempo, com a perda, com o que não consegue controlar. Tom: verdadeiro, não consolador.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data = await res.json();
+    S.reading[idx] = data.content?.[0]?.text || fallbackReading(idx);
+  } catch {
+    S.reading[idx] = fallbackReading(idx);
+  }
+  showReading(idx);
+}
+
+function palmChar(idx) {
+  const n = S.lineCount[idx];
+  const chars = [
+    'linhas profundas e poucas — alma que vai fundo antes de ir longe',
+    'muitas linhas entrelaçadas — mente que não para, coração que não esquece nada',
+    'linhas claras e diretas — alguém que sabe o que quer e paga o preço por isso',
+    'linhas irregulares e vivas — pessoa que muda sem some, transforma sem desaparecer',
+    'textura densa, linhas cruzadas — guarda mais do que mostra, processa mais do que fala',
+    'poucas linhas, cada uma longa — prefere profundidade a abrangência em tudo',
+  ];
+  return chars[n % chars.length];
+}
+
+function fallbackReading(idx) {
+  const r = [
+    [
+      'Há algo em você que resiste. Não por força — por natureza. Você ama de um jeito que a maioria não sabe nomear.',
+      'O que você carrega não é peso. É memória que ainda não encontrou lugar para pousar.',
+      'Você protege o que é frágil com tanta cuidado que às vezes nem você mesmo consegue tocar.',
+      'E ainda assim você chega. Sempre chega.'
+    ],
+    [
+      'O tempo, para você, funciona diferente. Você não esquece — você reorganiza.',
+      'A perda não te quebrou. Mudou o que você pede do mundo e de quem está perto.',
+      'Você não controla muito. Aprendeu a se mover dentro do que não pode conter.',
+      'Essa sabedoria custou algo real. E você sabe exatamente quanto.'
+    ]
+  ];
+  return r[idx].join(' ');
+}
+
+function showReading(idx) {
+  // draw mini palm thumb
+  if (S.palmCanvas[idx]) {
+    const tc = document.getElementById('thumbCanvas');
+    tc.width = 160; tc.height = 160;
+    tc.getContext('2d').drawImage(S.palmCanvas[idx], 0, 0, 160, 160);
+  }
+
+  // build signature dots
+  const sig = document.getElementById('linesSig');
+  sig.innerHTML = '';
+  const n = Math.min(S.lineCount[idx] + 2, 14);
+  for (let i=0; i<n; i++) {
+    const d = document.createElement('div');
+    d.className = 'sig-dot';
+    const size = 3 + (i/n)*3;
+    d.style.width = size+'px'; d.style.height = size+'px';
+    d.style.opacity = (.25 + (i/n)*.7).toFixed(2);
+    sig.appendChild(d);
+  }
+
+  document.getElementById('readingTxt').textContent = '';
+  document.getElementById('blinker').style.display = 'inline-block';
+  document.getElementById('readingCta').style.display = 'none';
+  document.getElementById('addPartnerBtn').classList.remove('show');
+
+  show('reading');
+
+  typeWriter('readingTxt', S.reading[idx], () => {
+    document.getElementById('blinker').style.display = 'none';
+    const cta = document.getElementById('readingCta');
+    cta.style.display = 'block';
+
+    if (S.mode === 'duo' && idx === 0) {
+      cta.textContent = 'adicionar segunda palma';
+    } else if (S.mode === 'duo' && idx === 1) {
+      cta.textContent = 'ver as almas cruzadas';
+    } else {
+      // solo mode
+      cta.textContent = 'continuar';
+      document.getElementById('addPartnerBtn').classList.add('show');
+    }
+    cta.onclick = onReadingCta;
+  });
+}
+
+function onReadingCta() {
+  if (S.mode === 'duo' && S.captureIdx === 1) {
+    S.captureIdx = 2;
+    document.getElementById('captureLabel').textContent = 'segunda palma';
+    document.getElementById('captureTitle').textContent = 'agora a mão de outra pessoa';
+    resetCapture();
+    show('capture');
+  } else if (S.mode === 'duo' && S.captureIdx === 2) {
+    buildSoulMate();
+  }
+  // solo: already handled by add-partner or just stay
+}
+
+function addPartner() {
+  S.mode = 'duo';
+  S.captureIdx = 2;
+  document.getElementById('captureLabel').textContent = 'segunda palma';
+  document.getElementById('captureTitle').textContent = 'agora a mão de outra pessoa';
+  resetCapture();
+  show('capture');
+}
+
+// ═══════════════════ SOUL MATE ═══════════════════
+async function buildSoulMate() {
+  // draw slot thumbs
+  [0,1].forEach(i => {
+    if (!S.palmCanvas[i]) return;
+    const c = document.getElementById(`slotCanvas${i+1}`);
+    c.width = 180; c.height = 180;
+    c.getContext('2d').drawImage(S.palmCanvas[i], 0, 0, 180, 180);
+  });
+
+  show('soulmate');
+
+  // animate merge canvas
+  setTimeout(() => {
+    buildMergeViz();
+  }, 600);
+
+  // animate compat number
+  const compat = Math.floor(58 + Math.random()*35);
+  setTimeout(() => {
+    document.getElementById('compatFill').style.width = compat + '%';
+    animNum('compatNum', 0, compat, 2200);
+  }, 900);
+
+  // fetch combined reading
+  const c1 = palmChar(0), c2 = palmChar(1);
+  const prompt = `Duas palmas foram lidas. Primeira: "${c1}". Segunda: "${c2}". Em português, 3 frases sobre o que acontece quando essas duas almas se encontram. Não use "harmonia" ou "destino". Fale sobre a tensão real, o tipo de completude, o que uma traz que a outra não tem. Seja específico.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || fallbackMate();
+    setTimeout(() => typeWriter('mateTxt', text), 1500);
+  } catch {
+    setTimeout(() => typeWriter('mateTxt', fallbackMate()), 1500);
+  }
+}
+
+function buildMergeViz() {
+  const wrap = document.getElementById('mergeWrap');
+  const mc = document.getElementById('mergeCanvas');
+  const W = wrap.offsetWidth, H = wrap.offsetHeight || 160;
+  mc.width = W; mc.height = H;
+  const ctx = mc.getContext('2d');
+
+  // Draw both palms side by side, tinted
+  const draw = (palmIdx, x, w, color) => {
+    if (!S.palmCanvas[palmIdx]) return;
+    ctx.save();
+    ctx.globalAlpha = .35;
+    ctx.drawImage(S.palmCanvas[palmIdx], x, 0, w, H);
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.fillStyle = color;
+    ctx.globalAlpha = .3;
+    ctx.fillRect(x, 0, w, H);
+    ctx.restore();
+  };
+
+  draw(0, 0, W/2, 'rgba(196,155,60,.5)');
+  draw(1, W/2, W/2, 'rgba(61,139,120,.5)');
+
+  // Center divider
+  ctx.strokeStyle = 'rgba(255,255,255,.1)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,6]);
+  ctx.beginPath(); ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // animate crossing lines
+  const lines0 = S.lineData[0].filter((_,i) => i%4===0).slice(0,40);
+  const lines1 = S.lineData[1].filter((_,i) => i%4===0).slice(0,40);
+  const SZ = 600;
+
+  let t = 0;
+  const anim = () => {
+    ctx.clearRect(0,0,W,H);
+    draw(0, 0, W/2, 'rgba(196,155,60,.5)');
+    draw(1, W/2, W/2, 'rgba(61,139,120,.5)');
+    ctx.strokeStyle = 'rgba(255,255,255,.08)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4,6]);
+    ctx.beginPath(); ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // gold lines from left palm
+    lines0.forEach((pt, i) => {
+      const phase = (t*.02 + i*.12) % (Math.PI*2);
+      const alpha = (.3 + Math.sin(phase)*.2);
+      ctx.strokeStyle = `rgba(196,155,60,${alpha})`;
+      ctx.lineWidth = .8;
+      ctx.beginPath();
+      ctx.moveTo((pt.x/SZ)*(W/2), (pt.y/SZ)*H);
+      // arc toward center
+      const cx = W/2 + Math.sin(phase)*20;
+      ctx.quadraticCurveTo(cx, H/2, W/2, H/2);
+      ctx.stroke();
+    });
+
+    // teal lines from right palm
+    lines1.forEach((pt, i) => {
+      const phase = (t*.02 + i*.15 + 1) % (Math.PI*2);
+      const alpha = (.3 + Math.sin(phase)*.2);
+      ctx.strokeStyle = `rgba(61,139,120,${alpha})`;
+      ctx.lineWidth = .8;
+      ctx.beginPath();
+      ctx.moveTo(W/2 + (pt.x/SZ)*(W/2), (pt.y/SZ)*H);
+      const cx = W/2 - Math.sin(phase)*20;
+      ctx.quadraticCurveTo(cx, H/2, W/2, H/2);
+      ctx.stroke();
+    });
+
+    // glow at center
+    const grd = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, 40);
+    grd.addColorStop(0, `rgba(255,230,180,${.15 + Math.sin(t*.03)*.1})`);
+    grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd;
+    ctx.fillRect(W/2-40, H/2-40, 80, 80);
+
+    t++;
+    if (document.getElementById('soulmate').classList.contains('active')) {
+      requestAnimationFrame(anim);
+    }
+  };
+
+  wrap.style.opacity = '1';
+  requestAnimationFrame(anim);
+}
+
+function fallbackMate() {
+  return 'Uma traz a pergunta, a outra traz o lugar onde a pergunta pode existir. Há atrito — a intensidade de uma esgota a outra em momentos, e isso é real e não vai embora. Mas também há algo raro: uma consegue forçar a outra a ser mais do que o que ensaiou ser.';
+}
+
+function animNum(id, from, to, ms) {
+  const el = document.getElementById(id);
+  const start = performance.now();
+  const run = now => {
+    const t = Math.min((now-start)/ms, 1);
+    const ease = 1 - Math.pow(1-t, 3);
+    el.textContent = Math.floor(from + (to-from)*ease);
+    if (t < 1) requestAnimationFrame(run);
+  };
+  requestAnimationFrame(run);
+}
+
+// ═══════════════════ TYPEWRITER ═══════════════════
+function typeWriter(id, text, cb) {
+  const el = document.getElementById(id);
+  el.textContent = '';
+  let i = 0;
+  const BASE = 26;
+  const go = () => {
+    if (i >= text.length) { cb?.(); return; }
+    el.textContent += text[i++];
+    const ch = text[i-1];
+    const delay = ch === '.' || ch === '—' || ch === ',' ? BASE + 250 : BASE + Math.random()*18;
+    setTimeout(go, delay);
+  };
+  go();
+}
+</script>
+</body>
+</html>
